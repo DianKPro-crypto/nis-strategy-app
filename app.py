@@ -394,6 +394,8 @@ def page_help():
     lg = lang()
     fname = "GUIDE_UTILISATEUR_FR.md" if lg == "fr" else "USER_GUIDE_EN.md"
     path = settings.BASE_DIR / fname
+    svg_path = settings.BASE_DIR / ("assets/quality_chain_fr.svg" if lg == "fr"
+                                    else "assets/quality_chain_en.svg")
     try:
         text = path.read_text(encoding="utf-8")
     except Exception:
@@ -403,7 +405,19 @@ def page_help():
     lines = text.splitlines()
     if lines and lines[0].startswith("# "):
         lines = lines[1:]
-    st.markdown("\n".join(lines))
+    # Render the guide, replacing the markdown image with the inline SVG
+    # (Streamlit can't load relative local images, so we inject the SVG directly).
+    buffer = []
+    for ln in lines:
+        if ln.lstrip().startswith("!["):
+            st.markdown("\n".join(buffer)); buffer = []
+            try:
+                st.markdown(svg_path.read_text(encoding="utf-8"), unsafe_allow_html=True)
+            except Exception:
+                pass
+        else:
+            buffer.append(ln)
+    st.markdown("\n".join(buffer))
     st.divider()
     st.download_button("⬇️ " + ("Télécharger ce guide (.md)" if lg == "fr" else "Download this guide (.md)"),
                        text, fname, "text/markdown")

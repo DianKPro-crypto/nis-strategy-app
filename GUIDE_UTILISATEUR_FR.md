@@ -104,6 +104,12 @@ Une fois la validation confirmée, téléchargez :
 - **Relisez toujours** : vérifiez les chiffres, complétez les *« À compléter »*, ajustez le langage.
 - Sans clé IA configurée, l’application fonctionne en **mode manuel** (saisie à la main).
 
+### Comment l’IA produit des éléments de qualité
+
+La qualité vient d’une **chaîne de garde-fous** : un expert cadré → ancré uniquement dans vos preuves → suivant la structure OMS → au format vérifié → validé par l’humain.
+
+![Chaîne de qualité de l’IA — de vos documents aux éléments validés](assets/quality_chain_fr.svg)
+
 ## 6. Modifier & valider
 
 Tout le contenu généré est **modifiable**. Après révision, cliquez **« Valider cette section »**. La validation est **obligatoire** avant l’export final.

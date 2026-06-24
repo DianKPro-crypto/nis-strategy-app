@@ -1,0 +1,31 @@
+<svg width="100%" viewBox="0 0 680 670" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>AI quality chain</title><desc>From your documents to validated elements in 5 steps</desc>
+<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5B6B7B"/></marker></defs>
+<line x1="340" y1="92" x2="340" y2="128" stroke="#5B6B7B" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="340" y1="188" x2="340" y2="216" stroke="#5B6B7B" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="340" y1="276" x2="340" y2="304" stroke="#5B6B7B" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="340" y1="364" x2="340" y2="392" stroke="#5B6B7B" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="340" y1="452" x2="340" y2="480" stroke="#5B6B7B" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="340" y1="540" x2="340" y2="578" stroke="#5B6B7B" stroke-width="2" marker-end="url(#ah)"/>
+<rect x="125" y="40" width="430" height="52" rx="14" fill="#EEF2F6" stroke="#94A3B8" stroke-width="2"/>
+<text x="340" y="62" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#334155">Your country documents</text>
+<text x="340" y="78" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#475569">your sources only</text>
+<rect x="125" y="130" width="430" height="58" rx="12" fill="#E6F2FB" stroke="#0093D5" stroke-width="2"/>
+<text x="340" y="155" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#003366">1 · Framed public-health expert</text>
+<text x="340" y="173" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#0C5A86">strict role and rules</text>
+<rect x="125" y="218" width="430" height="58" rx="12" fill="#E6F2FB" stroke="#0093D5" stroke-width="2"/>
+<text x="340" y="243" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#003366">2 · Grounded in your evidence</text>
+<text x="340" y="261" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#0C5A86">source · excerpt · confidence level</text>
+<rect x="125" y="306" width="430" height="58" rx="12" fill="#E6F2FB" stroke="#0093D5" stroke-width="2"/>
+<text x="340" y="331" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#003366">3 · WHO structure</text>
+<text x="340" y="349" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#0C5A86">7 components · 26 subcomponents</text>
+<rect x="125" y="394" width="430" height="58" rx="12" fill="#E6F2FB" stroke="#0093D5" stroke-width="2"/>
+<text x="340" y="419" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#003366">4 · Verified format</text>
+<text x="340" y="437" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#0C5A86">strict JSON · auto retry</text>
+<rect x="125" y="482" width="430" height="58" rx="12" fill="#E6F2FB" stroke="#0093D5" stroke-width="2"/>
+<text x="340" y="507" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#003366">5 · Human validation</text>
+<text x="340" y="525" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#0C5A86">editing · quality control</text>
+<rect x="125" y="580" width="430" height="56" rx="14" fill="#ECF7E6" stroke="#6CB33F" stroke-width="2"/>
+<text x="340" y="605" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="600" fill="#2E5A12">Traceable, defensible elements</text>
+<text x="340" y="623" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="12" font-weight="400" fill="#436E1E">MoH · WHO · Gavi</text>
+</svg>

@@ -104,6 +104,12 @@ Once validation is confirmed, download:
 - **Always review**: check figures, fill in the *“To be completed”* items, refine the wording.
 - Without a configured AI key, the app runs in **manual mode** (type everything by hand).
 
+### How the AI produces quality elements
+
+Quality comes from a **chain of safeguards**: a framed expert → grounded only in your evidence → following the WHO structure → in a verified format → validated by humans.
+
+![AI quality chain — from your documents to validated elements](assets/quality_chain_en.svg)
+
 ## 6. Edit & validate
 
 All generated content is **editable**. After review, click **“Validate this section.”** Validation is **required** before final export.
