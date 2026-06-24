@@ -1,0 +1,23 @@
+"""Institutional branding — resolves the WHO/OMS logo by language."""
+from __future__ import annotations
+from pathlib import Path
+
+from config.settings import BASE_DIR
+
+ASSETS = BASE_DIR / "assets"
+
+
+def logo_path(language: str = "fr") -> Path | None:
+    """Return the WHO logo path for the language (FR = OMS, EN = WHO), or None if absent."""
+    name = "who_logo_fr.png" if language == "fr" else "who_logo_en.png"
+    p = ASSETS / name
+    if p.exists():
+        return p
+    # fall back to the other language if only one logo is present
+    other = ASSETS / ("who_logo_en.png" if language == "fr" else "who_logo_fr.png")
+    return other if other.exists() else None
+
+
+def logo_bytes(language: str = "fr") -> bytes | None:
+    p = logo_path(language)
+    return p.read_bytes() if p else None

@@ -1,0 +1,22 @@
+# Secrets — NEVER commit
+.env
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Data (uploads / outputs / local DB)
+data/uploads/*
+data/outputs/*
+data/temp/*
+*.db
+!data/uploads/.gitkeep
+!data/outputs/.gitkeep
+!data/temp/.gitkeep
+
+# OS
+.DS_Store
