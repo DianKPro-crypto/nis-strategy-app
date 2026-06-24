@@ -8,6 +8,7 @@ AI generation → human review/edit/validate → Excel/Word/PDF/PowerPoint expor
 Run locally:   streamlit run app.py
 """
 from __future__ import annotations
+import json
 import streamlit as st
 
 from config import settings
@@ -107,6 +108,18 @@ def sidebar():
 # --------------------------------------------------------------------------- #
 def page_profile():
     s = S(); lg = lang()
+    with st.expander("♻️ Reprendre un projet (fichier .json)"):
+        st.caption("Importez le fichier .json téléchargé à l’étape « 10 · Exports » lors d’une session "
+                   "précédente pour continuer le travail là où vous l’aviez laissé.")
+        up = st.file_uploader("Fichier de sauvegarde (.json)", type=["json"], key="resume_json")
+        if up is not None and st.button("Charger ce projet", key="load_json"):
+            try:
+                data = json.loads(up.getvalue())
+                st.session_state.strategy = NISStrategy.from_dict(data)
+                st.success("Projet rechargé ✅")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Fichier invalide : {e}")
     with st.expander("🇩🇯 Charger l’exemple Djibouti (démonstration)"):
         st.caption("Pré-remplit toute la chaîne (vision → activités) avec un contenu illustratif "
                    "à valider par l’équipe pays.")
@@ -398,7 +411,10 @@ def page_export():
         st.download_button("⬇️ PowerPoint (.pptx)", build_ppt(s), f"SNV_{base}.pptx",
                            "application/vnd.openxmlformats-officedocument.presentationml.presentation")
     st.divider()
-    st.download_button("⬇️ Données JSON", s.to_json(), f"SNV_{base}.json", "application/json")
+    st.markdown("**💾 Sauvegarde complète du projet (.json)** — conservez ce fichier ! Il permet de "
+                "**reprendre tout le travail plus tard** via l’étape « 0 · Profil du pays ».")
+    st.download_button("⬇️ Télécharger la sauvegarde (.json)", s.to_json(),
+                       f"SNV_{base}.json", "application/json")
 
 
 # --------------------------------------------------------------------------- #
