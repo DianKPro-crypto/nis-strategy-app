@@ -75,7 +75,7 @@ def sidebar():
     lp = branding.logo_path(lang())
     if lp:
         st.sidebar.image(str(lp), use_container_width=True)
-    st.sidebar.title("💉 " + t("app_title", lang()))
+    st.sidebar.title(t("app_title", lang()))
     lg = st.sidebar.radio(t("language", lang()), ["fr", "en"],
                           index=0 if lang() == "fr" else 1,
                           format_func=lambda x: "Français" if x == "fr" else "English")
