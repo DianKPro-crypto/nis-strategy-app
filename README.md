@@ -23,6 +23,11 @@ professionnels (Excel, Word, PDF, PowerPoint).
   tant que les sections clés ne sont pas complètes et validées.
 - **Mode hors-ligne** : sans clé API, l’application fonctionne en saisie 100 % manuelle.
 
+## Guides utilisateur (équipes pays)
+
+- 🇫🇷 **[GUIDE_UTILISATEUR_FR.md](GUIDE_UTILISATEUR_FR.md)** — guide pas à pas en français.
+- 🇬🇧 **[USER_GUIDE_EN.md](USER_GUIDE_EN.md)** — step-by-step guide in English.
+
 ## Installation locale
 
 ```bash
