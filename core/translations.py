@@ -18,6 +18,7 @@ STRINGS: dict[str, dict[str, str]] = {
     "nav_act": {"fr": "8 · Activités opérationnelles", "en": "8 · Operational activities"},
     "nav_qc": {"fr": "9 · Contrôle qualité", "en": "9 · Quality control"},
     "nav_export": {"fr": "10 · Exports", "en": "10 · Exports"},
+    "nav_help": {"fr": "❓ Aide / Guide", "en": "❓ Help / Guide"},
     "generate": {"fr": "Générer avec l’IA", "en": "Generate with AI"},
     "regenerate": {"fr": "Régénérer", "en": "Regenerate"},
     "validate_section": {"fr": "Valider cette section", "en": "Validate this section"},

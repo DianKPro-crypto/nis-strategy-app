@@ -43,6 +43,8 @@ STEP_META = {
                "Quality control and completeness before export."),
     "nav_export": ("📦", "Générez les livrables Excel, Word, PDF et PowerPoint.",
                    "Generate the Excel, Word, PDF and PowerPoint deliverables."),
+    "nav_help": ("❓", "Mode d’emploi de la plateforme, étape par étape.",
+                 "How to use the platform, step by step."),
 }
 
 

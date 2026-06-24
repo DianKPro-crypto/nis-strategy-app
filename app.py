@@ -86,7 +86,7 @@ def sidebar():
     else:
         st.sidebar.caption(f"IA: {settings.ANTHROPIC_MODEL}")
     pages = ["nav_profile", "nav_upload", "nav_vision", "nav_swot", "nav_root",
-             "nav_obj", "nav_interv", "nav_me", "nav_act", "nav_qc", "nav_export"]
+             "nav_obj", "nav_interv", "nav_me", "nav_act", "nav_qc", "nav_export", "nav_help"]
     choice = st.sidebar.radio(t("step", lg), pages, format_func=lambda k: t(k, lg))
     st.sidebar.divider()
     # quick save/load
@@ -390,6 +390,25 @@ def page_qc():
                 st.write(f"- {it}")
 
 
+def page_help():
+    lg = lang()
+    fname = "GUIDE_UTILISATEUR_FR.md" if lg == "fr" else "USER_GUIDE_EN.md"
+    path = settings.BASE_DIR / fname
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        st.error("Guide indisponible / Guide unavailable.")
+        return
+    # Drop the leading H1 (the hero banner already shows the title)
+    lines = text.splitlines()
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+    st.markdown("\n".join(lines))
+    st.divider()
+    st.download_button("⬇️ " + ("Télécharger ce guide (.md)" if lg == "fr" else "Download this guide (.md)"),
+                       text, fname, "text/markdown")
+
+
 def page_export():
     s = S(); lg = lang()
     r = run_quality_check(s)
@@ -437,7 +456,7 @@ PAGES = {
     "nav_profile": page_profile, "nav_upload": page_upload, "nav_vision": page_vision,
     "nav_swot": page_swot, "nav_root": page_root, "nav_obj": page_obj,
     "nav_interv": page_interv, "nav_me": page_me, "nav_act": page_act,
-    "nav_qc": page_qc, "nav_export": page_export,
+    "nav_qc": page_qc, "nav_export": page_export, "nav_help": page_help,
 }
 
 
