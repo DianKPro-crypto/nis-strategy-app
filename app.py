@@ -20,7 +20,7 @@ from core.document_loader import extract_document
 from core import ai_engine
 from core.prioritization import INTERVENTION_CRITERIA, SCORE_LEGEND
 from core.validators import run_quality_check
-from core import storage, branding
+from core import storage, branding, ui
 from core.seed_djibouti import seed_djibouti
 from exports.excel_exporter import build_excel
 from exports.word_exporter import build_word
@@ -107,7 +107,6 @@ def sidebar():
 # --------------------------------------------------------------------------- #
 def page_profile():
     s = S(); lg = lang()
-    st.header(t("nav_profile", lg))
     with st.expander("🇩🇯 Charger l’exemple Djibouti (démonstration)"):
         st.caption("Pré-remplit toute la chaîne (vision → activités) avec un contenu illustratif "
                    "à valider par l’équipe pays.")
@@ -138,7 +137,6 @@ def page_profile():
 
 def page_upload():
     s = S(); lg = lang()
-    st.header(t("nav_upload", lg))
     st.caption("⚠️ Documents confidentiels: ils sont traités localement et temporairement.")
     cat = st.selectbox("Catégorie du document", DOCUMENT_CATEGORIES_FR)
     files = st.file_uploader("Glissez-déposez vos fichiers",
@@ -165,7 +163,6 @@ def page_upload():
 
 def page_vision():
     s = S(); lg = lang()
-    st.header(t("nav_vision", lg))
     if st.button("✨ " + t("generate", lg), key="gen_vision"):
         _gen_or_warn("vision")
     s.vision.vision = st.text_area("Vision (≈10 ans)", s.vision.vision, height=100)
@@ -178,7 +175,6 @@ def page_vision():
 
 def page_swot():
     s = S(); lg = lang()
-    st.header(t("nav_swot", lg))
     st.caption("Forces/Faiblesses = INTERNES au PEV · Opportunités/Menaces = EXTERNES")
     if st.button("✨ " + t("generate", lg), key="gen_swot"):
         _gen_or_warn("swot")
@@ -209,7 +205,6 @@ def page_swot():
 
 def page_root():
     s = S(); lg = lang()
-    st.header(t("nav_root", lg))
     st.caption("Méthode des POURQUOI : pour chaque faiblesse, remonter jusqu’à la cause profonde.")
     if st.button("✨ " + t("generate", lg), key="gen_root"):
         _gen_or_warn("root_causes")
@@ -231,7 +226,6 @@ def page_root():
 
 def page_obj():
     s = S(); lg = lang()
-    st.header(t("nav_obj", lg))
     s.grouping_option = st.radio(
         "Option de regroupement (Section 3)",
         ["option1", "option2", "option3"],
@@ -261,7 +255,6 @@ def page_obj():
 
 def page_interv():
     s = S(); lg = lang()
-    st.header(t("nav_interv", lg))
     if st.button("✨ " + t("generate", lg), key="gen_iv"):
         _gen_or_warn("interventions")
     obj_ids = [o.obj_id for o in s.objectives] or [""]
@@ -299,7 +292,6 @@ def page_interv():
 
 def page_me():
     s = S(); lg = lang()
-    st.header(t("nav_me", lg))
     if st.button("✨ " + t("generate", lg), key="gen_me"):
         _gen_or_warn("indicators")
     obj_ids = [o.obj_id for o in s.objectives] or [""]
@@ -337,7 +329,6 @@ def page_me():
 
 def page_act():
     s = S(); lg = lang()
-    st.header(t("nav_act", lg))
     if st.button("✨ " + t("generate", lg), key="gen_act"):
         _gen_or_warn("activities")
     iv_ids = [iv.intervention_id for iv in s.interventions] or [""]
@@ -364,7 +355,6 @@ def page_act():
 
 def page_qc():
     s = S(); lg = lang()
-    st.header(t("nav_qc", lg))
     r = run_quality_check(s)
     st.progress(min(1.0, r.completion_pct / 100), text=f"Complétude: {r.completion_pct}%")
     if r.export_ready:
@@ -389,7 +379,6 @@ def page_qc():
 
 def page_export():
     s = S(); lg = lang()
-    st.header(t("nav_export", lg))
     r = run_quality_check(s)
     confirm = st.checkbox("Je confirme la validation humaine de la stratégie", value=r.export_ready)
     if not confirm:
@@ -437,7 +426,9 @@ PAGES = {
 
 
 def main():
+    ui.inject_theme()
     choice = sidebar()
+    ui.hero(choice, lang())
     PAGES[choice]()
 
 
