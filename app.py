@@ -65,6 +65,7 @@ def _gen_or_warn(section: str):
     if section != "vision" and not s.documents:
         st.info("ℹ️ Aucun document importé (étape 1). L’IA produira surtout des « À compléter ». "
                 "Importez vos documents pour des résultats fondés sur des preuves.")
+    ok = False
     try:
         status = st.empty()
         prog = None
@@ -75,16 +76,21 @@ def _gen_or_warn(section: str):
             data = ai_engine.generate_section(section, s.profile, s.documents, lang(), progress=prog)
             ai_engine.apply_section(s, section, data)
         status.empty()
-        # Clear stale widget state so the generated values are displayed.
+        # Clear stale widget state so the regenerated values display on the next run.
         prefixes = SECTION_WIDGET_PREFIXES.get(section, ())
-        for k in [k for k in list(st.session_state.keys()) if k.startswith(prefixes)]:
+        for k in [k for k in list(st.session_state.keys()) if prefixes and k.startswith(prefixes)]:
             del st.session_state[k]
-        n = len(getattr(s, {"swot": "swot", "root_causes": "root_causes",
-                             "objectives": "objectives", "interventions": "interventions",
-                             "indicators": "indicators", "activities": "activities"}.get(section, ""), []) or [])
-        st.success(f"Généré ✅ ({n} élément(s)) — vérifiez et complétez si besoin.")
+        attr = {"swot": "swot", "root_causes": "root_causes", "objectives": "objectives",
+                "interventions": "interventions", "indicators": "indicators",
+                "activities": "activities"}.get(section, "")
+        st.session_state["_gen_result"] = len(getattr(s, attr, []) or []) if attr else 0
+        ok = True
     except Exception as e:
         st.error(f"Erreur IA : {e}")
+    # st.rerun() raises a control-flow exception — call it OUTSIDE the try/except,
+    # otherwise the broad `except Exception` would swallow it.
+    if ok:
+        st.rerun()
 
 
 def _validate_button(section: str):
@@ -128,6 +134,7 @@ def sidebar():
         loaded = storage.load_project(pname)
         if loaded:
             st.session_state.strategy = loaded
+            _clear_all_widget_state()
             st.rerun()
     return choice
 
@@ -145,6 +152,7 @@ def page_profile():
             try:
                 data = json.loads(up.getvalue())
                 st.session_state.strategy = NISStrategy.from_dict(data)
+                _clear_all_widget_state()
                 st.success("Projet rechargé ✅")
                 st.rerun()
             except Exception as e:
@@ -154,6 +162,7 @@ def page_profile():
                    "à valider par l’équipe pays.")
         if st.button("Charger l’exemple Djibouti 2027-2030"):
             st.session_state.strategy = seed_djibouti(lg)
+            _clear_all_widget_state()
             st.rerun()
     countries = get_countries()
     names = [n for _, n in countries]
@@ -515,10 +524,23 @@ PAGES = {
 }
 
 
+ALL_WIDGET_PREFIXES = ("sw_", "rc_", "o_id_", "o_sc_", "o_ob_", "o_vr_", "o_ot_", "o_sm_",
+                       "iv_", "me_", "a_")
+
+
+def _clear_all_widget_state():
+    """Drop all editable-field widget keys so they re-init from the (new) model."""
+    for k in [k for k in list(st.session_state.keys()) if k.startswith(ALL_WIDGET_PREFIXES)]:
+        del st.session_state[k]
+
+
 def main():
     ui.inject_theme()
     choice = sidebar()
     ui.hero(choice, lang())
+    res = st.session_state.pop("_gen_result", None)
+    if res is not None:
+        st.success(f"Généré ✅ ({res} élément(s)) — vérifiez et complétez si besoin.")
     PAGES[choice]()
 
 
