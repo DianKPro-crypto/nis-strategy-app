@@ -56,20 +56,26 @@ def _extract_json(raw: str) -> dict:
 def _call_claude(prompt: str) -> dict:
     client = _client()
     last_err = None
+    truncated = False
     for attempt in range(settings.AI_MAX_RETRIES + 1):
         suffix = "" if attempt == 0 else \
-            "\n\nIMPORTANT: Your previous reply was not valid JSON. Reply with ONE valid JSON object only."
+            "\n\nIMPORTANT: Your previous reply was not valid JSON. Reply with ONE valid JSON object only, " \
+            "and keep it concise enough to finish completely."
         msg = client.messages.create(
             model=settings.ANTHROPIC_MODEL,
             max_tokens=settings.AI_MAX_TOKENS,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt + suffix}],
         )
+        truncated = getattr(msg, "stop_reason", None) == "max_tokens"
         text = "".join(getattr(b, "text", "") for b in msg.content)
         try:
             return _extract_json(text)
         except Exception as e:
             last_err = e
+    if truncated:
+        raise AIError("réponse trop longue (coupée par la limite de tokens). "
+                      "Réessayez ; la génération est désormais découpée pour éviter cela.")
     raise AIError(f"JSON invalide après {settings.AI_MAX_RETRIES + 1} tentatives: {last_err}")
 
 
@@ -77,12 +83,35 @@ def _call_claude(prompt: str) -> dict:
 # Section-level generation
 # --------------------------------------------------------------------------- #
 def generate_section(section: str, profile: CountryProfile,
-                     documents: list[UploadedDocument], language: str) -> dict:
-    """Return the raw validated dict for a section (caller maps it onto the model)."""
+                     documents: list[UploadedDocument], language: str, progress=None) -> dict:
+    """Return the raw validated dict for a section (caller maps it onto the model).
+
+    SWOT is generated component-by-component (small, valid-JSON responses) instead of
+    all 27 subcomponents at once, which used to overflow the token limit.
+    """
     if section not in SECTIONS:
         raise ValueError(section)
+    if section == "swot":
+        return _generate_swot_chunked(profile, documents, language, progress)
     prompt = build_generation_prompt(profile, documents, language, section)
     return _call_claude(prompt)
+
+
+def _generate_swot_chunked(profile, documents, language, progress=None) -> dict:
+    from core.epi_components import EPI_COMPONENTS
+    items, errors = [], []
+    for i, comp in enumerate(EPI_COMPONENTS):
+        if progress:
+            progress(i, len(EPI_COMPONENTS), comp.label(language))
+        try:
+            prompt = build_generation_prompt(profile, documents, language, "swot", focus=comp)
+            data = _call_claude(prompt)
+            items.extend(data.get("items", []))
+        except Exception as e:
+            errors.append(f"{comp.code}: {e}")
+    if not items and errors:
+        raise AIError("FFOM non générée — " + " · ".join(errors))
+    return {"items": items}
 
 
 def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:

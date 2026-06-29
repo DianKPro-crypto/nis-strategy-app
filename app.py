@@ -66,9 +66,15 @@ def _gen_or_warn(section: str):
         st.info("ℹ️ Aucun document importé (étape 1). L’IA produira surtout des « À compléter ». "
                 "Importez vos documents pour des résultats fondés sur des preuves.")
     try:
+        status = st.empty()
+        prog = None
+        if section == "swot":
+            def prog(i, n, label):
+                status.info(f"IA en cours… composante {i+1}/{n} : {label}")
         with st.spinner("IA en cours… (analyse des documents)"):
-            data = ai_engine.generate_section(section, s.profile, s.documents, lang())
+            data = ai_engine.generate_section(section, s.profile, s.documents, lang(), progress=prog)
             ai_engine.apply_section(s, section, data)
+        status.empty()
         # Clear stale widget state so the generated values are displayed.
         prefixes = SECTION_WIDGET_PREFIXES.get(section, ())
         for k in [k for k in list(st.session_state.keys()) if k.startswith(prefixes)]:

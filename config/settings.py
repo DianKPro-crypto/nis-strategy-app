@@ -34,7 +34,7 @@ def _secret(key: str, default: str = "") -> str:
 # ---- AI ----
 ANTHROPIC_API_KEY = _secret("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = _secret("ANTHROPIC_MODEL", "claude-opus-4-8")
-AI_MAX_TOKENS = int(os.getenv("AI_MAX_TOKENS", "8000"))
+AI_MAX_TOKENS = int(os.getenv("AI_MAX_TOKENS", "16000"))
 AI_MAX_RETRIES = int(os.getenv("AI_MAX_RETRIES", "2"))
 
 # ---- Storage ----

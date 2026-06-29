@@ -31,9 +31,10 @@ provided in the user message (do not guess).
 no markdown fences, no comments. Use the requested output language for all human-readable text."""
 
 
-def _components_block(lang: str) -> str:
+def _components_block(lang: str, focus=None) -> str:
+    comps = [focus] if focus is not None else (EPI_COMPONENTS + [COUNTRY_SPECIFIC])
     lines = []
-    for comp in EPI_COMPONENTS + [COUNTRY_SPECIFIC]:
+    for comp in comps:
         lines.append(comp.label(lang))
         for sub in comp.subcomponents:
             ex = f"  — ex.: {sub.examples_fr}" if sub.examples_fr else ""
@@ -56,11 +57,25 @@ def _documents_block(documents: list[UploadedDocument], budget_chars: int = 4500
 
 
 def build_generation_prompt(profile: CountryProfile, documents: list[UploadedDocument],
-                            language: str, section: str) -> str:
-    """Build the user message for a given workflow `section`."""
+                            language: str, section: str, focus=None) -> str:
+    """Build the user message for a given workflow `section`.
+
+    `focus` (a Component) restricts the prompt to a single EPI component — used to
+    chunk large sections (e.g. SWOT) into small, valid-JSON responses.
+    """
     placeholder = PLACEHOLDER_FR if language == "fr" else PLACEHOLDER_EN
     schema = SCHEMAS[section]
     lang_name = "français" if language == "fr" else "English"
+    components_text = _components_block(language, focus)
+    if focus is not None:
+        codes = ", ".join(s.code for s in focus.subcomponents)
+        task = (f"{SECTION_INSTRUCTIONS[section]} Cover ONLY component « {focus.label(language)} » "
+                f"and its subcomponents (codes: {codes}). Set 'subcomponent_code' to the exact code "
+                f"(e.g. '{focus.subcomponents[0].code}'). Do NOT include any other component.")
+        cover_note = f"EPI COMPONENT TO COVER (this call only — codes {codes}):"
+    else:
+        task = SECTION_INSTRUCTIONS[section]
+        cover_note = "EPI COMPONENTS & SUBCOMPONENTS (cover ALL of them where relevant):"
     return f"""CONTEXTE PAYS / COUNTRY CONTEXT
 - Country: {profile.country_name} ({profile.iso_code})
 - Ministry: {profile.ministry_name}
@@ -72,13 +87,13 @@ def build_generation_prompt(profile: CountryProfile, documents: list[UploadedDoc
 OUTPUT LANGUAGE: {lang_name}
 MISSING-INFO PLACEHOLDER (use verbatim when documents lack the information): "{placeholder}"
 
-EPI COMPONENTS & SUBCOMPONENTS (cover ALL of them where relevant):
-{_components_block(language)}
+{cover_note}
+{components_text}
 
 SOURCE DOCUMENTS (your only source of truth):
 {_documents_block(documents)}
 
-TASK: {SECTION_INSTRUCTIONS[section]}
+TASK: {task}
 
 REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 {json.dumps(schema, ensure_ascii=False, indent=2)}
