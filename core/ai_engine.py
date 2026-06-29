@@ -106,12 +106,48 @@ def _generate_swot_chunked(profile, documents, language, progress=None) -> dict:
         try:
             prompt = build_generation_prompt(profile, documents, language, "swot", focus=comp)
             data = _call_claude(prompt)
-            items.extend(data.get("items", []))
+            chunk = data.get("items", [])
+            _assign_subcomponents(comp, chunk)   # robustly attach each item to a real subcomponent
+            items.extend(chunk)
         except Exception as e:
             errors.append(f"{comp.code}: {e}")
     if not items and errors:
         raise AIError("FFOM non générée — " + " · ".join(errors))
     return {"items": items}
+
+
+def _resolve_sub(comp, item: dict):
+    """Find which subcomponent of `comp` an AI item belongs to: by code, then by label."""
+    text = f"{item.get('subcomponent_code', '')} {item.get('component_code', '')}"
+    m = re.search(r"\d+\.\d+", str(text))
+    if m:
+        found = find_subcomponent(m.group())
+        if found and found[1] in comp.subcomponents:
+            return found[1]
+    low = str(item.get("subcomponent_code", "") or "").strip().lower()
+    if low:
+        for sub in comp.subcomponents:
+            for lbl in (sub.label_fr.lower(), sub.label_en.lower()):
+                # compare ignoring the leading code (e.g. "1.1 politiques…" -> "politiques…")
+                lbl_text = lbl.split(" ", 1)[-1] if lbl[:1].isdigit() else lbl
+                if low in lbl or lbl in low or (lbl_text and lbl_text in low):
+                    return sub
+    return None
+
+
+def _assign_subcomponents(comp, chunk: list) -> None:
+    """Ensure every item in a component's chunk maps to one of its subcomponents.
+    Order of resolution: explicit code → label match → positional fallback."""
+    used, subs = set(), comp.subcomponents
+    for idx, it in enumerate(chunk):
+        sub = _resolve_sub(comp, it)
+        if sub is None or sub.code in used:
+            sub = next((s for s in subs if s.code not in used), None)
+        if sub is None:
+            sub = subs[min(idx, len(subs) - 1)]
+        used.add(sub.code)
+        it["component_code"] = comp.code
+        it["subcomponent_code"] = sub.code
 
 
 def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
