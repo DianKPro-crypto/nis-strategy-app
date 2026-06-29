@@ -19,7 +19,8 @@ from core.models import (
     PrioritizationScore,
 )
 from core.epi_components import subcomponent_pairs, find_subcomponent
-from templates.prompts import SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt
+from templates.prompts import (SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt,
+                               build_intervention_prompt)
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -99,8 +100,36 @@ def generate_section(section: str, profile: CountryProfile,
         if rc["items"]:
             return rc
         # no FFOM weaknesses yet -> fall back to the document-based prompt
+    if section == "interventions" and strategy is not None and strategy.objectives:
+        iv = _generate_interventions_from_objectives(profile, documents, language, strategy, progress)
+        if iv["items"]:
+            return iv
     prompt = build_generation_prompt(profile, documents, language, section)
     return _call_claude(prompt)
+
+
+def _generate_interventions_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
+    """For each strategic objective, generate fully-completed, evidence-grounded interventions
+    (grouped per component to keep responses valid). Consults the uploaded documents."""
+    from core.epi_components import EPI_COMPONENTS, find_subcomponent
+    objs_by_comp: dict[str, list] = {}
+    for o in strategy.objectives:
+        if (o.objective_text or "").strip():
+            objs_by_comp.setdefault(o.component_code or "?", []).append(o)
+    items = []
+    groups = list(objs_by_comp.items())
+    for i, (comp_code, objs) in enumerate(groups):
+        comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
+        label = comp.label(language) if comp else "Objectifs"
+        if progress:
+            progress(i, len(groups), label)
+        try:
+            prompt = build_intervention_prompt(profile, documents, language, label, objs)
+            data = _call_claude(prompt)
+            items.extend(data.get("items", []))
+        except Exception:
+            pass
+    return {"items": items}
 
 
 def _generate_root_causes_from_weaknesses(profile, language, strategy, progress=None) -> dict:

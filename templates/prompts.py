@@ -127,6 +127,46 @@ SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 """
 
 
+def build_intervention_prompt(profile: CountryProfile, documents: list[UploadedDocument],
+                              language: str, comp_label: str, objectives: list) -> str:
+    """Interventions prompt: for EACH strategic objective, propose fully-completed,
+    evidence-grounded interventions (every field filled, sourced from the documents)."""
+    lang_name = "français" if language == "fr" else "English"
+    years = profile.nis_duration_years
+    olist = "\n".join(f"- [{o.obj_id} | {o.subcomponent_code}] {o.objective_text}"
+                      for o in objectives if (o.objective_text or "").strip())
+    schema = SCHEMAS["interventions"]
+    return f"""CONTEXTE PAYS : {profile.country_name} — {profile.epi_programme_name}. \
+Période SNV : {years} ans (Y1..Y{years}).
+OUTPUT LANGUAGE: {lang_name}
+PLACEHOLDER si l'information est absente des documents : "{PLACEHOLDER_FR if language == 'fr' else PLACEHOLDER_EN}"
+
+COMPOSANTE PEV : {comp_label}
+
+OBJECTIFS STRATÉGIQUES PRIORITAIRES (pour CHACUN, proposer 3 à 5 interventions) :
+{olist}
+
+DOCUMENTS SOURCES (ta SEULE source de vérité — consulte-les pour étayer chaque champ) :
+{_documents_block(documents)}
+
+TÂCHE — INTERVENTIONS PRINCIPALES ET PRIORISATION :
+Pour CHAQUE objectif ci-dessus, propose 3 à 5 interventions à fort impact et réalisables. Pour CHAQUE
+intervention, REMPLIS TOUS LES CHAMPS avec des arguments SOLIDES et ANCRÉS DANS LES DOCUMENTS (jamais inventés) :
+- objective_id : l'ID de l'objectif lié (ex. {objectives[0].obj_id if objectives else 'OBJ1'})
+- title, rationale (justification fondée sur les constats des documents), expected_impact, feasibility_note
+- prerequisites[], risks[], partners[] (concrets et pertinents pour le contexte du pays)
+- timeline : objet {{"Y1":true/false, ... jusqu'à "Y{years}"}}
+- score : note de 1 à 3 (3 = meilleur) pour CHACUN des 8 critères (expertise, return_on_investment,
+  effectiveness, ease_of_implementation, negative_consequences, legal_constraints, health_system_impact,
+  feasibility), en cohérence avec les preuves
+- evidence[] : pour CHAQUE intervention, cite au moins une preuve {{document_name, locator (page/section),
+  excerpt, confidence}}. Si un champ n'est pas étayé par les documents, écris le PLACEHOLDER et mets confidence "low".
+
+SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+"""
+
+
 # --------------------------------------------------------------------------- #
 # Per-section instructions + JSON schemas (kept compact; validated downstream).
 # --------------------------------------------------------------------------- #

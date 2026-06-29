@@ -69,7 +69,7 @@ def _gen_or_warn(section: str):
     try:
         status = st.empty()
         prog = None
-        if section in ("swot", "root_causes"):
+        if section in ("swot", "root_causes", "interventions"):
             def prog(i, n, label):
                 status.info(f"IA en cours… composante {i+1}/{n} : {label}")
         with st.spinner("IA en cours… (analyse des documents)"):
@@ -365,8 +365,17 @@ def page_interv():
                                            index=obj_ids.index(iv.objective_id) if iv.objective_id in obj_ids else 0,
                                            key=f"iv_o_{i}")
             iv.subcomponent_code = c2.text_input("Sous-composante", iv.subcomponent_code, key=f"iv_sc_{i}")
-            iv.rationale = st.text_area("Justification", iv.rationale, key=f"iv_r_{i}", height=60)
+            iv.rationale = st.text_area("Justification (fondée sur les documents)", iv.rationale,
+                                        key=f"iv_r_{i}", height=70)
             iv.expected_impact = st.text_area("Impact attendu", iv.expected_impact, key=f"iv_ei_{i}", height=60)
+            iv.feasibility_note = st.text_area("Faisabilité", iv.feasibility_note, key=f"iv_fz_{i}", height=50)
+            cc1, cc2, cc3 = st.columns(3)
+            iv.prerequisites = _lines(cc1.text_area("Prérequis (1 par ligne)", "\n".join(iv.prerequisites),
+                                                    key=f"iv_pr_{i}", height=90))
+            iv.risks = _lines(cc2.text_area("Risques (1 par ligne)", "\n".join(iv.risks),
+                                            key=f"iv_rk_{i}", height=90))
+            iv.partners = _lines(cc3.text_area("Partenaires (1 par ligne)", "\n".join(iv.partners),
+                                               key=f"iv_pa_{i}", height=90))
             st.markdown("**Notation multicritère (3=meilleur, 1=faible)**")
             cols = st.columns(4)
             for j, (key, fr, en) in enumerate(INTERVENTION_CRITERIA):
@@ -383,6 +392,7 @@ def page_interv():
             sel = st.multiselect("Calendrier (années)", years,
                                  [y for y in years if iv.timeline.get(y)], key=f"iv_tl_{i}")
             iv.timeline = {y: (y in sel) for y in years}
+            _show_evidence(iv.evidence, lg)
     _validate_button("interventions")
 
 
