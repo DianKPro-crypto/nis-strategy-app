@@ -108,9 +108,9 @@ def _validate_button(section: str):
 # --------------------------------------------------------------------------- #
 def sidebar():
     s = S()
-    lp = branding.logo_path(lang())
-    if lp:
-        st.sidebar.image(str(lp), use_container_width=True)
+    lb = branding.logo_bytes(lang())
+    if lb:
+        st.sidebar.image(lb, width=220)   # bytes + fixed width = reliable across versions
     st.sidebar.title(t("app_title", lang()))
     lg = st.sidebar.radio(t("language", lang()), ["fr", "en"],
                           index=0 if lang() == "fr" else 1,
