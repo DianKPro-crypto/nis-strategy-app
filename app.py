@@ -235,6 +235,32 @@ def page_vision():
 def page_swot():
     s = S(); lg = lang()
     st.caption("Forces/Faiblesses = INTERNES au PEV · Opportunités/Menaces = EXTERNES")
+    stats = st.session_state.pop("_ads_stats", None)
+    if stats:
+        st.success(f"Import ADS ✅ : {stats['mapped']} obstacle(s) aligné(s) sur l’outil "
+                   f"({stats['weaknesses']} faiblesse(s), {stats['strengths']} force(s)).")
+    # --- Import d'une analyse ADS existante (codes 3.X.Y) ---
+    do_import = False
+    with st.expander("📥 Importer une analyse ADS (.csv) et l’aligner sur l’outil"):
+        st.caption("Charge votre fichier ADS (obstacles codés 3.X.Y). Chaque obstacle est rangé "
+                   "dans la composante (2ᵉ chiffre) et la sous-composante correspondantes. "
+                   "« Point fort » → Forces, sinon → Faiblesses. L’IA pourra ensuite enrichir.")
+        up = st.file_uploader("Fichier ADS (.csv)", type=["csv"], key="ads_csv")
+        if up is not None and st.button("Importer et aligner", key="ads_import_btn"):
+            do_import = True
+    if do_import:
+        from core import ads_import
+        try:
+            items, stats = ads_import.import_ads_csv(up.getvalue())
+            ads_import.merge_into(s, items)
+            for k in [k for k in list(st.session_state.keys()) if k.startswith("sw_")]:
+                del st.session_state[k]
+            st.session_state["_ads_stats"] = stats
+        except Exception as e:
+            st.error(f"Import ADS impossible : {e}")
+            do_import = False
+    if do_import:
+        st.rerun()
     if st.button("✨ " + t("generate", lg), key="gen_swot"):
         _gen_or_warn("swot")
     if not s.swot:
