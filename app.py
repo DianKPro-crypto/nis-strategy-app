@@ -237,8 +237,14 @@ def page_swot():
     st.caption("Forces/Faiblesses = INTERNES au PEV · Opportunités/Menaces = EXTERNES")
     stats = st.session_state.pop("_ads_stats", None)
     if stats:
-        st.success(f"Import ADS ✅ : {stats['mapped']} obstacle(s) aligné(s) sur l’outil "
-                   f"({stats['weaknesses']} faiblesse(s), {stats['strengths']} force(s)).")
+        if stats.get("mapped"):
+            st.success(f"Import ADS ✅ : {stats['mapped']} obstacle(s) aligné(s) sur l’outil "
+                       f"({stats['weaknesses']} faiblesse(s), {stats['strengths']} force(s)).")
+        else:
+            st.error("Aucun obstacle reconnu dans le fichier. Vérifiez qu’il contient bien une colonne "
+                     "**Code** (format 3.X.Y) et **Obstacle / faiblesse**.")
+            st.caption(f"Séparateur détecté : « {stats.get('delimiter')} » · "
+                       f"Colonnes lues : {stats.get('columns')}")
     # --- Import d'une analyse ADS existante (codes 3.X.Y) ---
     do_import = False
     with st.expander("📥 Importer une analyse ADS (.csv) et l’aligner sur l’outil"):

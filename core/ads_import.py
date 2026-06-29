@@ -79,12 +79,26 @@ def _resolve_subcomponent(comp_code: str, obstacle: str) -> str:
     return _first_sub(comp_code)
 
 
+def _pick_delimiter(header_line: str) -> str:
+    """French Excel exports often use ';'. Pick the delimiter that exposes a 'Code' column."""
+    best, best_score = ",", -1
+    for d in (",", ";", "\t"):
+        cols = [_norm(c) for c in header_line.split(d)]
+        score = (1 if any(c == "code" for c in cols) else 0) + len(cols)
+        if score > best_score:
+            best, best_score = d, score
+    return best
+
+
 def import_ads_csv(file_bytes: bytes) -> tuple[list[SWOTItem], dict]:
     """Return (swot_items, stats). Items are merged per subcomponent."""
     text = file_bytes.decode("utf-8-sig", errors="replace")
-    reader = csv.DictReader(io.StringIO(text))
+    first_line = next((ln for ln in text.splitlines() if ln.strip()), "")
+    delim = _pick_delimiter(first_line)
+    reader = csv.DictReader(io.StringIO(text), delimiter=delim)
     buckets: dict[str, SWOTItem] = {}
-    stats = {"rows": 0, "mapped": 0, "strengths": 0, "weaknesses": 0, "skipped": 0}
+    stats = {"rows": 0, "mapped": 0, "strengths": 0, "weaknesses": 0, "skipped": 0,
+             "delimiter": delim, "columns": [c for c in (reader.fieldnames or [])]}
 
     for row in reader:
         code = _col(row, "Code")
