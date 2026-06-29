@@ -100,6 +100,33 @@ REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 """
 
 
+def build_root_cause_prompt(profile: CountryProfile, language: str, component,
+                            weaknesses: list[tuple[str, str]]) -> str:
+    """Root-cause prompt: the AI applies the 5-Whys (its reasoning) to EACH FFOM weakness."""
+    lang_name = "français" if language == "fr" else "English"
+    wlist = "\n".join(f"- [{code}] {w}" for code, w in weaknesses)
+    schema = SCHEMAS["root_causes"]
+    return f"""CONTEXTE PAYS : {profile.country_name} — Programme {profile.epi_programme_name}.
+OUTPUT LANGUAGE: {lang_name}
+
+COMPOSANTE PEV : {component.label(language)}
+
+FAIBLESSES DOCUMENTÉES (issues de l'analyse FFOM — analyse CHACUNE d'elles) :
+{wlist}
+
+TÂCHE — ANALYSE DES CAUSES PROFONDES (méthode des POURQUOI) :
+Pour CHAQUE faiblesse ci-dessus, applique la méthode des « 5 POURQUOI ». Les POURQUOI sont TON
+RAISONNEMENT d'expert en santé publique : pars de la faiblesse et demande « pourquoi cela se produit-il ? »,
+puis « pourquoi ? » sur la réponse, et ainsi de suite (3 à 5 niveaux) jusqu'à la CAUSE PROFONDE.
+- Les POURQUOI NE sont PAS extraits des documents : ce sont des hypothèses analytiques logiques.
+- Recopie la faiblesse mot pour mot dans 'weakness' et son code dans 'subcomponent_code'.
+- 'whys' = liste ordonnée des POURQUOI ; 'final_why' = la cause profonde (dernier POURQUOI).
+
+SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+"""
+
+
 # --------------------------------------------------------------------------- #
 # Per-section instructions + JSON schemas (kept compact; validated downstream).
 # --------------------------------------------------------------------------- #

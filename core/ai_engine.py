@@ -19,7 +19,7 @@ from core.models import (
     PrioritizationScore,
 )
 from core.epi_components import subcomponent_pairs, find_subcomponent
-from templates.prompts import SYSTEM_PROMPT, build_generation_prompt
+from templates.prompts import SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -83,18 +83,46 @@ def _call_claude(prompt: str) -> dict:
 # Section-level generation
 # --------------------------------------------------------------------------- #
 def generate_section(section: str, profile: CountryProfile,
-                     documents: list[UploadedDocument], language: str, progress=None) -> dict:
+                     documents: list[UploadedDocument], language: str, progress=None,
+                     strategy=None) -> dict:
     """Return the raw validated dict for a section (caller maps it onto the model).
 
-    SWOT is generated component-by-component (small, valid-JSON responses) instead of
-    all 27 subcomponents at once, which used to overflow the token limit.
+    SWOT is generated component-by-component. Root causes are generated from the FFOM
+    weaknesses (the AI applies the 5-Whys to each), not freshly invented from documents.
     """
     if section not in SECTIONS:
         raise ValueError(section)
     if section == "swot":
         return _generate_swot_chunked(profile, documents, language, progress)
+    if section == "root_causes" and strategy is not None:
+        rc = _generate_root_causes_from_weaknesses(profile, language, strategy, progress)
+        if rc["items"]:
+            return rc
+        # no FFOM weaknesses yet -> fall back to the document-based prompt
     prompt = build_generation_prompt(profile, documents, language, section)
     return _call_claude(prompt)
+
+
+def _generate_root_causes_from_weaknesses(profile, language, strategy, progress=None) -> dict:
+    """For each FFOM weakness, ask the AI to apply the 5-Whys (its reasoning) per component."""
+    from core.epi_components import EPI_COMPONENTS
+    weak_by_comp: dict[str, list] = {}
+    for sw in strategy.swot:
+        for w in sw.weaknesses:
+            if w and w.strip():
+                weak_by_comp.setdefault(sw.component_code, []).append((sw.subcomponent_code, w.strip()))
+    comps = [c for c in EPI_COMPONENTS if weak_by_comp.get(c.code)]
+    items = []
+    for i, comp in enumerate(comps):
+        if progress:
+            progress(i, len(comps), comp.label(language))
+        try:
+            prompt = build_root_cause_prompt(profile, language, comp, weak_by_comp[comp.code])
+            data = _call_claude(prompt)
+            items.extend(data.get("items", []))
+        except Exception:
+            pass
+    return {"items": items}
 
 
 def _generate_swot_chunked(profile, documents, language, progress=None) -> dict:

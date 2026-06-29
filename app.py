@@ -69,11 +69,12 @@ def _gen_or_warn(section: str):
     try:
         status = st.empty()
         prog = None
-        if section == "swot":
+        if section in ("swot", "root_causes"):
             def prog(i, n, label):
                 status.info(f"IA en cours… composante {i+1}/{n} : {label}")
         with st.spinner("IA en cours… (analyse des documents)"):
-            data = ai_engine.generate_section(section, s.profile, s.documents, lang(), progress=prog)
+            data = ai_engine.generate_section(section, s.profile, s.documents, lang(),
+                                              progress=prog, strategy=s)
             ai_engine.apply_section(s, section, data)
         status.empty()
         # Clear stale widget state so the regenerated values display on the next run.
