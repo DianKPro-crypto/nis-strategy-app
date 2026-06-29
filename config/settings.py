@@ -39,6 +39,9 @@ AI_MAX_RETRIES = int(os.getenv("AI_MAX_RETRIES", "2"))
 
 # ---- Storage ----
 DB_PATH = os.getenv("NIS_DB_PATH", str(DATA_DIR / "nis.db"))
+# Durable cloud storage (optional) — Supabase
+SUPABASE_URL = _secret("SUPABASE_URL", "")
+SUPABASE_KEY = _secret("SUPABASE_KEY", "")
 
 # ---- Uploads ----
 ALLOWED_EXTENSIONS = {"docx", "xlsx", "pptx", "pdf", "csv", "txt"}

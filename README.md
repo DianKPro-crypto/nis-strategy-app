@@ -23,6 +23,13 @@ professionnels (Excel, Word, PDF, PowerPoint).
   tant que les sections clés ne sont pas complètes et validées.
 - **Mode hors-ligne** : sans clé API, l’application fonctionne en saisie 100 % manuelle.
 
+## Stockage durable (optionnel mais recommandé)
+
+Par défaut le stockage est local et **temporaire** (effacé au redémarrage sur Streamlit Cloud).
+Pour des projets **persistants**, configurez **Supabase** : voir **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)**.
+Une fois `SUPABASE_URL` + `SUPABASE_KEY` dans les *Secrets*, les projets sont sauvegardés
+automatiquement et rechargeables après reboot.
+
 ## Guides utilisateur (équipes pays)
 
 - 🇫🇷 **[GUIDE_UTILISATEUR_FR.md](GUIDE_UTILISATEUR_FR.md)** — guide pas à pas en français.
