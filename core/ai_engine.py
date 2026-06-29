@@ -144,14 +144,20 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
 
 
 def _fix_codes(obj):
-    """Normalize AI-returned codes: e.g. '1.1 Politiques…' -> subcomponent '1.1' + component '1'."""
-    raw = (getattr(obj, "subcomponent_code", "") or "").strip()
-    if raw:
-        token = raw.replace(":", " ").split()[0]
-        found = find_subcomponent(token)
-        if found:
-            obj.component_code = found[0].code
-            obj.subcomponent_code = found[1].code
+    """Normalize AI-returned codes to exact subcomponent codes.
+
+    Finds a 'X.Y' pattern anywhere in subcomponent_code or component_code, e.g.
+    '1.1 Politiques…', 'Sous-composante 1.1', 'Composante 1 — 1.1' all map to '1.1' / '1'.
+    """
+    for field in ("subcomponent_code", "component_code"):
+        raw = getattr(obj, field, "") or ""
+        m = re.search(r"\d+\.\d+", str(raw))
+        if m:
+            found = find_subcomponent(m.group())
+            if found:
+                obj.component_code = found[0].code
+                obj.subcomponent_code = found[1].code
+                break
     return obj
 
 
