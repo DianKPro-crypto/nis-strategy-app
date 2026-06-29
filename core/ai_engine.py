@@ -104,7 +104,7 @@ def generate_section(section: str, profile: CountryProfile,
         iv = _generate_interventions_from_objectives(profile, documents, language, strategy, progress)
         if iv["items"]:
             return iv
-    if section == "indicators" and strategy is not None and strategy.objectives:
+    if section == "indicators" and strategy is not None:
         ind = _generate_indicators_from_objectives(profile, documents, language, strategy, progress)
         if ind["items"]:
             return ind
@@ -119,8 +119,12 @@ def _generate_indicators_from_objectives(profile, documents, language, strategy,
     for o in strategy.objectives:
         if (o.objective_text or "").strip():
             objs_by_comp.setdefault(o.component_code or "?", []).append(o)
+    if objs_by_comp:
+        groups = list(objs_by_comp.items())
+    else:
+        # No objectives yet -> derive key indicators per component from the reference documents.
+        groups = [(c.code, []) for c in EPI_COMPONENTS]
     items = []
-    groups = list(objs_by_comp.items())
     for i, (comp_code, objs) in enumerate(groups):
         comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
         label = comp.label(language) if comp else "Objectifs"

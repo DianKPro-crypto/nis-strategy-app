@@ -186,20 +186,28 @@ def build_indicator_prompt(profile: CountryProfile, documents: list[UploadedDocu
                       for o in objectives if (o.objective_text or "").strip())
     schema = SCHEMAS["indicators"]
     ph = PLACEHOLDER_FR if language == "fr" else PLACEHOLDER_EN
+    if olist:
+        scope = (f"OBJECTIFS STRATÉGIQUES (pour CHACUN, au moins 1 indicateur d'IMPACT ou de PRODUIT) :\n{olist}")
+        per = "Pour CHAQUE objectif, définis au moins un indicateur"
+    else:
+        scope = ("(Pas encore d'objectif saisi pour cette composante : propose 2 à 4 indicateurs CLÉS "
+                 "pertinents pour cette composante.)")
+        per = "Propose 2 à 4 indicateurs clés pour cette composante. Pour chaque indicateur, définis-le"
     return f"""CONTEXTE PAYS : {profile.country_name} — {profile.epi_programme_name}. \
 Période SNV : {years} ans ({', '.join(year_keys)}).
 OUTPUT LANGUAGE: {lang_name}
 
 COMPOSANTE PEV : {comp_label}
 
-OBJECTIFS STRATÉGIQUES (pour CHACUN, au moins 1 indicateur d'IMPACT ou de PRODUIT) :
-{olist}
+{scope}
 
-DOCUMENTS SOURCES (ta SEULE source de vérité — utilise-les pour la référence et les sources de données) :
+DOCUMENTS SOURCES & DIRECTIVES (ta SEULE source de vérité — ils contiennent souvent des LISTES/MENUS
+d'indicateurs : IA2030, cadre de S&E OMS, indicateurs Gavi. ADAPTE les plus pertinents au contexte du pays) :
 {_documents_block(documents)}
 
 TÂCHE — CADRE DE SUIVI & ÉVALUATION :
-Pour CHAQUE objectif, définis au moins un indicateur en REMPLISSANT TOUS LES CHAMPS : name, indicator_type
+{per} en t'appuyant en priorité sur les indicateurs standard trouvés dans les documents de référence
+(IA2030, OMS, Gavi) ADAPTÉS au contexte, en REMPLISSANT TOUS LES CHAMPS : name, indicator_type
 (impact/outcome/output/process), definition, formula, numerator_source, denominator_source, data_source,
 frequency, responsible_measure, responsible_action, baseline, targets, assumptions, measurement_risks,
 confidence, evidence.
