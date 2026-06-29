@@ -167,6 +167,46 @@ SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 """
 
 
+def build_indicator_prompt(profile: CountryProfile, documents: list[UploadedDocument],
+                           language: str, comp_label: str, objectives: list) -> str:
+    """M&E prompt: ≥1 fully-completed indicator per objective, with targets for ALL years."""
+    lang_name = "français" if language == "fr" else "English"
+    years = profile.nis_duration_years
+    year_keys = [f"Y{k + 1}" for k in range(years)]
+    targets_example = "{" + ", ".join(f'"{y}": "…"' for y in year_keys) + "}"
+    olist = "\n".join(f"- [{o.obj_id} | {o.subcomponent_code}] {o.objective_text}"
+                      for o in objectives if (o.objective_text or "").strip())
+    schema = SCHEMAS["indicators"]
+    ph = PLACEHOLDER_FR if language == "fr" else PLACEHOLDER_EN
+    return f"""CONTEXTE PAYS : {profile.country_name} — {profile.epi_programme_name}. \
+Période SNV : {years} ans ({', '.join(year_keys)}).
+OUTPUT LANGUAGE: {lang_name}
+
+COMPOSANTE PEV : {comp_label}
+
+OBJECTIFS STRATÉGIQUES (pour CHACUN, au moins 1 indicateur d'IMPACT ou de PRODUIT) :
+{olist}
+
+DOCUMENTS SOURCES (ta SEULE source de vérité — utilise-les pour la référence et les sources de données) :
+{_documents_block(documents)}
+
+TÂCHE — CADRE DE SUIVI & ÉVALUATION :
+Pour CHAQUE objectif, définis au moins un indicateur en REMPLISSANT TOUS LES CHAMPS : name, indicator_type
+(impact/outcome/output/process), definition, formula, numerator_source, denominator_source, data_source,
+frequency, responsible_measure, responsible_action, baseline, targets, assumptions, measurement_risks,
+confidence, evidence.
+RÈGLES IMPORTANTES :
+- 'targets' DOIT contenir une valeur pour CHAQUE année : {targets_example}. NE LAISSE AUCUNE année vide
+  (ni Y{years-1} ni Y{years}). Les cibles doivent être RÉALISTES et PROGRESSIVES (évolution cohérente
+  de la référence vers l'objectif sur les {years} années).
+- 'baseline' : si absente des documents, écris « {ph} » (ou « Situation de référence à confirmer par l'équipe pays »).
+- 'evidence' : cite au moins une preuve (document, page/section, extrait, confidence). N'invente jamais de chiffre.
+
+SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+"""
+
+
 # --------------------------------------------------------------------------- #
 # Per-section instructions + JSON schemas (kept compact; validated downstream).
 # --------------------------------------------------------------------------- #

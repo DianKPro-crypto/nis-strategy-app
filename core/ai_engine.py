@@ -20,7 +20,7 @@ from core.models import (
 )
 from core.epi_components import subcomponent_pairs, find_subcomponent
 from templates.prompts import (SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt,
-                               build_intervention_prompt)
+                               build_intervention_prompt, build_indicator_prompt)
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -104,8 +104,35 @@ def generate_section(section: str, profile: CountryProfile,
         iv = _generate_interventions_from_objectives(profile, documents, language, strategy, progress)
         if iv["items"]:
             return iv
+    if section == "indicators" and strategy is not None and strategy.objectives:
+        ind = _generate_indicators_from_objectives(profile, documents, language, strategy, progress)
+        if ind["items"]:
+            return ind
     prompt = build_generation_prompt(profile, documents, language, section)
     return _call_claude(prompt)
+
+
+def _generate_indicators_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
+    """≥1 fully-completed M&E indicator per objective, with targets for ALL years."""
+    from core.epi_components import EPI_COMPONENTS
+    objs_by_comp: dict[str, list] = {}
+    for o in strategy.objectives:
+        if (o.objective_text or "").strip():
+            objs_by_comp.setdefault(o.component_code or "?", []).append(o)
+    items = []
+    groups = list(objs_by_comp.items())
+    for i, (comp_code, objs) in enumerate(groups):
+        comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
+        label = comp.label(language) if comp else "Objectifs"
+        if progress:
+            progress(i, len(groups), label)
+        try:
+            prompt = build_indicator_prompt(profile, documents, language, label, objs)
+            data = _call_claude(prompt)
+            items.extend(data.get("items", []))
+        except Exception:
+            pass
+    return {"items": items}
 
 
 def _generate_interventions_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
@@ -229,11 +256,29 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
             out.append(_fix_codes(iv))
         strategy.interventions = out
     elif section == "indicators":
-        strategy.indicators = [_fix_codes(MEIndicator(**_clean(x, MEIndicator)))
-                               for x in data.get("items", [])]
+        inds = [_fix_codes(MEIndicator(**_clean(x, MEIndicator))) for x in data.get("items", [])]
+        years = getattr(strategy.profile, "nis_duration_years", 5)
+        for ind in inds:
+            _carry_forward_targets(ind, years)
+        strategy.indicators = inds
     elif section == "activities":
         strategy.activities = [_fix_codes(Activity(**_clean(x, Activity)))
                                for x in data.get("items", [])]
+
+
+def _carry_forward_targets(indicator, years: int) -> None:
+    """Ensure every year Y1..Yn has a target; fill any blank year with the last known value
+    (so years 4-5 are never empty). Does not invent new figures — it maintains the last target."""
+    t = dict(indicator.targets or {})
+    last = ""
+    for k in range(years):
+        y = f"Y{k + 1}"
+        v = str(t.get(y, "") or "").strip()
+        if v:
+            last = v
+        elif last:
+            t[y] = last
+    indicator.targets = t
 
 
 def _fix_codes(obj):
