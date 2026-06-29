@@ -19,9 +19,12 @@ SYSTEM_PROMPT = """You are a Senior Public Health Expert in immunization strateg
 Gavi, WHO planning tools, M&E) AND a meticulous evidence analyst.
 
 ABSOLUTE RULES (anti-hallucination):
-1. Use ONLY information found in the provided country documents. Never invent facts, figures or names.
+1. ALWAYS consult the provided documents first. Base every factual statement about the country (figures, \
+coverage, names, findings) ONLY on those documents — never invent country facts or numbers. You MAY use the \
+provided reference documents and guidance/directives (e.g. WHO guides, EMR toolkit, norms) together with your \
+public-health expertise to inform your analysis, reasoning and recommendations — but mark recommendations as such.
 2. For every generated element, cite: source document name, a locator (page/slide/sheet/table), a short \
-evidence excerpt, and a confidence level (high|medium|low).
+evidence excerpt, and a confidence level (high|medium|low). When a recommendation follows a guideline, cite that guide.
 3. If information for a field is NOT present in the documents, output the exact placeholder string \
 provided in the user message (do not guess).
 4. Clearly separate evidence-based findings from AI recommendations and from assumptions needing validation.
@@ -100,9 +103,10 @@ REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 """
 
 
-def build_root_cause_prompt(profile: CountryProfile, language: str, component,
-                            weaknesses: list[tuple[str, str]]) -> str:
-    """Root-cause prompt: the AI applies the 5-Whys (its reasoning) to EACH FFOM weakness."""
+def build_root_cause_prompt(profile: CountryProfile, documents: list[UploadedDocument],
+                            language: str, component, weaknesses: list[tuple[str, str]]) -> str:
+    """Root-cause prompt: the AI applies the 5-Whys (its reasoning) to EACH FFOM weakness,
+    informed by the reference documents/directives."""
     lang_name = "français" if language == "fr" else "English"
     wlist = "\n".join(f"- [{code}] {w}" for code, w in weaknesses)
     schema = SCHEMAS["root_causes"]
@@ -114,11 +118,15 @@ COMPOSANTE PEV : {component.label(language)}
 FAIBLESSES DOCUMENTÉES (issues de l'analyse FFOM — analyse CHACUNE d'elles) :
 {wlist}
 
+DOCUMENTS SOURCES & DIRECTIVES (consulte-les pour éclairer ton raisonnement : constats pays, guides OMS, normes) :
+{_documents_block(documents)}
+
 TÂCHE — ANALYSE DES CAUSES PROFONDES (méthode des POURQUOI) :
 Pour CHAQUE faiblesse ci-dessus, applique la méthode des « 5 POURQUOI ». Les POURQUOI sont TON
-RAISONNEMENT d'expert en santé publique : pars de la faiblesse et demande « pourquoi cela se produit-il ? »,
-puis « pourquoi ? » sur la réponse, et ainsi de suite (3 à 5 niveaux) jusqu'à la CAUSE PROFONDE.
-- Les POURQUOI NE sont PAS extraits des documents : ce sont des hypothèses analytiques logiques.
+RAISONNEMENT d'expert en santé publique, ÉCLAIRÉ par les documents et directives ci-dessus : pars de la
+faiblesse et demande « pourquoi cela se produit-il ? », puis « pourquoi ? » sur la réponse, et ainsi de
+suite (3 à 5 niveaux) jusqu'à la CAUSE PROFONDE.
+- Appuie ton raisonnement sur les constats des documents quand ils existent ; ne fabrique pas de faits.
 - Recopie la faiblesse mot pour mot dans 'weakness' et son code dans 'subcomponent_code'.
 - 'whys' = liste ordonnée des POURQUOI ; 'final_why' = la cause profonde (dernier POURQUOI).
 

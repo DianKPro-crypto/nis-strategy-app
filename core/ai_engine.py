@@ -96,7 +96,7 @@ def generate_section(section: str, profile: CountryProfile,
     if section == "swot":
         return _generate_swot_chunked(profile, documents, language, progress)
     if section == "root_causes" and strategy is not None:
-        rc = _generate_root_causes_from_weaknesses(profile, language, strategy, progress)
+        rc = _generate_root_causes_from_weaknesses(profile, documents, language, strategy, progress)
         if rc["items"]:
             return rc
         # no FFOM weaknesses yet -> fall back to the document-based prompt
@@ -159,8 +159,9 @@ def _generate_interventions_from_objectives(profile, documents, language, strate
     return {"items": items}
 
 
-def _generate_root_causes_from_weaknesses(profile, language, strategy, progress=None) -> dict:
-    """For each FFOM weakness, ask the AI to apply the 5-Whys (its reasoning) per component."""
+def _generate_root_causes_from_weaknesses(profile, documents, language, strategy, progress=None) -> dict:
+    """For each FFOM weakness, ask the AI to apply the 5-Whys (its reasoning, informed by the
+    reference documents/directives) per component."""
     from core.epi_components import EPI_COMPONENTS
     weak_by_comp: dict[str, list] = {}
     for sw in strategy.swot:
@@ -173,7 +174,7 @@ def _generate_root_causes_from_weaknesses(profile, language, strategy, progress=
         if progress:
             progress(i, len(comps), comp.label(language))
         try:
-            prompt = build_root_cause_prompt(profile, language, comp, weak_by_comp[comp.code])
+            prompt = build_root_cause_prompt(profile, documents, language, comp, weak_by_comp[comp.code])
             data = _call_claude(prompt)
             items.extend(data.get("items", []))
         except Exception:
