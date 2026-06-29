@@ -18,7 +18,7 @@ from core.models import (
     RootCauseAnalysis, StrategicObjective, Intervention, MEIndicator, Activity,
     PrioritizationScore,
 )
-from core.epi_components import subcomponent_pairs
+from core.epi_components import subcomponent_pairs, find_subcomponent
 from templates.prompts import SYSTEM_PROMPT, build_generation_prompt
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
@@ -90,12 +90,12 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
     if section == "vision":
         strategy.vision = CountryVision(**_clean(data, CountryVision))
     elif section == "swot":
-        strategy.swot = [SWOTItem(**_clean(x, SWOTItem)) for x in data.get("items", [])]
+        strategy.swot = [_fix_codes(SWOTItem(**_clean(x, SWOTItem))) for x in data.get("items", [])]
     elif section == "root_causes":
-        strategy.root_causes = [RootCauseAnalysis(**_clean(x, RootCauseAnalysis))
+        strategy.root_causes = [_fix_codes(RootCauseAnalysis(**_clean(x, RootCauseAnalysis)))
                                 for x in data.get("items", [])]
     elif section == "objectives":
-        strategy.objectives = [StrategicObjective(**_clean(x, StrategicObjective))
+        strategy.objectives = [_fix_codes(StrategicObjective(**_clean(x, StrategicObjective)))
                                for x in data.get("items", [])]
     elif section == "interventions":
         out = []
@@ -104,12 +104,26 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
             iv = Intervention(**_clean(x, Intervention))
             iv.score = PrioritizationScore(**_clean(sc, PrioritizationScore))
             iv.priority_level = iv.score.level()
-            out.append(iv)
+            out.append(_fix_codes(iv))
         strategy.interventions = out
     elif section == "indicators":
-        strategy.indicators = [MEIndicator(**_clean(x, MEIndicator)) for x in data.get("items", [])]
+        strategy.indicators = [_fix_codes(MEIndicator(**_clean(x, MEIndicator)))
+                               for x in data.get("items", [])]
     elif section == "activities":
-        strategy.activities = [Activity(**_clean(x, Activity)) for x in data.get("items", [])]
+        strategy.activities = [_fix_codes(Activity(**_clean(x, Activity)))
+                               for x in data.get("items", [])]
+
+
+def _fix_codes(obj):
+    """Normalize AI-returned codes: e.g. '1.1 Politiques…' -> subcomponent '1.1' + component '1'."""
+    raw = (getattr(obj, "subcomponent_code", "") or "").strip()
+    if raw:
+        token = raw.replace(":", " ").split()[0]
+        found = find_subcomponent(token)
+        if found:
+            obj.component_code = found[0].code
+            obj.subcomponent_code = found[1].code
+    return obj
 
 
 def _clean(d: dict, model_cls) -> dict:

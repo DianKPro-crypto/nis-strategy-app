@@ -44,18 +44,41 @@ def lang() -> str:
     return S().profile.language or settings.DEFAULT_LANGUAGE
 
 
+# Widget-key prefixes per section. After AI generation we must clear these from
+# session_state, otherwise Streamlit keeps the previously-shown (empty) values and
+# the freshly generated content never appears in the fields.
+SECTION_WIDGET_PREFIXES = {
+    "swot": ("sw_",),
+    "root_causes": ("rc_",),
+    "objectives": ("o_id_", "o_sc_", "o_ob_", "o_vr_", "o_ot_", "o_sm_"),
+    "interventions": ("iv_",),
+    "indicators": ("me_",),
+    "activities": ("a_",),
+}
+
+
 def _gen_or_warn(section: str):
     s = S()
     if not settings.ai_available():
         st.warning(t("no_api", lang()))
         return
+    if section != "vision" and not s.documents:
+        st.info("ℹ️ Aucun document importé (étape 1). L’IA produira surtout des « À compléter ». "
+                "Importez vos documents pour des résultats fondés sur des preuves.")
     try:
-        with st.spinner("IA en cours…"):
+        with st.spinner("IA en cours… (analyse des documents)"):
             data = ai_engine.generate_section(section, s.profile, s.documents, lang())
             ai_engine.apply_section(s, section, data)
-        st.success("Généré ✅")
+        # Clear stale widget state so the generated values are displayed.
+        prefixes = SECTION_WIDGET_PREFIXES.get(section, ())
+        for k in [k for k in list(st.session_state.keys()) if k.startswith(prefixes)]:
+            del st.session_state[k]
+        n = len(getattr(s, {"swot": "swot", "root_causes": "root_causes",
+                             "objectives": "objectives", "interventions": "interventions",
+                             "indicators": "indicators", "activities": "activities"}.get(section, ""), []) or [])
+        st.success(f"Généré ✅ ({n} élément(s)) — vérifiez et complétez si besoin.")
     except Exception as e:
-        st.error(f"Erreur IA: {e}")
+        st.error(f"Erreur IA : {e}")
 
 
 def _validate_button(section: str):
@@ -164,9 +187,17 @@ def page_upload():
             s.documents = [d for d in s.documents if d.name != f.name] + [doc]
         st.success(f"{len(files)} document(s) traité(s).")
     if s.documents:
-        st.subheader(f"Documents ({len(s.documents)})")
+        total_chars = sum(len((d.text or "").strip()) for d in s.documents)
+        st.subheader(f"Documents ({len(s.documents)}) — {total_chars:,} caractères extraits".replace(",", " "))
+        if total_chars < 300:
+            st.warning("⚠️ Très peu de texte a été extrait. L’IA ne pourra pas s’appuyer sur ces "
+                       "documents. Causes fréquentes : PDF **scanné** (image, sans texte) ou fichier vide. "
+                       "Fournissez une version **texte** du document, ou saisissez les éléments manuellement.")
         for d in s.documents:
-            with st.expander(f"📄 {d.name} — {d.doc_category} ({d.file_type}, {d.n_pages or '?'} p.)"):
+            chars = len((d.text or "").strip())
+            flag = "  ·  ⚠️ peu de texte" if chars < 150 else ""
+            with st.expander(f"📄 {d.name} — {d.doc_category} ({d.file_type}, {d.n_pages or '?'} p., "
+                             f"{chars} car.){flag}"):
                 st.caption(d.tables_summary)
                 st.text((d.text or "")[:1500] + ("…" if len(d.text) > 1500 else ""))
                 if st.button("🗑 Supprimer", key=f"del_{d.name}"):
@@ -194,24 +225,28 @@ def page_swot():
     if not s.swot:
         s.swot = [SWOTItem(component_code=c.code, subcomponent_code=sub.code)
                   for c, sub in subcomponent_pairs()]
-    by = {(x.component_code, x.subcomponent_code): x for x in s.swot}
+    # Key by subcomponent code only (robust if the AI returns a mismatched component code).
+    by = {x.subcomponent_code: x for x in s.swot}
+    n_filled = sum(1 for x in s.swot if any([x.strengths, x.weaknesses, x.opportunities, x.threats]))
+    if n_filled:
+        st.caption(f"📊 {n_filled} sous-composante(s) renseignée(s).")
     for comp in EPI_COMPONENTS:
         with st.expander(comp.label(lg)):
             for sub in comp.subcomponents:
-                item = by.get((comp.code, sub.code)) or SWOTItem(
-                    component_code=comp.code, subcomponent_code=sub.code)
+                item = by.get(sub.code) or SWOTItem(component_code=comp.code, subcomponent_code=sub.code)
+                item.component_code, item.subcomponent_code = comp.code, sub.code
                 st.markdown(f"**{sub.label(lg)}**")
                 c1, c2, c3, c4 = st.columns(4)
                 item.strengths = _lines(c1.text_area(t("strengths", lg), "\n".join(item.strengths),
-                                                      key=f"s_{sub.code}", height=90))
+                                                      key=f"sw_s_{sub.code}", height=90))
                 item.weaknesses = _lines(c2.text_area(t("weaknesses", lg), "\n".join(item.weaknesses),
-                                                       key=f"w_{sub.code}", height=90))
+                                                       key=f"sw_w_{sub.code}", height=90))
                 item.opportunities = _lines(c3.text_area(t("opportunities", lg),
                                                           "\n".join(item.opportunities),
-                                                          key=f"o_{sub.code}", height=90))
+                                                          key=f"sw_o_{sub.code}", height=90))
                 item.threats = _lines(c4.text_area(t("threats", lg), "\n".join(item.threats),
-                                                    key=f"t_{sub.code}", height=90))
-                by[(comp.code, sub.code)] = item
+                                                    key=f"sw_t_{sub.code}", height=90))
+                by[sub.code] = item
     s.swot = list(by.values())
     _validate_button("swot")
 
