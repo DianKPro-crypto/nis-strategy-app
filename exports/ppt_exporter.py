@@ -220,32 +220,85 @@ def build_ppt(s: NISStrategy) -> bytes:
         if not ivs:
             text(sl, "—", Inches(0.6), Inches(2), Inches(6), Inches(0.5), 14, MUTED)
 
+    def impact_feasibility_slide():
+        sl = slide()
+        header(sl, "Priorisation" if fr else "Prioritization",
+               "Matrice impact × faisabilité" if fr else "Impact × feasibility matrix")
+        # classify each intervention
+        buckets = {"hi_hf": [], "hi_lf": [], "li_hf": [], "li_lf": []}
+        for iv in s.interventions:
+            sc = iv.score
+            impact = (sc.effectiveness + sc.health_system_impact + sc.return_on_investment) / 3
+            feas = (sc.feasibility + sc.ease_of_implementation + sc.expertise) / 3
+            key = ("hi" if impact >= 2.0 else "li") + "_" + ("hf" if feas >= 2.0 else "lf")
+            buckets[key].append(iv.title)
+        mx, my, cw, ch, g = Inches(2.35), Inches(1.75), Inches(4.75), Inches(2.25), Inches(0.18)
+        # (label, color, bgcolor, key, col, row)
+        cells = [(("Priorité 1 — Impact élevé & très faisable" if fr else "Priority 1 — High impact & feasible"),
+                  S_C, S_BG, "hi_hf", 1, 0),
+                 (("Impact élevé & moins faisable" if fr else "High impact & less feasible"),
+                  O_C, O_BG, "hi_lf", 0, 0),
+                 (("Impact faible & très faisable" if fr else "Low impact & feasible"),
+                  T_C, T_BG, "li_hf", 1, 1),
+                 (("Impact faible & moins faisable" if fr else "Low impact & less feasible"),
+                  MUTED, RGBColor(0xEE, 0xF1, 0xF4), "li_lf", 0, 1)]
+        for label, col, bgc, key, cx, cy in cells:
+            X = mx + cx * (cw + g); Y = my + cy * (ch + g)
+            rect(sl, X, Y, cw, ch, bgc, rounded=True, line=col, line_w=1.25)
+            text(sl, label, X + Inches(0.22), Y + Inches(0.12), cw - Inches(0.4), Inches(0.6),
+                 12, col, bold=True)
+            bullets(sl, buckets[key], X + Inches(0.25), Y + Inches(0.72), cw - Inches(0.5),
+                    ch - Inches(0.8), size=11, color=INK, maxn=4)
+        # axes
+        text(sl, ("IMPACT →" if fr else "IMPACT →"), Inches(0.9), my + Inches(0.3), Inches(1.4),
+             Inches(4), 12, DARK, bold=True, anchor=MSO_ANCHOR.MIDDLE)
+        text(sl, ("FAISABILITÉ →" if fr else "FEASIBILITY →"), mx, my + 2 * ch + g + Inches(0.25),
+             Inches(2 * 4.75), Inches(0.4), 12, DARK, bold=True, align=PP_ALIGN.CENTER)
+        text(sl, ("− faible        élevé +" if fr else "− low        high +"),
+             Inches(0.6), my, Inches(1.6), ch * 2, 9, MUTED, anchor=MSO_ANCHOR.MIDDLE,
+             align=PP_ALIGN.CENTER)
+
     def me_slide():
         sl = slide()
         header(sl, "Suivi & évaluation" if fr else "Monitoring & evaluation",
                "Cadre de suivi et d’évaluation" if fr else "M&E framework")
-        inds = s.indicators[:6]
-        cols = [("Indicateur" if fr else "Indicator", Inches(5.0)),
-                ("Base" if fr else "Baseline", Inches(1.8))] + [(str(y_), Inches(0.95)) for y_ in years]
+        inds = s.indicators[:5]
+        n = len(years)
+        avail = 12.2
+        name_w, base_w = 4.2, 1.5
+        ycol = max(0.7, (avail - name_w - base_w) / max(1, n))
+        if ycol < 0.85:                      # many years -> shrink the name column
+            name_w = max(3.0, avail - base_w - ycol * n)
+        widths = [name_w, base_w] + [ycol] * n
+        headers = [("Indicateur" if fr else "Indicator"), ("Base" if fr else "Baseline")] + [str(y) for y in years]
         rows = 1 + max(1, len(inds))
-        tbl = sl.shapes.add_table(rows, len(cols), Inches(0.55), Inches(1.7),
-                                  Inches(12.25), Inches(0.5) + Inches(0.7) * len(inds)).table
-        for j, (h, w) in enumerate(cols):
-            tbl.columns[j].width = w
+        total_w = Inches(sum(widths))
+        gf = sl.shapes.add_table(rows, len(headers), Inches(0.55), Inches(1.75),
+                                 total_w, Inches(0.42) + Inches(0.6) * max(1, len(inds)))
+        tbl = gf.table
+        for j, (h, w) in enumerate(zip(headers, widths)):
+            tbl.columns[j].width = Inches(w)
             cell = tbl.cell(0, j); cell.text = h
             cell.fill.solid(); cell.fill.fore_color.rgb = DARK
-            r = cell.text_frame.paragraphs[0].runs[0]; r.font.size = Pt(10); r.font.bold = True
+            r = cell.text_frame.paragraphs[0].runs[0]; r.font.size = Pt(9); r.font.bold = True
             r.font.color.rgb = WHITE
         for i, ind in enumerate(inds, 1):
-            vals = [ind.name[:60], ind.baseline[:18]] + [ind.targets.get(f"Y{k+1}", "") for k in range(len(years))]
+            tbl.rows[i].height = Inches(0.55)
+            vals = [ind.name[:50], (ind.baseline or "")[:16]] + \
+                   [ind.targets.get(f"Y{k+1}", "") for k in range(n)]
             for j, v in enumerate(vals):
                 cell = tbl.cell(i, j); cell.text = str(v)
+                cell.vertical_anchor = MSO_ANCHOR.MIDDLE
                 pr = cell.text_frame.paragraphs[0].runs
                 if pr:
-                    pr[0].font.size = Pt(9); pr[0].font.color.rgb = INK
+                    pr[0].font.size = Pt(8.5); pr[0].font.color.rgb = INK
                 cell.fill.solid(); cell.fill.fore_color.rgb = WHITE if i % 2 else BG
         if not inds:
             text(sl, "—", Inches(0.6), Inches(2), Inches(5), Inches(0.5), 14, MUTED)
+        elif len(s.indicators) > 5:
+            text(sl, ("+ " + str(len(s.indicators) - 5) + (" autres indicateurs — voir le rapport"
+                      if fr else " more indicators — see the report")),
+                 Inches(0.55), Inches(5.6), Inches(8), Inches(0.4), 11, MUTED, italic=True)
 
     def timeline_slide():
         sl = slide()
@@ -297,6 +350,7 @@ def build_ppt(s: NISStrategy) -> bytes:
             Inches(12.2), Inches(5), size=15, bullet="◆", maxn=8)
     divider("04", "Interventions prioritaires" if fr else "Priority interventions")
     interventions_slide()
+    impact_feasibility_slide()
     divider("05", "Suivi & évaluation" if fr else "Monitoring & evaluation")
     me_slide()
     divider("06", "Calendrier & prochaines étapes" if fr else "Timeline & next steps")
