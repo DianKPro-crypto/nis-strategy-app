@@ -134,13 +134,14 @@ Pour CHACUNE des sous-composantes ci-dessus (un item par sous-composante, subcom
 fournis une analyse FFOM SUBSTANTIELLE en remplissant les QUATRE quadrants :
 - strengths (Forces) et weaknesses (Faiblesses) = INTERNES au PEV
 - opportunities (Opportunités) et threats (Menaces) = EXTERNES au PEV
-RÈGLES DE COMPLÉTUDE :
-- Vise 1 à 3 éléments par quadrant et par sous-composante.
+RÈGLES DE COMPLÉTUDE (IMPÉRATIVES) :
+- Tu DOIS fournir AU MOINS 1 élément dans CHACUN des 4 quadrants (Forces, Faiblesses, Opportunités,
+  Menaces) pour CHAQUE sous-composante. Ne renvoie JAMAIS une sous-composante dont les 4 listes sont vides.
+- Vise 1 à 3 éléments par quadrant.
 - Appuie-toi sur : 1) les constats des documents, 2) les directives/guides de référence, 3) ton expertise
-  PEV/IA2030. Les faits chiffrés viennent des documents ; les éléments déduits de l'expertise sont
-  marqués confidence "low" (à valider).
+  PEV/IA2030. Les faits chiffrés viennent des documents ; si les documents sont muets, propose des éléments
+  plausibles issus de ton expertise et marque-les confidence "low" (à valider par l'équipe pays).
 - CONSERVE les faiblesses déjà documentées et AJOUTE celles qui manquent.
-- Ne laisse un quadrant vide que si vraiment aucun élément pertinent n'existe (sinon propose à valider).
 - 'evidence' : cite la source quand elle existe (document, page, extrait, confidence).
 
 SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :

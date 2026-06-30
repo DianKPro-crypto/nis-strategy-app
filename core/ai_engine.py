@@ -186,6 +186,36 @@ def _generate_root_causes_from_weaknesses(profile, documents, language, strategy
     return {"items": items}
 
 
+def _weak_by_sub(strategy) -> dict:
+    out: dict[str, list] = {}
+    if strategy is not None:
+        for sw in strategy.swot:
+            ws = [(sw.subcomponent_code, w.strip()) for w in sw.weaknesses if w and w.strip()]
+            if ws:
+                out[sw.subcomponent_code] = ws
+    return out
+
+
+def regenerate_swot_subset(profile, documents, language, strategy, sub_codes, progress=None) -> dict:
+    """Regenerate FFOM for specific subcomponents only (e.g. the ones still empty)."""
+    from core.epi_components import find_subcomponent
+    weak_by_sub = _weak_by_sub(strategy)
+    targets = [t for t in (find_subcomponent(c) for c in sub_codes) if t]
+    items, errors = [], []
+    for i, (comp, sub) in enumerate(targets):
+        if progress:
+            progress(i, len(targets), sub.label(language))
+        try:
+            data = _call_claude(build_swot_prompt(profile, documents, language, comp,
+                                                  weak_by_sub.get(sub.code), only_subs=[sub], doc_budget=18000))
+            chunk = _items(data)
+            _assign_subcomponents(comp, chunk, candidate_subs=[sub])
+            items.extend(chunk)
+        except Exception as e:
+            errors.append(f"{sub.code}: {e}")
+    return {"items": items, "_errors": errors}
+
+
 def _items(data) -> list:
     """Tolerant extraction: accept {'items':[...]}, a bare list, or the first list-valued field."""
     if isinstance(data, list):

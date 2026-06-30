@@ -97,6 +97,27 @@ def _gen_or_warn(section: str):
         st.rerun()
 
 
+def _fill_empty_swot(s: NISStrategy, empties: list[str]) -> None:
+    """Targeted regeneration of only the still-empty FFOM subcomponents."""
+    ok = False
+    try:
+        status = st.empty()
+        def prog(i, n, label):
+            status.info(f"Complétion… {i+1}/{n} : {label}")
+        with st.spinner("Complétion des sous-composantes vides…"):
+            data = ai_engine.regenerate_swot_subset(s.profile, s.documents, lang(), s, empties, progress=prog)
+            ai_engine.apply_section(s, "swot", data)
+        status.empty()
+        for k in [k for k in list(st.session_state.keys()) if k.startswith("sw_")]:
+            del st.session_state[k]
+        _autosave(s)
+        ok = True
+    except Exception as e:
+        st.error(f"Erreur IA : {e}")
+    if ok:
+        st.rerun()
+
+
 def _autosave(s: NISStrategy) -> None:
     """Persist to cloud after meaningful changes (no-op if cloud not configured)."""
     if not cloud_store.cloud_available():
@@ -332,8 +353,10 @@ def page_swot():
     if filled:
         st.caption(f"📊 Couverture FFOM : {len(filled)}/{total_subs} sous-composantes renseignées.")
         if empties:
-            st.warning("Sous-composantes encore vides : " + ", ".join(empties)
-                       + ". Relancez « Générer » (rattrapage automatique) ou complétez à la main.")
+            st.warning("Sous-composantes encore vides : " + ", ".join(empties))
+            if settings.ai_available() and st.button(
+                    f"🔁 Compléter les {len(empties)} sous-composantes vides", key="fill_empties"):
+                _fill_empty_swot(s, empties)
     errs = st.session_state.pop("_swot_errors", None)
     if errs:
         st.caption("⚠️ Incidents de génération : " + " · ".join(errs[:6]))
