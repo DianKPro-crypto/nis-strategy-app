@@ -15,6 +15,22 @@ from core.models import CountryProfile, UploadedDocument
 PLACEHOLDER_FR = "À compléter par l’équipe pays"
 PLACEHOLDER_EN = "To be completed by the country team"
 
+
+def gavi_clause(language: str) -> str:
+    """Systematic Gavi 6.0 alignment instruction, injected into every step's prompt."""
+    if language == "fr":
+        return ("\n\n⭐ ALIGNEMENT GAVI 6.0 (2026-2030) — OBLIGATOIRE : Gavi est le principal bailleur de la "
+                "vaccination. Si le document de stratégie « Gavi 6.0 » figure dans les sources, aligne "
+                "EXPLICITEMENT cette section sur ses priorités : enfants ZÉRO DOSE et sous-vaccinés, équité, "
+                "renforcement du système de santé et des soins de santé primaires, DURABILITÉ et COFINANCEMENT, "
+                "introduction de nouveaux vaccins, résilience. Cite le document Gavi 6.0 dans 'evidence' quand "
+                "il étaye un élément.")
+    return ("\n\n⭐ GAVI 6.0 ALIGNMENT (2026-2030) — MANDATORY: Gavi is the principal immunization funder. If the "
+            "\"Gavi 6.0\" strategy document is among the sources, EXPLICITLY align this section with its "
+            "priorities: ZERO-DOSE and under-immunized children, equity, health-system & PHC strengthening, "
+            "SUSTAINABILITY and CO-FINANCING, new-vaccine introduction, resilience. Cite the Gavi 6.0 document "
+            "in 'evidence' when it informs an element.")
+
 SYSTEM_PROMPT = """You are a Senior Public Health Expert in immunization strategy (EPI, NIS, IA2030, \
 Gavi, WHO planning tools, M&E) AND a meticulous evidence analyst.
 
@@ -30,7 +46,13 @@ provided in the user message (do not guess).
 4. Clearly separate evidence-based findings from AI recommendations and from assumptions needing validation.
 5. Strengths and weaknesses are INTERNAL to the EPI programme; opportunities and threats are EXTERNAL.
 6. Strategic objectives must be SMART and written in formal public-health language.
-7. Respond with a SINGLE valid JSON object that conforms exactly to the requested schema. No prose, \
+7. GAVI 6.0 ALIGNMENT (systematic & rigorous): Gavi is the principal immunization funder. Whenever a Gavi \
+strategy document (e.g. "Gavi 6.0 Strategy 2026-2030") is among the source documents, you MUST explicitly \
+align EVERY section — SWOT, root causes, objectives, interventions, M&E indicators and activities — with Gavi \
+6.0 strategic priorities: reaching zero-dose and under-immunized children, equity, health-system & PHC \
+strengthening, sustainability and co-financing, new-vaccine introduction, and resilience. Reference the Gavi \
+6.0 document in 'evidence' wherever it informs an element.
+8. Respond with a SINGLE valid JSON object that conforms exactly to the requested schema. No prose, \
 no markdown fences, no comments. Use the requested output language for all human-readable text."""
 
 
@@ -96,7 +118,7 @@ MISSING-INFO PLACEHOLDER (use verbatim when documents lack the information): "{p
 SOURCE DOCUMENTS (your only source of truth):
 {_documents_block(documents)}
 
-TASK: {task}
+TASK: {task}{gavi_clause(language)}
 
 REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 {json.dumps(schema, ensure_ascii=False, indent=2)}
@@ -143,6 +165,7 @@ RÈGLES DE COMPLÉTUDE (IMPÉRATIVES) :
   plausibles issus de ton expertise et marque-les confidence "low" (à valider par l'équipe pays).
 - CONSERVE les faiblesses déjà documentées et AJOUTE celles qui manquent.
 - 'evidence' : cite la source quand elle existe (document, page, extrait, confidence).
+{gavi_clause(language)}
 
 SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 {json.dumps(schema, ensure_ascii=False, indent=2)}
@@ -175,6 +198,7 @@ suite (3 à 5 niveaux) jusqu'à la CAUSE PROFONDE.
 - Appuie ton raisonnement sur les constats des documents quand ils existent ; ne fabrique pas de faits.
 - Recopie la faiblesse mot pour mot dans 'weakness' et son code dans 'subcomponent_code'.
 - 'whys' = liste ordonnée des POURQUOI ; 'final_why' = la cause profonde (dernier POURQUOI).
+{gavi_clause(language)}
 
 SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 {json.dumps(schema, ensure_ascii=False, indent=2)}
@@ -215,6 +239,7 @@ intervention, REMPLIS TOUS LES CHAMPS avec des arguments SOLIDES et ANCRÉS DANS
   feasibility), en cohérence avec les preuves
 - evidence[] : pour CHAQUE intervention, cite au moins une preuve {{document_name, locator (page/section),
   excerpt, confidence}}. Si un champ n'est pas étayé par les documents, écris le PLACEHOLDER et mets confidence "low".
+{gavi_clause(language)}
 
 SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 {json.dumps(schema, ensure_ascii=False, indent=2)}
@@ -263,6 +288,7 @@ RÈGLES IMPORTANTES :
   de la référence vers l'objectif sur les {years} années).
 - 'baseline' : si absente des documents, écris « {ph} » (ou « Situation de référence à confirmer par l'équipe pays »).
 - 'evidence' : cite au moins une preuve (document, page/section, extrait, confidence). N'invente jamais de chiffre.
+{gavi_clause(language)}
 
 SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 {json.dumps(schema, ensure_ascii=False, indent=2)}
