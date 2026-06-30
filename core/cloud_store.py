@@ -19,6 +19,7 @@ One-time setup (run in Supabase → SQL editor):
     create policy "nis_all" on nis_projects for all using (true) with check (true);
 """
 from __future__ import annotations
+import re
 from datetime import datetime, timezone
 
 from config import settings
@@ -26,6 +27,20 @@ from core.models import NISStrategy
 
 TABLE = "nis_projects"
 _TIMEOUT = 15
+
+
+def _project_url() -> str:
+    """Normalize SUPABASE_URL to the project API base (https://<ref>.supabase.co).
+
+    Self-heals the common mistake of pasting the dashboard URL
+    (https://supabase.com/dashboard/project/<ref>/...) instead of the API URL.
+    """
+    raw = (settings.SUPABASE_URL or "").strip().rstrip("/")
+    m = re.search(r"/project/([a-z0-9]{16,})", raw)
+    if m:
+        return f"https://{m.group(1)}.supabase.co"
+    m2 = re.match(r"(https?://[A-Za-z0-9.\-]+)", raw)
+    return m2.group(1) if m2 else raw
 
 
 def cloud_available() -> bool:
@@ -44,7 +59,7 @@ def _headers(extra: dict | None = None) -> dict:
 
 
 def _base() -> str:
-    return settings.SUPABASE_URL.rstrip("/") + f"/rest/v1/{TABLE}"
+    return _project_url() + f"/rest/v1/{TABLE}"
 
 
 def save_project(name: str, strategy: NISStrategy) -> bool:
