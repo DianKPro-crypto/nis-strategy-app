@@ -133,7 +133,7 @@ def _generate_indicators_from_objectives(profile, documents, language, strategy,
         try:
             prompt = build_indicator_prompt(profile, documents, language, label, objs)
             data = _call_claude(prompt)
-            items.extend(data.get("items", []))
+            items.extend(_items(data))
         except Exception:
             pass
     return {"items": items}
@@ -157,7 +157,7 @@ def _generate_interventions_from_objectives(profile, documents, language, strate
         try:
             prompt = build_intervention_prompt(profile, documents, language, label, objs)
             data = _call_claude(prompt)
-            items.extend(data.get("items", []))
+            items.extend(_items(data))
         except Exception:
             pass
     return {"items": items}
@@ -180,10 +180,24 @@ def _generate_root_causes_from_weaknesses(profile, documents, language, strategy
         try:
             prompt = build_root_cause_prompt(profile, documents, language, comp, weak_by_comp[comp.code])
             data = _call_claude(prompt)
-            items.extend(data.get("items", []))
+            items.extend(_items(data))
         except Exception:
             pass
     return {"items": items}
+
+
+def _items(data) -> list:
+    """Tolerant extraction: accept {'items':[...]}, a bare list, or the first list-valued field."""
+    if isinstance(data, list):
+        return data
+    if not isinstance(data, dict):
+        return []
+    if isinstance(data.get("items"), list):
+        return data["items"]
+    for v in data.values():
+        if isinstance(v, list):
+            return v
+    return []
 
 
 def _generate_swot_chunked(profile, documents, language, progress=None, strategy=None) -> dict:
@@ -195,21 +209,35 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
             for w in sw.weaknesses:
                 if w and w.strip():
                     weak_by_comp.setdefault(sw.component_code, []).append((sw.subcomponent_code, w.strip()))
-    items, errors = [], []
+    items, stats, errors = [], {}, []
     for i, comp in enumerate(EPI_COMPONENTS):
         if progress:
             progress(i, len(EPI_COMPONENTS), comp.label(language))
+        comp_items = []
         try:
-            prompt = build_swot_prompt(profile, documents, language, comp, weak_by_comp.get(comp.code))
-            data = _call_claude(prompt)
-            chunk = data.get("items", [])
-            _assign_subcomponents(comp, chunk)   # robustly attach each item to a real subcomponent
-            items.extend(chunk)
+            data = _call_claude(build_swot_prompt(profile, documents, language, comp, weak_by_comp.get(comp.code)))
+            chunk = _items(data)
+            _assign_subcomponents(comp, chunk)
+            comp_items.extend(chunk)
         except Exception as e:
             errors.append(f"{comp.code}: {e}")
+        # gap-fill: any subcomponent still uncovered (e.g. response was truncated) -> one focused retry
+        covered = {it.get("subcomponent_code") for it in comp_items}
+        missing = [s for s in comp.subcomponents if s.code not in covered]
+        if missing:
+            try:
+                data2 = _call_claude(build_swot_prompt(profile, documents, language, comp,
+                                                       weak_by_comp.get(comp.code), only_subs=missing))
+                chunk2 = _items(data2)
+                _assign_subcomponents(comp, chunk2, candidate_subs=missing)
+                comp_items.extend(chunk2)
+            except Exception as e:
+                errors.append(f"{comp.code}*: {e}")
+        items.extend(comp_items)
+        stats[comp.code] = len({it.get("subcomponent_code") for it in comp_items})
     if not items and errors:
         raise AIError("FFOM non générée — " + " · ".join(errors))
-    return {"items": items}
+    return {"items": items, "_stats": stats, "_errors": errors}
 
 
 def _resolve_sub(comp, item: dict):
@@ -231,13 +259,16 @@ def _resolve_sub(comp, item: dict):
     return None
 
 
-def _assign_subcomponents(comp, chunk: list) -> None:
-    """Ensure every item in a component's chunk maps to one of its subcomponents.
-    Order of resolution: explicit code → label match → positional fallback."""
-    used, subs = set(), comp.subcomponents
+def _assign_subcomponents(comp, chunk: list, candidate_subs=None) -> None:
+    """Ensure every item maps to one of the component's subcomponents (restricted to
+    candidate_subs when given, e.g. for gap-fill). Resolution: code → label → positional."""
+    subs = list(candidate_subs) if candidate_subs else comp.subcomponents
+    if not subs:
+        return
+    used = set()
     for idx, it in enumerate(chunk):
         sub = _resolve_sub(comp, it)
-        if sub is None or sub.code in used:
+        if sub is None or sub not in subs or sub.code in used:
             sub = next((s for s in subs if s.code not in used), None)
         if sub is None:
             sub = subs[min(idx, len(subs) - 1)]
@@ -251,17 +282,17 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
     if section == "vision":
         strategy.vision = CountryVision(**_clean(data, CountryVision))
     elif section == "swot":
-        new = [_fix_codes(SWOTItem(**_clean(x, SWOTItem))) for x in data.get("items", [])]
+        new = [_fix_codes(SWOTItem(**_clean(x, SWOTItem))) for x in _items(data)]
         _merge_swot(strategy, new)
     elif section == "root_causes":
         strategy.root_causes = [_fix_codes(RootCauseAnalysis(**_clean(x, RootCauseAnalysis)))
-                                for x in data.get("items", [])]
+                                for x in _items(data)]
     elif section == "objectives":
         strategy.objectives = [_fix_codes(StrategicObjective(**_clean(x, StrategicObjective)))
-                               for x in data.get("items", [])]
+                               for x in _items(data)]
     elif section == "interventions":
         out = []
-        for x in data.get("items", []):
+        for x in _items(data):
             sc = x.pop("score", {}) or {}
             iv = Intervention(**_clean(x, Intervention))
             iv.score = PrioritizationScore(**_clean(sc, PrioritizationScore))
@@ -269,14 +300,14 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
             out.append(_fix_codes(iv))
         strategy.interventions = out
     elif section == "indicators":
-        inds = [_fix_codes(MEIndicator(**_clean(x, MEIndicator))) for x in data.get("items", [])]
+        inds = [_fix_codes(MEIndicator(**_clean(x, MEIndicator))) for x in _items(data)]
         years = getattr(strategy.profile, "nis_duration_years", 5)
         for ind in inds:
             _carry_forward_targets(ind, years)
         strategy.indicators = inds
     elif section == "activities":
         strategy.activities = [_fix_codes(Activity(**_clean(x, Activity)))
-                               for x in data.get("items", [])]
+                               for x in _items(data)]
 
 
 def _merge_swot(strategy, new_items) -> None:

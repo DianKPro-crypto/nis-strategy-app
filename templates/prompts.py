@@ -104,12 +104,15 @@ REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 
 
 def build_swot_prompt(profile: CountryProfile, documents: list[UploadedDocument],
-                      language: str, component, existing_weaknesses: list[tuple[str, str]] | None = None) -> str:
-    """Complete FFOM/SWOT for ONE component: all 4 quadrants per subcomponent, building on
-    any already-documented weaknesses, grounded in documents/directives + EPI expertise."""
+                      language: str, component, existing_weaknesses: list[tuple[str, str]] | None = None,
+                      only_subs=None) -> str:
+    """Complete FFOM/SWOT for ONE component (or a subset of its subcomponents via only_subs):
+    all 4 quadrants per subcomponent, building on any already-documented weaknesses,
+    grounded in documents/directives + EPI expertise."""
     lang_name = "français" if language == "fr" else "English"
-    codes = ", ".join(s.code for s in component.subcomponents)
-    sub_lines = "\n".join(f"   {s.code} {s.label(language)}" for s in component.subcomponents)
+    subs = list(only_subs) if only_subs else component.subcomponents
+    codes = ", ".join(s.code for s in subs)
+    sub_lines = "\n".join(f"   {s.code} {s.label(language)}" for s in subs)
     ew = ""
     if existing_weaknesses:
         ew = ("\nFAIBLESSES DÉJÀ DOCUMENTÉES (CONSERVE-les telles quelles dans 'weaknesses', puis complète) :\n"

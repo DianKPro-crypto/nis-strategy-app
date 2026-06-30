@@ -76,6 +76,8 @@ def _gen_or_warn(section: str):
             data = ai_engine.generate_section(section, s.profile, s.documents, lang(),
                                               progress=prog, strategy=s)
             ai_engine.apply_section(s, section, data)
+            if section == "swot" and isinstance(data, dict) and data.get("_errors"):
+                st.session_state["_swot_errors"] = data["_errors"]
         status.empty()
         # Clear stale widget state so the regenerated values display on the next run.
         prefixes = SECTION_WIDGET_PREFIXES.get(section, ())
@@ -320,9 +322,19 @@ def page_swot():
                   for c, sub in subcomponent_pairs()]
     # Key by subcomponent code only (robust if the AI returns a mismatched component code).
     by = {x.subcomponent_code: x for x in s.swot}
-    n_filled = sum(1 for x in s.swot if any([x.strengths, x.weaknesses, x.opportunities, x.threats]))
-    if n_filled:
-        st.caption(f"📊 {n_filled} sous-composante(s) renseignée(s).")
+    total_subs = sum(len(c.subcomponents) for c in EPI_COMPONENTS)
+    filled = [(c, sub) for c in EPI_COMPONENTS for sub in c.subcomponents
+              if (it := by.get(sub.code)) and any([it.strengths, it.weaknesses, it.opportunities, it.threats])]
+    empties = [f"{sub.code}" for c in EPI_COMPONENTS for sub in c.subcomponents
+               if not ((it := by.get(sub.code)) and any([it.strengths, it.weaknesses, it.opportunities, it.threats]))]
+    if filled:
+        st.caption(f"📊 Couverture FFOM : {len(filled)}/{total_subs} sous-composantes renseignées.")
+        if empties:
+            st.warning("Sous-composantes encore vides : " + ", ".join(empties)
+                       + ". Relancez « Générer » (rattrapage automatique) ou complétez à la main.")
+    errs = st.session_state.pop("_swot_errors", None)
+    if errs:
+        st.caption("⚠️ Incidents de génération : " + " · ".join(errs[:6]))
     for comp in EPI_COMPONENTS:
         with st.expander(comp.label(lg)):
             for sub in comp.subcomponents:
