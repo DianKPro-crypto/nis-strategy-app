@@ -20,7 +20,7 @@ from core.models import (
 )
 from core.epi_components import subcomponent_pairs, find_subcomponent
 from templates.prompts import (SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt,
-                               build_intervention_prompt, build_indicator_prompt)
+                               build_intervention_prompt, build_indicator_prompt, build_swot_prompt)
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -94,7 +94,7 @@ def generate_section(section: str, profile: CountryProfile,
     if section not in SECTIONS:
         raise ValueError(section)
     if section == "swot":
-        return _generate_swot_chunked(profile, documents, language, progress)
+        return _generate_swot_chunked(profile, documents, language, progress, strategy)
     if section == "root_causes" and strategy is not None:
         rc = _generate_root_causes_from_weaknesses(profile, documents, language, strategy, progress)
         if rc["items"]:
@@ -186,14 +186,21 @@ def _generate_root_causes_from_weaknesses(profile, documents, language, strategy
     return {"items": items}
 
 
-def _generate_swot_chunked(profile, documents, language, progress=None) -> dict:
+def _generate_swot_chunked(profile, documents, language, progress=None, strategy=None) -> dict:
     from core.epi_components import EPI_COMPONENTS
+    # existing weaknesses (e.g. imported from ADS) per component, to build on
+    weak_by_comp: dict[str, list] = {}
+    if strategy is not None:
+        for sw in strategy.swot:
+            for w in sw.weaknesses:
+                if w and w.strip():
+                    weak_by_comp.setdefault(sw.component_code, []).append((sw.subcomponent_code, w.strip()))
     items, errors = [], []
     for i, comp in enumerate(EPI_COMPONENTS):
         if progress:
             progress(i, len(EPI_COMPONENTS), comp.label(language))
         try:
-            prompt = build_generation_prompt(profile, documents, language, "swot", focus=comp)
+            prompt = build_swot_prompt(profile, documents, language, comp, weak_by_comp.get(comp.code))
             data = _call_claude(prompt)
             chunk = data.get("items", [])
             _assign_subcomponents(comp, chunk)   # robustly attach each item to a real subcomponent
@@ -244,7 +251,8 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
     if section == "vision":
         strategy.vision = CountryVision(**_clean(data, CountryVision))
     elif section == "swot":
-        strategy.swot = [_fix_codes(SWOTItem(**_clean(x, SWOTItem))) for x in data.get("items", [])]
+        new = [_fix_codes(SWOTItem(**_clean(x, SWOTItem))) for x in data.get("items", [])]
+        _merge_swot(strategy, new)
     elif section == "root_causes":
         strategy.root_causes = [_fix_codes(RootCauseAnalysis(**_clean(x, RootCauseAnalysis)))
                                 for x in data.get("items", [])]
@@ -269,6 +277,24 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
     elif section == "activities":
         strategy.activities = [_fix_codes(Activity(**_clean(x, Activity)))
                                for x in data.get("items", [])]
+
+
+def _merge_swot(strategy, new_items) -> None:
+    """Merge generated SWOT into existing (preserve imported weaknesses; dedup by text)."""
+    by = {x.subcomponent_code: x for x in strategy.swot}
+    for it in new_items:
+        cur = by.get(it.subcomponent_code)
+        if cur is None:
+            by[it.subcomponent_code] = it
+            continue
+        for f in ("strengths", "weaknesses", "opportunities", "threats"):
+            merged = list(getattr(cur, f))
+            for v in getattr(it, f):
+                if v and v.strip() and v not in merged:
+                    merged.append(v)
+            setattr(cur, f, merged)
+        cur.evidence = (cur.evidence or []) + (it.evidence or [])
+    strategy.swot = list(by.values())
 
 
 def _carry_forward_targets(indicator, years: int) -> None:

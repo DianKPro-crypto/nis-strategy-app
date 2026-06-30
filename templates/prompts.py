@@ -103,6 +103,48 @@ REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 """
 
 
+def build_swot_prompt(profile: CountryProfile, documents: list[UploadedDocument],
+                      language: str, component, existing_weaknesses: list[tuple[str, str]] | None = None) -> str:
+    """Complete FFOM/SWOT for ONE component: all 4 quadrants per subcomponent, building on
+    any already-documented weaknesses, grounded in documents/directives + EPI expertise."""
+    lang_name = "français" if language == "fr" else "English"
+    codes = ", ".join(s.code for s in component.subcomponents)
+    sub_lines = "\n".join(f"   {s.code} {s.label(language)}" for s in component.subcomponents)
+    ew = ""
+    if existing_weaknesses:
+        ew = ("\nFAIBLESSES DÉJÀ DOCUMENTÉES (CONSERVE-les telles quelles dans 'weaknesses', puis complète) :\n"
+              + "\n".join(f"- [{c}] {w}" for c, w in existing_weaknesses))
+    schema = SCHEMAS["swot"]
+    ph = PLACEHOLDER_FR if language == "fr" else PLACEHOLDER_EN
+    return f"""CONTEXTE PAYS : {profile.country_name} — {profile.epi_programme_name}.
+OUTPUT LANGUAGE: {lang_name}
+
+COMPOSANTE PEV : {component.label(language)}
+SOUS-COMPOSANTES À COUVRIR (codes : {codes}) :
+{sub_lines}
+
+DOCUMENTS SOURCES & DIRECTIVES (ta source prioritaire — constats pays, guides OMS/IA2030, normes) :
+{_documents_block(documents)}{ew}
+
+TÂCHE — ANALYSE FFOM COMPLÈTE :
+Pour CHACUNE des sous-composantes ci-dessus (un item par sous-composante, subcomponent_code = code exact),
+fournis une analyse FFOM SUBSTANTIELLE en remplissant les QUATRE quadrants :
+- strengths (Forces) et weaknesses (Faiblesses) = INTERNES au PEV
+- opportunities (Opportunités) et threats (Menaces) = EXTERNES au PEV
+RÈGLES DE COMPLÉTUDE :
+- Vise 1 à 3 éléments par quadrant et par sous-composante.
+- Appuie-toi sur : 1) les constats des documents, 2) les directives/guides de référence, 3) ton expertise
+  PEV/IA2030. Les faits chiffrés viennent des documents ; les éléments déduits de l'expertise sont
+  marqués confidence "low" (à valider).
+- CONSERVE les faiblesses déjà documentées et AJOUTE celles qui manquent.
+- Ne laisse un quadrant vide que si vraiment aucun élément pertinent n'existe (sinon propose à valider).
+- 'evidence' : cite la source quand elle existe (document, page, extrait, confidence).
+
+SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+"""
+
+
 def build_root_cause_prompt(profile: CountryProfile, documents: list[UploadedDocument],
                             language: str, component, weaknesses: list[tuple[str, str]]) -> str:
     """Root-cause prompt: the AI applies the 5-Whys (its reasoning) to EACH FFOM weakness,
