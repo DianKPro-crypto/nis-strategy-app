@@ -51,9 +51,52 @@ def build_excel(s: NISStrategy) -> bytes:
     _sheet_me(wb.create_sheet("SECTION 6_M&E"), s, lang)
     _sheet_activities(wb.create_sheet("SECTION 7_Activities"), s, lang)
     _sheet_prioritize(wb.create_sheet("How to prioritize"), lang)
+    _sheet_index(wb.create_sheet("Sommaire", 0), wb, s, lang)  # clickable table of contents
+    wb.active = 0
     buf = BytesIO()
     wb.save(buf)
     return buf.getvalue()
+
+
+def _sheet_index(ws, wb, s, lang):
+    fr = lang == "fr"
+    ws.sheet_view.showGridLines = False
+    lp = logo_path(lang)
+    if lp:
+        try:
+            from openpyxl.drawing.image import Image as XLImage
+            img = XLImage(str(lp)); img.height, img.width = 50, int(50 * img.width / img.height)
+            ws.add_image(img, "B2"); ws.row_dimensions[2].height = 42
+        except Exception:
+            pass
+    period = f"{s.profile.nis_start_year}–{s.profile.nis_start_year + s.profile.nis_duration_years - 1}"
+    ws["B5"] = ("Stratégie Nationale de Vaccination" if fr else "National Immunization Strategy")
+    ws["B5"].font = Font(bold=True, size=18, color=INSTITUTION_DARK.lstrip("#"))
+    ws["B6"] = f"{s.profile.country_name} · {period}"
+    ws["B6"].font = Font(size=12, color=INSTITUTION_PRIMARY.lstrip("#"))
+    ws["B8"] = ("Sommaire (cliquez pour accéder à chaque feuille)" if fr
+                else "Table of contents (click to open each sheet)")
+    ws["B8"].font = Font(bold=True, size=12)
+    descriptions = {
+        "Country_Vision": "Vision, but et objectif" if fr else "Vision, goal & objective",
+        "Country_Sequence of events": "FFOM → causes → objectifs → interventions"
+        if fr else "SWOT → causes → objectives → interventions",
+        "SECTION 6_M&E": "Cadre de suivi & évaluation" if fr else "M&E framework",
+        "SECTION 7_Activities": "Activités opérationnelles" if fr else "Operational activities",
+        "How to prioritize": "Méthode de priorisation" if fr else "Prioritization method",
+    }
+    r = 10
+    for i, name in enumerate([n for n in wb.sheetnames if n != "Sommaire"], 1):
+        cell = ws.cell(r, 2, f"{i}.  {name}")
+        cell.hyperlink = f"#'{name}'!A1"
+        cell.font = Font(color="0563C1", underline="single", bold=True, size=12)
+        ws.cell(r, 4, descriptions.get(name, "")).font = Font(italic=True, color="555555")
+        ws.row_dimensions[r].height = 22
+        r += 1
+    ws.column_dimensions["A"].width = 3
+    ws.column_dimensions["B"].width = 34
+    ws.column_dimensions["C"].width = 3
+    ws.column_dimensions["D"].width = 55
 
 
 def _sheet_vision(ws, s, lang):

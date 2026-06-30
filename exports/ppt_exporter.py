@@ -53,6 +53,16 @@ def build_ppt(s: NISStrategy) -> bytes:
             p.text = f"• {it}"; p.font.size = Pt(18); p.font.color.rgb = _DARK
 
     title_slide()
+    bullets("Sommaire" if fr else "Agenda",
+            ["1. " + ("Vision, but et objectif" if fr else "Vision, goal & objective"),
+             "2. " + ("Analyse FFOM (forces, faiblesses, opportunités, menaces)" if fr
+                      else "SWOT analysis"),
+             "3. " + ("Causes profondes et obstacles" if fr else "Root causes & obstacles"),
+             "4. " + ("Objectifs stratégiques prioritaires" if fr else "Priority strategic objectives"),
+             "5. " + ("Interventions prioritaires" if fr else "Priority interventions"),
+             "6. " + ("Cadre de suivi et évaluation" if fr else "M&E framework"),
+             "7. " + ("Calendrier et activités" if fr else "Timeline & activities"),
+             "8. " + ("Conditions de succès et prochaines étapes" if fr else "Success factors & next steps")])
     bullets("Résumé exécutif" if fr else "Executive summary",
             [s.vision.overall_objective or "—",
              f"{len(s.objectives)} {'objectifs' if fr else 'objectives'} · "
