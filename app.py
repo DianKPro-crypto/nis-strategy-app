@@ -71,7 +71,7 @@ def _gen_or_warn(section: str):
         prog = None
         if section in ("swot", "root_causes", "interventions"):
             def prog(i, n, label):
-                status.info(f"IA en cours… composante {i+1}/{n} : {label}")
+                status.info(f"IA en cours… {i+1}/{n} : {label}")
         with st.spinner("IA en cours… (analyse des documents)"):
             data = ai_engine.generate_section(section, s.profile, s.documents, lang(),
                                               progress=prog, strategy=s)
@@ -247,7 +247,9 @@ def page_upload():
                 continue
             doc = extract_document(data, f.name, cat)
             s.documents = [d for d in s.documents if d.name != f.name] + [doc]
-        st.success(f"{len(files)} document(s) traité(s).")
+        _autosave(s)   # persist immediately so documents survive a reboot
+        st.success(f"{len(files)} document(s) traité(s)."
+                   + (" ☁️ Sauvegardé." if cloud_store.cloud_available() else ""))
     if s.documents:
         total_chars = sum(len((d.text or "").strip()) for d in s.documents)
         st.subheader(f"Documents ({len(s.documents)}) — {total_chars:,} caractères extraits".replace(",", " "))

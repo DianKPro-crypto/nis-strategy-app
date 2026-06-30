@@ -201,43 +201,31 @@ def _items(data) -> list:
 
 
 def _generate_swot_chunked(profile, documents, language, progress=None, strategy=None) -> dict:
-    from core.epi_components import EPI_COMPONENTS
-    # existing weaknesses (e.g. imported from ADS) per component, to build on
-    weak_by_comp: dict[str, list] = {}
+    """Generate the FFOM/SWOT ONE SUBCOMPONENT AT A TIME (26 small calls). Small responses never
+    get truncated, so coverage is reliable. Builds on any already-documented weaknesses."""
+    from core.epi_components import subcomponent_pairs
+    weak_by_sub: dict[str, list] = {}
     if strategy is not None:
         for sw in strategy.swot:
-            for w in sw.weaknesses:
-                if w and w.strip():
-                    weak_by_comp.setdefault(sw.component_code, []).append((sw.subcomponent_code, w.strip()))
-    items, stats, errors = [], {}, []
-    for i, comp in enumerate(EPI_COMPONENTS):
+            ws = [(sw.subcomponent_code, w.strip()) for w in sw.weaknesses if w and w.strip()]
+            if ws:
+                weak_by_sub[sw.subcomponent_code] = ws
+    pairs = subcomponent_pairs()  # [(component, subcomponent), ...] — the 26
+    items, errors = [], []
+    for i, (comp, sub) in enumerate(pairs):
         if progress:
-            progress(i, len(EPI_COMPONENTS), comp.label(language))
-        comp_items = []
+            progress(i, len(pairs), sub.label(language))
         try:
-            data = _call_claude(build_swot_prompt(profile, documents, language, comp, weak_by_comp.get(comp.code)))
+            data = _call_claude(build_swot_prompt(profile, documents, language, comp,
+                                                  weak_by_sub.get(sub.code), only_subs=[sub], doc_budget=18000))
             chunk = _items(data)
-            _assign_subcomponents(comp, chunk)
-            comp_items.extend(chunk)
+            _assign_subcomponents(comp, chunk, candidate_subs=[sub])
+            items.extend(chunk)
         except Exception as e:
-            errors.append(f"{comp.code}: {e}")
-        # gap-fill: any subcomponent still uncovered (e.g. response was truncated) -> one focused retry
-        covered = {it.get("subcomponent_code") for it in comp_items}
-        missing = [s for s in comp.subcomponents if s.code not in covered]
-        if missing:
-            try:
-                data2 = _call_claude(build_swot_prompt(profile, documents, language, comp,
-                                                       weak_by_comp.get(comp.code), only_subs=missing))
-                chunk2 = _items(data2)
-                _assign_subcomponents(comp, chunk2, candidate_subs=missing)
-                comp_items.extend(chunk2)
-            except Exception as e:
-                errors.append(f"{comp.code}*: {e}")
-        items.extend(comp_items)
-        stats[comp.code] = len({it.get("subcomponent_code") for it in comp_items})
+            errors.append(f"{sub.code}: {e}")
     if not items and errors:
-        raise AIError("FFOM non générée — " + " · ".join(errors))
-    return {"items": items, "_stats": stats, "_errors": errors}
+        raise AIError("FFOM non générée — " + " · ".join(errors[:5]))
+    return {"items": items, "_errors": errors}
 
 
 def _resolve_sub(comp, item: dict):

@@ -105,7 +105,7 @@ REQUIRED JSON SCHEMA (return exactly this shape, nothing else):
 
 def build_swot_prompt(profile: CountryProfile, documents: list[UploadedDocument],
                       language: str, component, existing_weaknesses: list[tuple[str, str]] | None = None,
-                      only_subs=None) -> str:
+                      only_subs=None, doc_budget: int = 45000) -> str:
     """Complete FFOM/SWOT for ONE component (or a subset of its subcomponents via only_subs):
     all 4 quadrants per subcomponent, building on any already-documented weaknesses,
     grounded in documents/directives + EPI expertise."""
@@ -127,7 +127,7 @@ SOUS-COMPOSANTES À COUVRIR (codes : {codes}) :
 {sub_lines}
 
 DOCUMENTS SOURCES & DIRECTIVES (ta source prioritaire — constats pays, guides OMS/IA2030, normes) :
-{_documents_block(documents)}{ew}
+{_documents_block(documents, doc_budget)}{ew}
 
 TÂCHE — ANALYSE FFOM COMPLÈTE :
 Pour CHACUNE des sous-composantes ci-dessus (un item par sous-composante, subcomponent_code = code exact),
