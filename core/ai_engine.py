@@ -93,6 +93,12 @@ def generate_section(section: str, profile: CountryProfile,
     """
     if section not in SECTIONS:
         raise ValueError(section)
+    # Always append the bundled IA2030 / Gavi 6.0 reference tables so every step is aligned.
+    try:
+        from core import reference_docs
+        documents = list(documents) + reference_docs.get_reference_documents()
+    except Exception:
+        pass
     if section == "swot":
         return _generate_swot_chunked(profile, documents, language, progress, strategy)
     if section == "root_causes" and strategy is not None:

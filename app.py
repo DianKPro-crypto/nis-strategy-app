@@ -204,6 +204,15 @@ def sidebar():
             st.rerun()
         else:
             st.sidebar.info("Aucun projet à ce nom.")
+    # --- Design credit (Dian K Pro) ---
+    st.sidebar.divider()
+    dk = branding.dk_logo_bytes()
+    c1, c2 = st.sidebar.columns([1, 3])
+    if dk:
+        c1.image(dk, width=42)
+    c2.markdown(f"<div style='font-size:0.72rem;color:#5b6b7b;line-height:1.25'>"
+                f"Conception : <b>OMS</b>, améliorée par<br><b>Dian K Pro</b> · Public Health "
+                f"&amp; Digital Strategist</div>", unsafe_allow_html=True)
     return choice
 
 

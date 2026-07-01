@@ -11,7 +11,7 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
 from core.models import NISStrategy
-from core.branding import logo_path
+from core.branding import logo_path, dk_credit
 
 # ---- palette ----
 DARK = RGBColor(0x00, 0x33, 0x66)
@@ -123,7 +123,9 @@ def build_ppt(s: NISStrategy) -> bytes:
         text(sl, f"{s.profile.country_name}  ·  {period}", Inches(0.8), Inches(4.2),
              Inches(11), Inches(0.7), 22, PRIMARY, bold=True)
         text(sl, [s.profile.ministry_name, s.profile.epi_programme_name, s.profile.generation_date],
-             Inches(0.8), Inches(6.15), Inches(11), Inches(1.2), 13, WHITE)
+             Inches(0.8), Inches(6.15), Inches(8), Inches(1.2), 13, WHITE)
+        text(sl, dk_credit(s.profile.language), Inches(6.5), Inches(6.95), Inches(6.3), Inches(0.4),
+             10, RGBColor(0xE9, 0xC9, 0x6B), align=PP_ALIGN.RIGHT)
 
     def divider(num, title, sub=""):
         sl = slide(DARK)
@@ -331,7 +333,9 @@ def build_ppt(s: NISStrategy) -> bytes:
                   else "Towards equitable and sustainable immunization"),
              Inches(0.85), Inches(3.7), Inches(11), Inches(0.7), 18, RGBColor(0xBF, 0xD6, 0xEC))
         text(sl, f"{s.profile.ministry_name} · {s.profile.country_name} · {period}",
-             Inches(0.85), Inches(6.6), Inches(11), Inches(0.5), 12, RGBColor(0x9F, 0xB8, 0xD2))
+             Inches(0.85), Inches(6.4), Inches(11), Inches(0.5), 12, RGBColor(0x9F, 0xB8, 0xD2))
+        text(sl, dk_credit(s.profile.language), Inches(0.85), Inches(6.85), Inches(11), Inches(0.4),
+             10, RGBColor(0xE9, 0xC9, 0x6B))
 
     # ---------- build ----------
     title_slide()

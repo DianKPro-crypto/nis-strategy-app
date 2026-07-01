@@ -13,7 +13,7 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table, Tab
 from config.settings import INSTITUTION_DARK, INSTITUTION_PRIMARY
 from core.models import NISStrategy
 from core.epi_components import EPI_COMPONENTS, find_subcomponent
-from core.branding import logo_path
+from core.branding import logo_path, dk_credit
 
 _DARK = colors.HexColor(INSTITUTION_DARK)
 _PRIMARY = colors.HexColor(INSTITUTION_PRIMARY)
@@ -110,6 +110,10 @@ def build_pdf(s: NISStrategy) -> bytes:
               Paragraph(f"{_esc(s.profile.ministry_name)}<br/>{_esc(s.profile.epi_programme_name)}"
                         f"<br/>{_esc(s.profile.generation_date)}",
                         ParagraphStyle("t3", parent=body, alignment=1)),
+              Spacer(1, 2.5 * cm),
+              Paragraph(f"{_esc(dk_credit(s.profile.language))}",
+                        ParagraphStyle("dk", parent=body, alignment=1, fontSize=9,
+                                       textColor=colors.HexColor("#8A6D1B"))),
               PageBreak()]
 
     # ---- Executive summary ----
