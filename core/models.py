@@ -279,6 +279,7 @@ class NISStrategy(_Model):
     narrative: dict[str, str] = Field(default_factory=dict)   # section_key -> AI prose
     financial_report: str = ""                                # from NIS.COST
     niscost_text: str = ""                                    # extracted NIS.COST source
+    snv_draft_text: str = ""                                  # uploaded draft NIS the AI builds upon
 
     # ---- serialization helpers (v1/v2 compatible) ----
     def to_dict(self) -> dict:

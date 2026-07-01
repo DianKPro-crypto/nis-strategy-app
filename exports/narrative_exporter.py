@@ -144,7 +144,7 @@ def build_narrative_word(s: NISStrategy) -> bytes:
             cols = ["Indicateur" if fr else "Indicator", "Base" if fr else "Baseline"] + [str(y) for y in years]
             _mini_table(doc, cols, [[i.name, i.baseline] + [i.targets.get(f"Y{k+1}", "")
                         for k in range(len(years))] for i in s.indicators])
-        if key == "activities" and s.activities:
+        if key == "implementation" and s.activities:
             _mini_table(doc, ["Activité" if fr else "Activity", "Niveau" if fr else "Level",
                               "Responsable" if fr else "Lead"],
                         [[a.activity, a.implementation_level, a.lead] for a in s.activities])

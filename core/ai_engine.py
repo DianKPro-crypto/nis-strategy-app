@@ -67,14 +67,23 @@ def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE) -> str
 # ---- Step 11/12: full write-up, financial report, quality assurance ----
 NARRATIVE_SECTIONS = [
     ("exec", "Résumé exécutif", "Executive summary"),
-    ("situation", "Analyse de la situation (synthèse FFOM et causes profondes)",
-     "Situation analysis (SWOT & root-cause synthesis)"),
-    ("vision", "Vision, objectif global et objectif général", "Vision, global goal and overall objective"),
-    ("objectives", "Objectifs stratégiques prioritaires et liens avec l’IA2030",
-     "Strategic priority objectives and links to IA2030"),
-    ("interventions", "Interventions principales", "Main interventions"),
-    ("me", "Cadre de suivi et d’évaluation", "Monitoring & evaluation framework"),
-    ("activities", "Activités opérationnelles", "Operational activities"),
+    ("positioning", "Positionnement de la SNV (IA2030, stratégie sectorielle de santé, du cMYP à la SNV)",
+     "Positioning of the NIS (IA2030, health sector strategy, from cMYP to NIS)"),
+    ("situation", "Analyse de la situation — 7 composantes du PEV, FFOM et causes profondes",
+     "Situation analysis — 7 EPI components, SWOT and root causes"),
+    ("financing", "Éléments de financement (situation macro-économique, budget santé, financement du PEV)",
+     "Financing landscape (macro-economy, health budget, EPI financing)"),
+    ("vision", "Vision, but et objectif général", "Vision, goal and overall objective"),
+    ("objectives", "Priorités et objectifs stratégiques prioritaires (liens avec l’IA2030)",
+     "Strategic priorities and priority objectives (links to IA2030)"),
+    ("interventions", "Interventions principales par composante", "Main interventions by component"),
+    ("special", "Considérations spéciales (COVID-19, campagnes/AVS, nouveaux vaccins, urgences)",
+     "Special considerations (COVID-19, campaigns/SIAs, new vaccines, emergencies)"),
+    ("me", "Suivi et évaluation — théorie du changement et cadre de S&E",
+     "Monitoring & evaluation — theory of change and M&E framework"),
+    ("resources", "Besoins en ressources et financement de la SNV", "Resource needs and NIS financing"),
+    ("implementation", "Mise en œuvre : hypothèses, risques, mesures d’atténuation et lien avec le POA",
+     "Implementation: assumptions, risks, mitigation and link to the AOP"),
     ("conclusion", "Conclusion et prochaines étapes", "Conclusion and next steps"),
 ]
 
@@ -112,6 +121,28 @@ def _narrative_context(key, s, lang) -> str:
     if key == "activities":
         return "\n".join(f"[{a.implementation_level}] {a.activity} (resp: {a.lead})"
                          for a in s.activities) or "(aucune activité)"
+    if key == "positioning":
+        return (f"Pays: {s.profile.country_name}. Période: {s.profile.nis_start_year}-"
+                f"{s.profile.nis_start_year + s.profile.nis_duration_years - 1}. Programme: {s.profile.epi_programme_name}. "
+                f"Alignement attendu: IA2030 (7 domaines), Gavi 6.0 (2026-2030), stratégie sectorielle santé, "
+                f"passage du cMYP/PPAC à la SNV. (Détails à tirer de la SNV rédigée et des documents.)")
+    if key == "financing":
+        return (f"Devise: {s.profile.currency}. Éléments à couvrir: situation macro-économique, budget national "
+                f"de santé, financement public et non-étatique (Gavi, UNICEF, partenaires), financement du PEV, "
+                f"trajectoire de cofinancement Gavi 6.0. (Chiffres à confirmer par l'équipe pays / NIS.COST.)")
+    if key == "special":
+        return ("Considérations spéciales à traiter: riposte/déploiement COVID-19, activités de vaccination "
+                "supplémentaires (AVS/campagnes), introduction de nouveaux vaccins, vaccination en situations "
+                "d'urgence/conflit et populations déplacées, vaccination tout au long de la vie.")
+    if key == "resources":
+        return (f"Base: {len(s.interventions)} interventions et {len(s.activities)} activités à chiffrer. "
+                f"Couvrir: besoins en ressources par composante, sources de financement, écart de financement, "
+                f"durabilité (cofinancement Gavi 6.0). Chiffres via NIS.COST.")
+    if key == "implementation":
+        risks = "; ".join({r for iv in s.interventions for r in iv.risks} | {r for a in s.activities for r in a.risks})
+        return (f"Interventions: {len(s.interventions)}; activités: {len(s.activities)}. "
+                f"Risques identifiés: {risks[:800] or 'à préciser'}. Couvrir hypothèses, risques et mesures "
+                f"d'atténuation, gouvernance de la mise en œuvre, et lien SNV → Plan Opérationnel Annuel (POA).")
     if key == "conclusion":
         return (f"Objectif général: {s.vision.overall_objective}. {len(s.objectives)} objectifs prioritaires, "
                 f"{len(s.interventions)} interventions. Prochaines étapes: validation MoH, chiffrage NIS.COST, POA.")
@@ -127,7 +158,8 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
             progress(i, len(NARRATIVE_SECTIONS), title)
         try:
             ctx = _narrative_context(key, strategy, language)
-            out[key] = _call_claude_text(build_narrative_prompt(strategy.profile, language, title, ctx))
+            out[key] = _call_claude_text(build_narrative_prompt(
+                strategy.profile, language, title, ctx, draft=getattr(strategy, "snv_draft_text", "")))
         except Exception as e:
             out[key] = f"[Erreur de rédaction: {e}]"
     strategy.narrative = out

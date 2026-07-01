@@ -664,9 +664,25 @@ def page_writeup():
     s = S(); lg = lang()
     ai = settings.ai_available()
     st.subheader("A. " + ("Rédaction complète de la SNV (IA)" if lg == "fr" else "Full NIS write-up (AI)"))
-    st.caption("L’IA rédige un document narratif professionnel (toutes les sections) à partir de vos analyses, "
-               "aligné IA2030/Gavi 6.0." if lg == "fr" else
-               "The AI writes a professional narrative (all sections) from your analyses, aligned to IA2030/Gavi 6.0.")
+    st.caption("L’IA rédige un document narratif approfondi (toutes les sections), aligné IA2030/Gavi 6.0. "
+               "Vous pouvez importer une SNV déjà rédigée : l’IA la prendra comme base pour bâtir la version "
+               "complète." if lg == "fr" else
+               "The AI writes an in-depth narrative (all sections), aligned to IA2030/Gavi 6.0. You may upload an "
+               "existing drafted NIS: the AI will build the complete version on top of it.")
+    with st.expander("📄 " + ("Importer une SNV déjà rédigée (base de rédaction)" if lg == "fr"
+                              else "Import an already-drafted NIS (writing base)")):
+        d_up = st.file_uploader("SNV rédigée (.docx / .pdf / .txt)" if lg == "fr" else "Drafted NIS",
+                                type=["docx", "pdf", "txt"], key="snv_draft_up")
+        if d_up is not None and st.button("📥 " + ("Charger cette SNV" if lg == "fr" else "Load this NIS"),
+                                          key="load_draft"):
+            doc = extract_document(d_up.getvalue(), d_up.name, "SNV rédigée")
+            s.snv_draft_text = doc.text or ""
+            _autosave(s)
+            st.success(f"{len(s.snv_draft_text)} " + ("caractères chargés — l’IA bâtira dessus." if lg == "fr"
+                                                      else "characters loaded — the AI will build on it."))
+        if s.snv_draft_text:
+            st.caption(f"✅ SNV de base : {len(s.snv_draft_text)} "
+                       + ("caractères" if lg == "fr" else "characters"))
     if st.button("✍️ " + ("Rédiger la SNV complète" if lg == "fr" else "Write the full NIS"), key="gen_narr"):
         if not ai:
             st.warning(t("no_api", lg))

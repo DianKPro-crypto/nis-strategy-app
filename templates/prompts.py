@@ -66,21 +66,33 @@ write flowing paragraphs (no JSON, no markdown code fences). Where information i
 sentence noting it must be completed by the country team."""
 
 
-def build_narrative_prompt(profile: CountryProfile, language: str, section_title: str, context: str) -> str:
+def build_narrative_prompt(profile: CountryProfile, language: str, section_title: str, context: str,
+                           draft: str = "") -> str:
     lang_name = "français" if language == "fr" else "English"
+    draft_block = ""
+    if draft and draft.strip():
+        draft_block = (
+            "\n\nSNV DÉJÀ RÉDIGÉE (BASE PRINCIPALE à conserver, compléter et enrichir — ne la résume pas, "
+            "développe-la et structure-la selon les normes OMS) :\n" + draft[:28000])
     return f"""PAYS : {profile.country_name} — {profile.epi_programme_name}. \
 Période SNV : {profile.nis_start_year}-{profile.nis_start_year + profile.nis_duration_years - 1}.
 LANGUE DE SORTIE : {lang_name}
 
 SECTION À RÉDIGER : « {section_title} »
 
-CONTENU STRUCTURÉ DISPONIBLE (base-toi UNIQUEMENT là-dessus) :
-{context}
+CONTENU STRUCTURÉ DISPONIBLE (analyses de la plateforme) :
+{context}{draft_block}
 
-CONSIGNE : Rédige cette section sous forme de PROSE professionnelle et cohérente (paragraphes rédigés,
-~250 à 500 mots), dans un langage de santé publique formel, en intégrant explicitement l'alignement avec
-l'IA2030 et la stratégie Gavi 6.0 (zéro dose, équité, RSS/SSP, durabilité et cofinancement) lorsque pertinent.
-N'invente aucun chiffre. Réponds uniquement par le texte rédigé de la section (pas de titre, pas de JSON)."""
+CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
+- Rédige cette section de façon EXHAUSTIVE, APPROFONDIE et STRUCTURÉE en plusieurs paragraphes (et
+  sous-parties si pertinent), longueur cible ~700 à 1300 mots, en langage de santé publique formel.
+- Si une « SNV déjà rédigée » est fournie ci-dessus, sers-t'en comme BASE PRINCIPALE : conserve son contenu
+  pertinent, complète les lacunes, approfondis l'analyse et harmonise le style — NE la raccourcis pas.
+- Intègre EXPLICITEMENT l'alignement avec l'IA2030 et la stratégie Gavi 6.0 (zéro dose, équité, RSS/SSP,
+  durabilité et cofinancement, introduction de nouveaux vaccins, résilience).
+- Développe : contexte, constats, justification, implications, orientations stratégiques et résultats attendus.
+- N'invente aucun chiffre (écris « à confirmer par l'équipe pays » si absent). Style narratif riche, précis,
+  argumenté. Réponds UNIQUEMENT par le texte rédigé de la section (pas de titre, pas de JSON)."""
 
 
 def build_financial_prompt(profile: CountryProfile, language: str, niscost_text: str) -> str:
