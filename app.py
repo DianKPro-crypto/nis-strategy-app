@@ -693,6 +693,9 @@ def page_writeup():
                                      else "Click “Load NIS” to confirm."))
             if s.snv_draft_text:
                 _loaded_msg(len(s.snv_draft_text), "Document SNV", "NIS document")
+                if st.button("🗑 " + ("Retirer ce document" if lg == "fr" else "Remove this document"),
+                             key="rm_draft"):
+                    s.snv_draft_text = ""; _autosave(s); st.rerun()
         with cc2:
             st.markdown("**2. " + ("Rapport financier — issu du NIS.COST (étape B)" if lg == "fr"
                                    else "Financial report — from NIS.COST (part B)") + "**")
@@ -708,6 +711,9 @@ def page_writeup():
                                      else "Click “Load financial report”."))
             if s.financial_report:
                 _loaded_msg(len(s.financial_report), "Rapport financier", "Financial report")
+                if st.button("🗑 " + ("Retirer ce rapport" if lg == "fr" else "Remove this report"),
+                             key="rm_fin"):
+                    s.financial_report = ""; _autosave(s); st.rerun()
         st.caption(("L’IA bâtira la SNV complète en s’appuyant sur ces documents + vos analyses (étapes 2→8)."
                     if lg == "fr" else
                     "The AI builds the full NIS on these documents + your analyses (steps 2→8)."))
