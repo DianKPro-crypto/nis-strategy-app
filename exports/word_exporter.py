@@ -130,7 +130,10 @@ def build_word(s: NISStrategy) -> bytes:
     doc.add_page_break()
 
     # ===================== TOC =====================
-    H("Table des matières" if fr else "Table of contents", 1)
+    # Title is NOT a Heading style, so the TOC does not list itself.
+    ttl = doc.add_paragraph()
+    r = ttl.add_run("Table des matières" if fr else "Table of contents")
+    r.bold = True; r.font.size = Pt(18); r.font.color.rgb = _DARK
     p = doc.add_paragraph()
     _field(p, 'TOC \\o "1-3" \\h \\z \\u',
            "La table des matières se met à jour à l’ouverture (clic droit → Mettre à jour les champs)."

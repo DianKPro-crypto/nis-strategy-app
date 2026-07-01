@@ -56,12 +56,17 @@ def _extract_json(raw: str) -> dict:
     raise AIError("Réponse JSON invalide")
 
 
+def _fix_pct(text: str) -> str:
+    """Stick the % sign to the number (80 % -> 80%), including narrow/nbsp spaces."""
+    return re.sub(r"(\d)[\s  ]+%", r"\1%", text or "")
+
+
 def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE) -> str:
     """Prose call (no JSON parsing) — for narrative writing and financial reports."""
     client = _client()
     msg = client.messages.create(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
                                  system=system, messages=[{"role": "user", "content": prompt}])
-    return "".join(getattr(b, "text", "") for b in msg.content).strip()
+    return _fix_pct("".join(getattr(b, "text", "") for b in msg.content).strip())
 
 
 # ---- Step 11/12: full write-up, financial report, quality assurance ----
@@ -127,17 +132,21 @@ def _narrative_context(key, s, lang) -> str:
                 f"Alignement attendu: IA2030 (7 domaines), Gavi 6.0 (2026-2030), stratégie sectorielle santé, "
                 f"passage du cMYP/PPAC à la SNV. (Détails à tirer de la SNV rédigée et des documents.)")
     if key == "financing":
+        fin = (f"\n\nRAPPORT FINANCIER DISPONIBLE (base-toi dessus):\n{s.financial_report[:12000]}"
+               if getattr(s, "financial_report", "") else "")
         return (f"Devise: {s.profile.currency}. Éléments à couvrir: situation macro-économique, budget national "
                 f"de santé, financement public et non-étatique (Gavi, UNICEF, partenaires), financement du PEV, "
-                f"trajectoire de cofinancement Gavi 6.0. (Chiffres à confirmer par l'équipe pays / NIS.COST.)")
+                f"trajectoire de cofinancement Gavi 6.0. (Chiffres à confirmer par l'équipe pays / NIS.COST.){fin}")
     if key == "special":
         return ("Considérations spéciales à traiter: riposte/déploiement COVID-19, activités de vaccination "
                 "supplémentaires (AVS/campagnes), introduction de nouveaux vaccins, vaccination en situations "
                 "d'urgence/conflit et populations déplacées, vaccination tout au long de la vie.")
     if key == "resources":
+        fin = (f"\n\nRAPPORT FINANCIER DISPONIBLE (base-toi dessus):\n{s.financial_report[:12000]}"
+               if getattr(s, "financial_report", "") else "")
         return (f"Base: {len(s.interventions)} interventions et {len(s.activities)} activités à chiffrer. "
                 f"Couvrir: besoins en ressources par composante, sources de financement, écart de financement, "
-                f"durabilité (cofinancement Gavi 6.0). Chiffres via NIS.COST.")
+                f"durabilité (cofinancement Gavi 6.0). Chiffres via NIS.COST.{fin}")
     if key == "implementation":
         risks = "; ".join({r for iv in s.interventions for r in iv.risks} | {r for a in s.activities for r in a.risks})
         return (f"Interventions: {len(s.interventions)}; activités: {len(s.activities)}. "

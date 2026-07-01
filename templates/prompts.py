@@ -52,7 +52,8 @@ align EVERY section — SWOT, root causes, objectives, interventions, M&E indica
 6.0 strategic priorities: reaching zero-dose and under-immunized children, equity, health-system & PHC \
 strengthening, sustainability and co-financing, new-vaccine introduction, and resilience. Reference the Gavi \
 6.0 document in 'evidence' wherever it informs an element.
-8. Respond with a SINGLE valid JSON object that conforms exactly to the requested schema. No prose, \
+8. Write percentages with the % sign STUCK to the number, no space (e.g. 80%, not 80 %).
+9. Respond with a SINGLE valid JSON object that conforms exactly to the requested schema. No prose, \
 no markdown fences, no comments. Use the requested output language for all human-readable text."""
 
 
@@ -91,8 +92,14 @@ CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
 - Intègre EXPLICITEMENT l'alignement avec l'IA2030 et la stratégie Gavi 6.0 (zéro dose, équité, RSS/SSP,
   durabilité et cofinancement, introduction de nouveaux vaccins, résilience).
 - Développe : contexte, constats, justification, implications, orientations stratégiques et résultats attendus.
-- N'invente aucun chiffre (écris « à confirmer par l'équipe pays » si absent). Style narratif riche, précis,
-  argumenté. Réponds UNIQUEMENT par le texte rédigé de la section (pas de titre, pas de JSON)."""
+- STATISTIQUES : enrichis l'analyse (surtout l'analyse de situation) avec des données chiffrées pertinentes
+  (couverture vaccinale DTC3/RR, taux de zéro dose, démographie, financement) issues de SOURCES FIABLES ET
+  PUBLIQUES que tu connais (OMS/WUENIC, UNICEF, Banque mondiale, DHS/EDS, rapports nationaux). Pour CHAQUE
+  chiffre externe, CITE la source et l'année entre parenthèses (ex. « (WUENIC 2023) ») et signale-le comme
+  « à vérifier par l'équipe pays ». Ne fabrique jamais un chiffre sans source.
+- FORMAT : colle toujours le symbole % au chiffre, sans espace (ex. 80%, pas 80 %).
+- Style narratif riche, précis, argumenté. Réponds UNIQUEMENT par le texte rédigé de la section (pas de
+  titre, pas de JSON)."""
 
 
 def build_financial_prompt(profile: CountryProfile, language: str, niscost_text: str) -> str:
