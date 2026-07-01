@@ -224,6 +224,32 @@ def _mini_table(doc, headers, rows):
             cells[i].text = ""; cells[i].paragraphs[0].add_run("" if v is None else str(v)).font.size = Pt(9)
 
 
+def _seq_caption(doc, label, title):
+    """Numbered caption ('Tableau 1. …' / 'Figure 1. …') via a SEQ field, so Word can build
+    the lists of tables/figures automatically."""
+    p = doc.add_paragraph()
+    try:
+        p.style = doc.styles["Caption"]
+    except Exception:
+        pass
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r = p.add_run(f"{label} "); r.bold = True; r.font.size = Pt(9); r.font.color.rgb = _PRIMARY
+    _field(p, f"SEQ {label} \\* ARABIC", "1")
+    r2 = p.add_run(f". {title}"); r2.font.size = Pt(9); r2.italic = True
+    return p
+
+
+def _list_of(doc, heading, label):
+    _H(doc, heading, 2, numbered_break=False)
+    p = doc.add_paragraph()
+    _field(p, f'TOC \\h \\z \\c "{label}"', "(se met à jour à l’ouverture)")
+
+
+def _titled_table(doc, title, headers, rows):
+    _seq_caption(doc, "Tableau", title)
+    _mini_table(doc, headers, rows)
+
+
 # --------------------------------------------------------------------------- #
 def build_narrative_word(s: NISStrategy) -> bytes:
     fr = s.profile.language == "fr"
@@ -231,6 +257,24 @@ def build_narrative_word(s: NISStrategy) -> bytes:
     doc = _new_doc(s)
     _cover(doc, s, "Stratégie Nationale de Vaccination" if fr else "National Immunization Strategy")
     _toc(doc, fr)
+    # ---- Front matter: abbreviations/glossary + lists of tables & figures ----
+    _H(doc, "Sigles et abréviations" if fr else "Abbreviations", 1)
+    _mini_table(doc, ["Sigle" if fr else "Acronym", "Signification" if fr else "Meaning"],
+                [("PEV", "Programme Élargi de Vaccination"), ("SNV", "Stratégie Nationale de Vaccination"),
+                 ("FFOM", "Forces, Faiblesses, Opportunités, Menaces"), ("S&E", "Suivi et Évaluation"),
+                 ("IA2030", "Immunization Agenda 2030"), ("Gavi", "Alliance mondiale pour les vaccins"),
+                 ("MAPI", "Manifestation Post-Immunisation"), ("MEV", "Maladie Évitable par la Vaccination"),
+                 ("SSP", "Soins de Santé Primaires"), ("OPS", "Objectif Prioritaire Stratégique"),
+                 ("POA", "Plan Opérationnel Annuel"), ("RSS", "Renforcement du Système de Santé")]
+                if fr else
+                [("EPI", "Expanded Programme on Immunization"), ("NIS", "National Immunization Strategy"),
+                 ("SWOT", "Strengths, Weaknesses, Opportunities, Threats"), ("M&E", "Monitoring & Evaluation"),
+                 ("IA2030", "Immunization Agenda 2030"), ("Gavi", "Global Alliance for Vaccines"),
+                 ("AEFI", "Adverse Event Following Immunization"), ("VPD", "Vaccine-Preventable Disease"),
+                 ("PHC", "Primary Health Care"), ("AOP", "Annual Operational Plan")])
+    _list_of(doc, "Liste des tableaux" if fr else "List of tables", "Tableau")
+    _list_of(doc, "Liste des figures" if fr else "List of figures", "Figure")
+    doc.add_page_break()
     from core.epi_components import EPI_COMPONENTS, find_subcomponent
     sw_by = {x.subcomponent_code: x for x in s.swot}
     fig_n = [0]
@@ -239,8 +283,7 @@ def build_narrative_word(s: NISStrategy) -> bytes:
         before = len(doc.inline_shapes)
         _chart(doc, kind, s, fr)
         if len(doc.inline_shapes) > before:
-            fig_n[0] += 1
-            _caption(doc, f"{'Figure' if fr else 'Figure'} {fig_n[0]}. {cap}")
+            _seq_caption(doc, "Figure", cap)
 
     for n, (key, tfr, ten) in enumerate(NARRATIVE_SECTIONS, 1):
         _H(doc, f"{n}. {tfr if fr else ten}", 1)
@@ -248,8 +291,6 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                                                   else "To be completed by the country team"))
         # ---- section tables & figures ----
         if key == "situation" and s.swot:
-            _H(doc, "Synthèse FFOM par sous-composante" if fr else "SWOT summary by subcomponent", 2)
-
             def _cell(items):  # all items, joined; capped only to avoid an oversized cell
                 txt = " ; ".join(x for x in items if x)
                 return (txt[:600] + "…") if len(txt) > 600 else (txt or "—")
@@ -260,24 +301,26 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                     rows.append([sub.label(s.profile.language),
                                  _cell(it.strengths) if it else "—", _cell(it.weaknesses) if it else "—",
                                  _cell(it.opportunities) if it else "—", _cell(it.threats) if it else "—"])
-            _mini_table(doc, ["Sous-composante" if fr else "Subcomponent", "Forces", "Faiblesses",
-                              "Opportunités", "Menaces"], rows)
+            _titled_table(doc, "Synthèse FFOM par sous-composante" if fr else "SWOT summary by subcomponent",
+                          ["Sous-composante" if fr else "Subcomponent", "Forces", "Faiblesses",
+                           "Opportunités", "Menaces"], rows)
         if key == "objectives" and s.objectives:
-            _mini_table(doc, ["ID", "Objectif stratégique prioritaire" if fr else "Priority objective",
-                              "Obstacle principal" if fr else "Main obstacle"],
-                        [[o.obj_id, o.objective_text, o.main_obstacle] for o in s.objectives])
+            _titled_table(doc, "Objectifs stratégiques prioritaires" if fr else "Priority strategic objectives",
+                          ["ID", "Objectif" if fr else "Objective", "Obstacle principal" if fr else "Main obstacle"],
+                          [[o.obj_id, o.objective_text, o.main_obstacle] for o in s.objectives])
         if key == "interventions" and s.interventions:
-            _mini_table(doc, ["Intervention", "Priorité" if fr else "Priority",
-                              "Calendrier" if fr else "Timeline"],
-                        [[iv.title, getattr(iv.priority_level, "value", iv.priority_level),
-                          ", ".join(str(years[k]) for k in range(len(years)) if iv.timeline.get(f"Y{k+1}"))]
-                         for iv in s.interventions])
+            _titled_table(doc, "Interventions prioritaires et calendrier" if fr else "Priority interventions",
+                          ["Intervention", "Priorité" if fr else "Priority", "Calendrier" if fr else "Timeline"],
+                          [[iv.title, getattr(iv.priority_level, "value", iv.priority_level),
+                            ", ".join(str(years[k]) for k in range(len(years)) if iv.timeline.get(f"Y{k+1}"))]
+                           for iv in s.interventions])
             figure("priority", "Répartition des interventions par priorité" if fr
                    else "Interventions by priority")
         if key == "me" and s.indicators:
             cols = ["Indicateur" if fr else "Indicator", "Base" if fr else "Baseline"] + [str(y) for y in years]
-            _mini_table(doc, cols, [[i.name, i.baseline] + [i.targets.get(f"Y{k+1}", "")
-                        for k in range(len(years))] for i in s.indicators])
+            _titled_table(doc, "Indicateurs de suivi-évaluation et cibles" if fr else "M&E indicators and targets",
+                          cols, [[i.name, i.baseline] + [i.targets.get(f"Y{k+1}", "")
+                                 for k in range(len(years))] for i in s.indicators])
             figure("targets", "Évolution des cibles par année" if fr else "Targets by year")
         if key == "implementation" and s.activities:
             figure("activities", "Activités programmées par année" if fr else "Activities by year")
@@ -290,26 +333,29 @@ def build_narrative_word(s: NISStrategy) -> bytes:
     _H(doc, ("Annexes" if fr else "Annexes"), 1)
     _H(doc, "Annexe A — Chronogramme des activités" if fr else "Annex A — Activity timeline", 2)
     if s.activities:
-        _mini_table(doc, ["Activité" if fr else "Activity", "Niveau" if fr else "Level",
-                          "Responsable" if fr else "Lead", "Années" if fr else "Years"],
-                    [[a.activity, a.implementation_level, a.lead,
-                      ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
-                     for a in s.activities])
+        _titled_table(doc, "Chronogramme des activités" if fr else "Activity timeline",
+                      ["Activité" if fr else "Activity", "Niveau" if fr else "Level",
+                       "Responsable" if fr else "Lead", "Années" if fr else "Years"],
+                      [[a.activity, a.implementation_level, a.lead,
+                        ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
+                       for a in s.activities])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
     _H(doc, "Annexe B — Cadre de S&E détaillé" if fr else "Annex B — Detailed M&E framework", 2)
     if s.indicators:
-        _mini_table(doc, ["Indicateur" if fr else "Indicator", "Type", "Définition" if fr else "Definition",
-                          "Source" if fr else "Source", "Fréquence" if fr else "Frequency"],
-                    [[i.name, str(i.indicator_type), i.definition, i.data_source, i.frequency]
-                     for i in s.indicators])
+        _titled_table(doc, "Cadre de S&E détaillé" if fr else "Detailed M&E framework",
+                      ["Indicateur" if fr else "Indicator", "Type", "Définition" if fr else "Definition",
+                       "Source" if fr else "Source", "Fréquence" if fr else "Frequency"],
+                      [[i.name, str(i.indicator_type), i.definition, i.data_source, i.frequency]
+                       for i in s.indicators])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
     _H(doc, "Annexe C — Analyse des causes profondes" if fr else "Annex C — Root-cause analysis", 2)
     if s.root_causes:
-        _mini_table(doc, ["Faiblesse" if fr else "Weakness", "POURQUOI" if fr else "WHYs",
-                          "Cause profonde" if fr else "Root cause"],
-                    [[rc.weakness, " → ".join(rc.whys), rc.final_why] for rc in s.root_causes[:40]])
+        _titled_table(doc, "Analyse des causes profondes" if fr else "Root-cause analysis",
+                      ["Faiblesse" if fr else "Weakness", "POURQUOI" if fr else "WHYs",
+                       "Cause profonde" if fr else "Root cause"],
+                      [[rc.weakness, " → ".join(rc.whys), rc.final_why] for rc in s.root_causes[:40]])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
     _H(doc, "Annexe D — Sources et références" if fr else "Annex D — Sources and references", 2)

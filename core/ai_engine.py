@@ -158,19 +158,76 @@ def _narrative_context(key, s, lang) -> str:
     return ""
 
 
-def generate_narrative(strategy, language: str, progress=None) -> dict:
-    """Write polished prose for every NIS section; store in strategy.narrative."""
-    out = {}
-    for i, (key, fr, en) in enumerate(NARRATIVE_SECTIONS):
-        title = fr if language == "fr" else en
+def _situation_context(comp, strategy, language):
+    """Per-component FFOM + root causes context for the situation analysis."""
+    sw = {x.subcomponent_code: x for x in strategy.swot}
+    lines = [f"COMPOSANTE PEV : {comp.label(language)}", "", "FFOM par sous-composante :"]
+    for sub in comp.subcomponents:
+        it = sw.get(sub.code)
+        if not it:
+            continue
+        lines.append(f"- {sub.label(language)} :")
+        if it.strengths: lines.append(f"    Forces: {'; '.join(it.strengths)}")
+        if it.weaknesses: lines.append(f"    Faiblesses: {'; '.join(it.weaknesses)}")
+        if it.opportunities: lines.append(f"    Opportunités: {'; '.join(it.opportunities)}")
+        if it.threats: lines.append(f"    Menaces: {'; '.join(it.threats)}")
+    rcs = [rc for rc in strategy.root_causes if rc.component_code == comp.code]
+    if rcs:
+        lines.append("\nCauses profondes (POURQUOI) :")
+        for rc in rcs[:12]:
+            lines.append(f"- {rc.weakness} ⇒ {rc.final_why}")
+    return "\n".join(lines)
+
+
+def _generate_situation_by_component(strategy, language, progress=None, base=0, total=0):
+    """Deep situation analysis: one sub-section per EPI component (## heading)."""
+    from core.epi_components import EPI_COMPONENTS
+    parts = []
+    draft = getattr(strategy, "snv_draft_text", "")
+    for j, comp in enumerate(EPI_COMPONENTS):
         if progress:
-            progress(i, len(NARRATIVE_SECTIONS), title)
+            progress(base + j, total, f"Analyse situation — {comp.label(language)}")
+        try:
+            ctx = _situation_context(comp, strategy, language)
+            prose = _call_claude_text(build_narrative_prompt(
+                strategy.profile, language, f"Analyse de la composante « {comp.label(language)} »", ctx, draft))
+        except Exception as e:
+            prose = f"[Erreur: {e}]"
+        parts.append(f"## {comp.label(language)}\n{prose}")
+    return "\n\n".join(parts)
+
+
+def generate_narrative(strategy, language: str, progress=None) -> dict:
+    """Write polished prose for every NIS section; store in strategy.narrative.
+    The situation analysis is generated component-by-component for depth."""
+    from core.epi_components import EPI_COMPONENTS
+    out = {}
+    total = len(NARRATIVE_SECTIONS) + len(EPI_COMPONENTS) - 1   # situation expands to 7 sub-calls
+    step = 0
+    for (key, fr, en) in NARRATIVE_SECTIONS:
+        title = fr if language == "fr" else en
+        if key == "situation":
+            intro = ""
+            try:
+                intro = _call_claude_text(build_narrative_prompt(
+                    strategy.profile, language, title,
+                    _narrative_context(key, strategy, language) + "\n(Introduis le chapitre; l'analyse "
+                    "détaillée par composante suit en sous-parties.)", getattr(strategy, "snv_draft_text", "")))
+            except Exception as e:
+                intro = f"[Erreur: {e}]"
+            body = _generate_situation_by_component(strategy, language, progress, base=step + 1, total=total)
+            out[key] = intro + "\n\n" + body
+            step += 1 + len(EPI_COMPONENTS)
+            continue
+        if progress:
+            progress(step, total, title)
         try:
             ctx = _narrative_context(key, strategy, language)
             out[key] = _call_claude_text(build_narrative_prompt(
                 strategy.profile, language, title, ctx, draft=getattr(strategy, "snv_draft_text", "")))
         except Exception as e:
             out[key] = f"[Erreur de rédaction: {e}]"
+        step += 1
     strategy.narrative = out
     return out
 
