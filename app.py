@@ -147,14 +147,16 @@ def _validate_button(section: str):
 # --------------------------------------------------------------------------- #
 def sidebar():
     s = S()
-    lb = branding.logo_bytes(lang())
-    if lb:
-        st.sidebar.image(lb, width=220)   # bytes + fixed width = reliable across versions
-    st.sidebar.title(t("app_title", lang()))
-    lg = st.sidebar.radio(t("language", lang()), ["fr", "en"],
-                          index=0 if lang() == "fr" else 1,
+    # Language FIRST so the logo, title and credit all render in the chosen language.
+    cur = lang()
+    lg = st.sidebar.radio(t("language", cur), ["fr", "en"],
+                          index=0 if cur == "fr" else 1,
                           format_func=lambda x: "Français" if x == "fr" else "English")
     s.profile.language = lg
+    lb = branding.logo_bytes(lg)
+    if lb:
+        st.sidebar.image(lb, width=220)   # bytes + fixed width = reliable across versions
+    st.sidebar.title(t("app_title", lg))
     if not settings.ai_available():
         st.sidebar.warning(t("no_api", lg))
     else:
@@ -210,12 +212,14 @@ def sidebar():
     # --- Design credit (Dian K Pro) ---
     st.sidebar.divider()
     dk = branding.dk_logo_bytes()
-    c1, c2 = st.sidebar.columns([1, 3])
     if dk:
-        c1.image(dk, width=42)
-    c2.markdown(f"<div style='font-size:0.72rem;color:#5b6b7b;line-height:1.25'>"
-                f"Conception : <b>OMS</b>, améliorée par<br><b>Dian K Pro</b> · Public Health "
-                f"&amp; Digital Strategist</div>", unsafe_allow_html=True)
+        st.sidebar.image(dk, width=150)   # larger so "DK PRO" is legible
+    line1 = ("Conception : OMS, améliorée par Dian K Pro" if lg == "fr"
+             else "Design: WHO, enhanced by Dian K Pro")
+    line2 = ("Public Health & Digital Strategist")
+    st.sidebar.markdown(
+        f"<div style='font-size:0.75rem;color:#5b6b7b;line-height:1.3;text-align:center'>"
+        f"{line1}<br><i>{line2}</i></div>", unsafe_allow_html=True)
     return choice
 
 
@@ -237,18 +241,13 @@ def page_profile():
                 st.rerun()
             except Exception as e:
                 st.error(f"Fichier invalide : {e}")
-    with st.expander("🇩🇯 Charger l’exemple Djibouti (démonstration)"):
-        st.caption("Pré-remplit toute la chaîne (vision → activités) avec un contenu illustratif "
-                   "à valider par l’équipe pays.")
-        if st.button("Charger l’exemple Djibouti 2027-2030"):
-            st.session_state.strategy = seed_djibouti(lg)
-            _clear_all_widget_state()
-            st.rerun()
     countries = get_countries()
     names = [n for _, n in countries]
-    idx = names.index(s.profile.country_name) if s.profile.country_name in names else 0
-    sel = st.selectbox(t("country", lg), names, index=idx)
-    s.profile.country_name = sel
+    placeholder = "— " + ("Sélectionnez votre pays" if lg == "fr" else "Select your country") + " —"
+    options = [placeholder] + names
+    idx = options.index(s.profile.country_name) if s.profile.country_name in names else 0
+    sel = st.selectbox(t("country", lg), options, index=idx)
+    s.profile.country_name = "" if sel == placeholder else sel
     s.profile.iso_code = dict((n, c) for c, n in countries).get(sel, "")
     c1, c2 = st.columns(2)
     s.profile.ministry_name = c1.text_input("Ministère / Ministry", s.profile.ministry_name)
@@ -261,8 +260,11 @@ def page_profile():
     s.profile.nis_duration_years = dur
     s.profile.currency = c5.text_input("Devise / Currency", s.profile.currency)
     c6, c7 = st.columns(2)
-    s.profile.focal_point = c6.text_input("Point focal / Focal point", s.profile.focal_point)
-    s.profile.generation_date = c7.text_input("Date", s.profile.generation_date)
+    s.profile.focal_point = c6.text_input("Point focal / Focal point", s.profile.focal_point,
+                                          key="prof_focal")
+    c7.text_input("Date du rapport / Report date", s.profile.generation_date, disabled=True,
+                  help="Mise à jour automatiquement à la date du jour." if lg == "fr"
+                  else "Automatically set to today’s date.")
     st.info(f"Période SNV / NIS period: **{s.profile.years[0]}–{s.profile.years[-1]}**")
 
 
@@ -673,7 +675,30 @@ def _clear_all_widget_state():
         del st.session_state[k]
 
 
+def _debounced_autosave():
+    """Background-style save: persist to cloud whenever the strategy content changed."""
+    if not cloud_store.cloud_available():
+        return
+    name = st.session_state.get("_project_name")
+    s = S()
+    if not name or not s.profile.country_name:
+        return
+    import hashlib
+    try:
+        h = hashlib.md5(s.to_json().encode("utf-8")).hexdigest()
+    except Exception:
+        return
+    if st.session_state.get("_saved_hash") != h:
+        try:
+            cloud_store.save_project(name, s)
+            st.session_state["_saved_hash"] = h
+        except Exception:
+            pass
+
+
 def main():
+    # Report date always reflects the current day.
+    S().profile.generation_date = date.today().isoformat()
     ui.inject_theme()
     choice = sidebar()
     ui.hero(choice, lang())
@@ -681,6 +706,7 @@ def main():
     if res is not None:
         st.success(f"Généré ✅ ({res} élément(s)) — vérifiez et complétez si besoin.")
     PAGES[choice]()
+    _debounced_autosave()   # auto-save any edits (profile, focal point, tables…) to the cloud
 
 
 if __name__ == "__main__":

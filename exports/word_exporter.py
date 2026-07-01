@@ -58,6 +58,9 @@ def build_word(s: NISStrategy) -> bytes:
     ph = "À compléter par l’équipe pays" if fr else "To be completed by the country team"
 
     def H(text, level):
+        # Numbered top-level chapters start on a new page -> distinct TOC page numbers.
+        if level == 1 and str(text)[:1].isdigit():
+            doc.add_page_break()
         h = doc.add_heading(text, level=level)
         for r in h.runs:
             r.font.color.rgb = _DARK if level <= 1 else _PRIMARY

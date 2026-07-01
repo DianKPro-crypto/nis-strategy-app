@@ -7,8 +7,9 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
-from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-                                PageBreak, ListFlowable, ListItem)
+from reportlab.platypus import (BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table,
+                                TableStyle, PageBreak, ListFlowable, ListItem)
+from reportlab.platypus.tableofcontents import TableOfContents
 
 from config.settings import INSTITUTION_DARK, INSTITUTION_PRIMARY
 from core.models import NISStrategy
@@ -16,6 +17,20 @@ from core.epi_components import EPI_COMPONENTS, find_subcomponent
 from core.branding import logo_path, dk_credit
 
 _DARK = colors.HexColor(INSTITUTION_DARK)
+
+
+class _DocT(BaseDocTemplate):
+    """Doc template that records headings into a clickable TOC with real page numbers."""
+    def afterFlowable(self, flowable):
+        if getattr(flowable, "_toc_level", None) is not None:
+            key = f"h{id(flowable)}"
+            self.canv.bookmarkPage(key)
+            txt = flowable.getPlainText()
+            self.notify("TOCEntry", (flowable._toc_level, txt, self.page, key))
+            try:
+                self.canv.addOutlineEntry(txt, key, level=flowable._toc_level, closed=False)
+            except Exception:
+                pass
 _PRIMARY = colors.HexColor(INSTITUTION_PRIMARY)
 _AVAIL = A4[0] - 4 * cm  # usable width (2cm margins)
 
@@ -85,12 +100,14 @@ def build_pdf(s: NISStrategy) -> bytes:
         canvas.drawCentredString(A4[0] / 2, 1 * cm, f"{doc.page}")
         canvas.restoreState()
 
-    doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=2.6 * cm, bottomMargin=2 * cm,
-                            leftMargin=2 * cm, rightMargin=2 * cm, title=header)
+    doc = _DocT(buf, pagesize=A4, title=header)
+    frame = Frame(2 * cm, 2 * cm, A4[0] - 4 * cm, A4[1] - 2.6 * cm - 2 * cm, id="body")
+    doc.addPageTemplates([PageTemplate(id="main", frames=[frame], onPage=_decorate)])
     story = []
 
     def sec(t):
-        story.append(Paragraph(t, h1))
+        p = Paragraph(t, h1); p._toc_level = 0
+        story.append(p)
 
     def bullets(items):
         items = [x for x in items if x and str(x).strip()]
@@ -115,6 +132,13 @@ def build_pdf(s: NISStrategy) -> bytes:
                         ParagraphStyle("dk", parent=body, alignment=1, fontSize=9,
                                        textColor=colors.HexColor("#8A6D1B"))),
               PageBreak()]
+
+    # ---- Clickable Table of contents (real page numbers via multiBuild) ----
+    story.append(Paragraph("Table des matières" if fr else "Table of contents", h1))
+    toc = TableOfContents()
+    toc.levelStyles = [ParagraphStyle("toc0", fontSize=11.5, leading=20, textColor=_DARK,
+                                      leftIndent=6, firstLineIndent=-6)]
+    story += [toc, PageBreak()]
 
     # ---- Executive summary ----
     sec("Résumé exécutif" if fr else "Executive summary")
@@ -218,5 +242,5 @@ def build_pdf(s: NISStrategy) -> bytes:
     sec("Sources utilisées" if fr else "Sources used")
     bullets([f"{d.name} ({d.doc_category})" for d in s.documents])
 
-    doc.build(story, onFirstPage=_decorate, onLaterPages=_decorate)
+    doc.multiBuild(story)   # multiple passes so the clickable TOC gets correct page numbers
     return buf.getvalue()
