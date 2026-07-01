@@ -9,6 +9,7 @@ Run locally:   streamlit run app.py
 """
 from __future__ import annotations
 import json
+from datetime import date
 import streamlit as st
 
 from config import settings
@@ -69,7 +70,7 @@ def _gen_or_warn(section: str):
     try:
         status = st.empty()
         prog = None
-        if section in ("swot", "root_causes", "interventions"):
+        if section in ("swot", "root_causes", "interventions", "indicators", "activities"):
             def prog(i, n, label):
                 status.info(f"IA en cours… {i+1}/{n} : {label}")
         with st.spinner("IA en cours… (analyse des documents)"):
@@ -131,12 +132,14 @@ def _autosave(s: NISStrategy) -> None:
 
 def _validate_button(section: str):
     s = S()
-    col1, col2 = st.columns([1, 3])
-    with col1:
-        if st.button(t("validate_section", lang()), key=f"val_{section}"):
-            s.validated_sections[section] = True
-    if s.validated_sections.get(section):
-        col2.success(t("validated", lang()))
+    key = f"val_{section}"
+    # Transparent, toggleable state (reflects the stored value; not auto-set by generation).
+    if key not in st.session_state:
+        st.session_state[key] = bool(s.validated_sections.get(section))
+    val = st.checkbox(t("validate_section", lang()), key=key)
+    s.validated_sections[section] = val
+    if val:
+        st.success(t("validated", lang()))
 
 
 # --------------------------------------------------------------------------- #
@@ -609,6 +612,8 @@ def page_help():
 
 def page_export():
     s = S(); lg = lang()
+    # Stamp the report with today's date (not the day the project was first created/saved).
+    s.profile.generation_date = date.today().isoformat()
     r = run_quality_check(s)
     confirm = st.checkbox("Je confirme la validation humaine de la stratégie", value=r.export_ready)
     if not confirm:
@@ -659,7 +664,7 @@ PAGES = {
 
 
 ALL_WIDGET_PREFIXES = ("sw_", "rc_", "o_id_", "o_sc_", "o_ob_", "o_vr_", "o_ot_", "o_sm_",
-                       "iv_", "me_", "a_")
+                       "iv_", "me_", "a_", "val_")
 
 
 def _clear_all_widget_state():

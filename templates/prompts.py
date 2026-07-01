@@ -246,6 +246,40 @@ SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 """
 
 
+def build_activity_prompt(profile: CountryProfile, documents: list[UploadedDocument],
+                          language: str, comp_label: str, interventions: list) -> str:
+    """Operational-activities prompt: break EACH main intervention into fully-completed key activities."""
+    lang_name = "français" if language == "fr" else "English"
+    years = profile.nis_duration_years
+    year_keys = [f"Y{k + 1}" for k in range(years)]
+    ilist = "\n".join(f"- [{iv.intervention_id} | obj {iv.objective_id} | {iv.subcomponent_code}] {iv.title}"
+                      for iv in interventions if (iv.title or "").strip())
+    schema = SCHEMAS["activities"]
+    return f"""CONTEXTE PAYS : {profile.country_name} — {profile.epi_programme_name}. \
+Période SNV : {years} ans ({', '.join(year_keys)}).
+OUTPUT LANGUAGE: {lang_name}
+
+COMPOSANTE PEV : {comp_label}
+
+INTERVENTIONS PRINCIPALES À DÉCLINER EN ACTIVITÉS :
+{ilist}
+
+DOCUMENTS SOURCES & DIRECTIVES (constats pays, guides OMS/IA2030, Gavi 6.0) :
+{_documents_block(documents)}
+
+TÂCHE — ACTIVITÉS OPÉRATIONNELLES (compatibles NIS.COST) :
+Pour CHAQUE intervention ci-dessus, décompose-la en 2 à 4 ACTIVITÉS CLÉS concrètes. Pour CHAQUE activité,
+REMPLIS TOUS LES CHAMPS : intervention_id (recopie l'ID lié), objective_id, subcomponent_code, activity,
+implementation_level (National / Région-Gouvernorat / District / Formation sanitaire / Communauté /
+Tous les niveaux), years (objet {{"Y1":true/false, … jusqu'à "Y{years}"}}), lead (entité responsable),
+partners[], prerequisites[], risks[], deliverables[] (livrables concrets), evidence[] (cite la source).
+Les activités doivent être réalistes, séquencées dans le temps et fondées sur les documents.{gavi_clause(language)}
+
+SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+"""
+
+
 def build_indicator_prompt(profile: CountryProfile, documents: list[UploadedDocument],
                            language: str, comp_label: str, objectives: list) -> str:
     """M&E prompt: ≥1 fully-completed indicator per objective, with targets for ALL years."""

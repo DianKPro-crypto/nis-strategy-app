@@ -20,7 +20,8 @@ from core.models import (
 )
 from core.epi_components import subcomponent_pairs, find_subcomponent
 from templates.prompts import (SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt,
-                               build_intervention_prompt, build_indicator_prompt, build_swot_prompt)
+                               build_intervention_prompt, build_indicator_prompt, build_swot_prompt,
+                               build_activity_prompt)
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -114,8 +115,34 @@ def generate_section(section: str, profile: CountryProfile,
         ind = _generate_indicators_from_objectives(profile, documents, language, strategy, progress)
         if ind["items"]:
             return ind
+    if section == "activities" and strategy is not None and strategy.interventions:
+        act = _generate_activities_from_interventions(profile, documents, language, strategy, progress)
+        if act["items"]:
+            return act
     prompt = build_generation_prompt(profile, documents, language, section)
     return _call_claude(prompt)
+
+
+def _generate_activities_from_interventions(profile, documents, language, strategy, progress=None) -> dict:
+    """Break each main intervention into fully-completed key activities (grouped per component)."""
+    from core.epi_components import EPI_COMPONENTS
+    iv_by_comp: dict[str, list] = {}
+    for iv in strategy.interventions:
+        if (iv.title or "").strip():
+            iv_by_comp.setdefault(iv.component_code or "?", []).append(iv)
+    items = []
+    groups = list(iv_by_comp.items())
+    for i, (comp_code, ivs) in enumerate(groups):
+        comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
+        label = comp.label(language) if comp else "Interventions"
+        if progress:
+            progress(i, len(groups), label)
+        try:
+            data = _call_claude(build_activity_prompt(profile, documents, language, label, ivs))
+            items.extend(_items(data))
+        except Exception:
+            pass
+    return {"items": items}
 
 
 def _generate_indicators_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
