@@ -85,8 +85,10 @@ CONTENU STRUCTURÉ DISPONIBLE (analyses de la plateforme) :
 {context}{draft_block}
 
 CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
-- Rédige cette section de façon EXHAUSTIVE, APPROFONDIE et STRUCTURÉE en plusieurs paragraphes (et
-  sous-parties si pertinent), longueur cible ~700 à 1300 mots, en langage de santé publique formel.
+- STRUCTURE la section en SOUS-CHAPITRES : commence chaque sous-partie par un sous-titre au format
+  « ## Titre du sous-chapitre » (et « ### » pour un niveau plus fin). Prévois 2 à 5 sous-chapitres pertinents.
+- Rédige de façon EXHAUSTIVE et APPROFONDIE, sans te limiter en longueur (vise ~900 à 1800 mots ou plus si
+  la matière le justifie), en langage de santé publique formel.
 - Si une « SNV déjà rédigée » est fournie ci-dessus, sers-t'en comme BASE PRINCIPALE : conserve son contenu
   pertinent, complète les lacunes, approfondis l'analyse et harmonise le style — NE la raccourcis pas.
 - Intègre EXPLICITEMENT l'alignement avec l'IA2030 et la stratégie Gavi 6.0 (zéro dose, équité, RSS/SSP,
