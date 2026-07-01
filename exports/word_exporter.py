@@ -53,6 +53,8 @@ def build_word(s: NISStrategy) -> bytes:
     doc = Document()
     doc.styles["Normal"].font.name = "Calibri"
     doc.styles["Normal"].font.size = Pt(11)
+    for _sec in doc.sections:   # 1-inch margins on all four sides
+        _sec.top_margin = _sec.bottom_margin = _sec.left_margin = _sec.right_margin = Inches(1)
     period = f"{s.profile.nis_start_year}–{s.profile.nis_start_year + s.profile.nis_duration_years - 1}"
     years = s.profile.years
     ph = "À compléter par l’équipe pays" if fr else "To be completed by the country team"

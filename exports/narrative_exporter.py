@@ -5,6 +5,7 @@
 All premium, with cover (WHO logo + Dian K Pro credit), auto clickable TOC and page numbers.
 """
 from __future__ import annotations
+import re
 from io import BytesIO
 
 from docx import Document
@@ -99,22 +100,35 @@ def _toc(doc, fr):
     doc.add_page_break()
 
 
+def _add_rich(paragraph, text):
+    """Add text to a paragraph, rendering **bold** markdown as real bold runs."""
+    for part in re.split(r"(\*\*.+?\*\*)", text):
+        if not part:
+            continue
+        if part.startswith("**") and part.endswith("**") and len(part) > 4:
+            paragraph.add_run(part[2:-2]).bold = True
+        else:
+            paragraph.add_run(part.replace("**", ""))
+
+
+def _clean_head(t):
+    return t.strip().lstrip("#").strip().replace("**", "").strip("* ")
+
+
 def _prose(doc, text):
-    """Render AI prose, turning '## '/'### ' markers into Heading 2/3 sub-chapters."""
+    """Render AI prose: '## '/'### ' -> Heading 2/3, '- ' -> bullets, **bold** -> bold runs."""
     for raw in (text or "").split("\n"):
         line = raw.strip()
         if not line:
             continue
-        if line.startswith("#### "):
-            _H(doc, line[5:].strip().strip("*"), 3, numbered_break=False)
-        elif line.startswith("### "):
-            _H(doc, line[4:].strip().strip("*"), 3, numbered_break=False)
-        elif line.startswith("## "):
-            _H(doc, line[3:].strip().strip("*"), 2, numbered_break=False)
-        elif line.startswith("# "):
-            _H(doc, line[2:].strip().strip("*"), 2, numbered_break=False)
+        if line.startswith("#### ") or line.startswith("### "):
+            _H(doc, _clean_head(line), 3, numbered_break=False)
+        elif line.startswith("## ") or line.startswith("# "):
+            _H(doc, _clean_head(line), 2, numbered_break=False)
+        elif line[:2] in ("- ", "* ") or line.startswith("• "):
+            _add_rich(doc.add_paragraph(style="List Bullet"), line[2:].strip())
         else:
-            doc.add_paragraph(line)
+            _add_rich(doc.add_paragraph(), line)
 
 
 def _caption(doc, text):
@@ -187,6 +201,8 @@ def _chart(doc, kind, s, fr):
 def _new_doc(s):
     doc = Document()
     doc.styles["Normal"].font.name = "Calibri"; doc.styles["Normal"].font.size = Pt(11)
+    for sec in doc.sections:   # 1-inch margins on all four sides
+        sec.top_margin = sec.bottom_margin = sec.left_margin = sec.right_margin = Inches(1)
     fr = s.profile.language == "fr"
     period = f"{s.profile.nis_start_year}–{s.profile.nis_start_year + s.profile.nis_duration_years - 1}"
     _footer(doc.sections[0], (f"SNV {s.profile.country_name} · {period}" if fr
@@ -233,14 +249,17 @@ def build_narrative_word(s: NISStrategy) -> bytes:
         # ---- section tables & figures ----
         if key == "situation" and s.swot:
             _H(doc, "Synthèse FFOM par sous-composante" if fr else "SWOT summary by subcomponent", 2)
+
+            def _cell(items):  # all items, joined; capped only to avoid an oversized cell
+                txt = " ; ".join(x for x in items if x)
+                return (txt[:600] + "…") if len(txt) > 600 else (txt or "—")
             rows = []
             for c in EPI_COMPONENTS:
-                for sub in c.subcomponents:
+                for sub in c.subcomponents:   # ALL 26 subcomponents (complete)
                     it = sw_by.get(sub.code)
-                    if it and any([it.strengths, it.weaknesses, it.opportunities, it.threats]):
-                        rows.append([sub.label(s.profile.language), "; ".join(it.strengths[:3]),
-                                     "; ".join(it.weaknesses[:3]), "; ".join(it.opportunities[:2]),
-                                     "; ".join(it.threats[:2])])
+                    rows.append([sub.label(s.profile.language),
+                                 _cell(it.strengths) if it else "—", _cell(it.weaknesses) if it else "—",
+                                 _cell(it.opportunities) if it else "—", _cell(it.threats) if it else "—"])
             _mini_table(doc, ["Sous-composante" if fr else "Subcomponent", "Forces", "Faiblesses",
                               "Opportunités", "Menaces"], rows)
         if key == "objectives" and s.objectives:
