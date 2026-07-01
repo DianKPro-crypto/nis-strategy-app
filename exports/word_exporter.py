@@ -277,6 +277,11 @@ def build_word(s: NISStrategy) -> bytes:
                 if val:
                     pp = doc.add_paragraph(style="List Bullet")
                     pp.add_run(f"{label} : ").bold = True; pp.add_run(str(val))
+            refs = "; ".join(f"{e.document_name} ({e.locator})" for e in iv.evidence if e.document_name)
+            if refs:
+                pp = doc.add_paragraph(style="List Bullet")
+                pp.add_run(("Références : " if fr else "References: ")).bold = True
+                pp.add_run(refs).italic = True
     if not s.interventions:
         P()
 
