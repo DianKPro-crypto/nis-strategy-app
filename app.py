@@ -670,32 +670,58 @@ def page_writeup():
                "existing drafted NIS: the AI will build the complete version on top of it.")
     with st.expander("📄 " + ("Documents de base pour la rédaction (facultatif)" if lg == "fr"
                               else "Base documents for the write-up (optional)"), expanded=True):
+        def _loaded_msg(n, label_fr, label_en):
+            if n < 200:
+                st.warning(("⚠️ Peu de texte extrait (" + str(n) + " car.). PDF scanné ? Fournissez une "
+                            "version texte." if lg == "fr" else
+                            f"⚠️ Little text extracted ({n} chars). Scanned PDF? Provide a text version."))
+            else:
+                st.success((f"✅ {label_fr} chargé : {n} caractères — prêt pour la rédaction." if lg == "fr"
+                            else f"✅ {label_en} loaded: {n} characters — ready for writing."))
         cc1, cc2 = st.columns(2)
         with cc1:
             st.markdown("**1. " + ("Document SNV (Word) — étape 10 ou SNV rédigée" if lg == "fr"
                                    else "NIS document (Word) — from step 10 or a drafted NIS") + "**")
             d_up = st.file_uploader("SNV (.docx / .pdf / .txt)", type=["docx", "pdf", "txt"],
                                     key="snv_draft_up", label_visibility="collapsed")
-            if d_up is not None and st.button("📥 " + ("Charger la SNV" if lg == "fr" else "Load NIS"),
-                                              key="load_draft"):
-                s.snv_draft_text = extract_document(d_up.getvalue(), d_up.name, "SNV").text or ""
-                _autosave(s); st.rerun()
+            if d_up is not None:
+                if st.button("📥 " + ("Charger la SNV" if lg == "fr" else "Load NIS"), key="load_draft"):
+                    s.snv_draft_text = extract_document(d_up.getvalue(), d_up.name, "SNV").text or ""
+                    _autosave(s); st.rerun()
+                elif not s.snv_draft_text:
+                    st.info("👉 " + ("Cliquez « Charger la SNV » pour confirmer." if lg == "fr"
+                                     else "Click “Load NIS” to confirm."))
             if s.snv_draft_text:
-                st.caption(f"✅ {len(s.snv_draft_text)} " + ("caractères" if lg == "fr" else "characters"))
+                _loaded_msg(len(s.snv_draft_text), "Document SNV", "NIS document")
         with cc2:
             st.markdown("**2. " + ("Rapport financier — issu du NIS.COST (étape B)" if lg == "fr"
                                    else "Financial report — from NIS.COST (part B)") + "**")
             f_up = st.file_uploader("Rapport financier", type=["docx", "pdf", "xlsx", "csv", "txt"],
                                     key="fin_input_up", label_visibility="collapsed")
-            if f_up is not None and st.button("📥 " + ("Charger le rapport financier" if lg == "fr"
-                                                       else "Load financial report"), key="load_fin_input"):
-                s.financial_report = extract_document(f_up.getvalue(), f_up.name, "Rapport financier").text or ""
-                _autosave(s); st.rerun()
+            if f_up is not None:
+                if st.button("📥 " + ("Charger le rapport financier" if lg == "fr"
+                                      else "Load financial report"), key="load_fin_input"):
+                    s.financial_report = extract_document(f_up.getvalue(), f_up.name, "Rapport financier").text or ""
+                    _autosave(s); st.rerun()
+                elif not s.financial_report:
+                    st.info("👉 " + ("Cliquez « Charger le rapport financier »." if lg == "fr"
+                                     else "Click “Load financial report”."))
             if s.financial_report:
-                st.caption(f"✅ {len(s.financial_report)} " + ("caractères" if lg == "fr" else "characters"))
+                _loaded_msg(len(s.financial_report), "Rapport financier", "Financial report")
         st.caption(("L’IA bâtira la SNV complète en s’appuyant sur ces documents + vos analyses (étapes 2→8)."
                     if lg == "fr" else
                     "The AI builds the full NIS on these documents + your analyses (steps 2→8)."))
+    ready = []
+    if s.snv_draft_text:
+        ready.append("SNV de base ✅" if lg == "fr" else "base NIS ✅")
+    if s.financial_report:
+        ready.append("rapport financier ✅" if lg == "fr" else "financial report ✅")
+    if s.objectives or s.swot:
+        ready.append("analyses plateforme ✅" if lg == "fr" else "platform analyses ✅")
+    st.caption(("L’IA utilisera : " if lg == "fr" else "The AI will use: ")
+               + (", ".join(ready) if ready else
+                  ("aucune source chargée — chargez au moins un document ou complétez les étapes 2→8."
+                   if lg == "fr" else "no source loaded — upload a document or complete steps 2→8.")))
     if st.button("✍️ " + ("Rédiger la SNV complète" if lg == "fr" else "Write the full NIS"), key="gen_narr"):
         if not ai:
             st.warning(t("no_api", lg))
