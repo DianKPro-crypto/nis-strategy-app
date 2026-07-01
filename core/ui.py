@@ -43,6 +43,10 @@ STEP_META = {
                "Quality control and completeness before export."),
     "nav_export": ("📦", "Générez les livrables Excel, Word, PDF et PowerPoint.",
                    "Generate the Excel, Word, PDF and PowerPoint deliverables."),
+    "nav_writeup": ("✍️", "Rédaction complète du rapport SNV par l’IA + rapport financier NIS.COST.",
+                    "Full AI write-up of the NIS report + NIS.COST financial report."),
+    "nav_qa": ("🔎", "L’IA relit le document et surligne en rouge ce qui doit être amélioré.",
+               "AI reviews the document and flags in red what must be improved."),
     "nav_help": ("❓", "Mode d’emploi de la plateforme, étape par étape.",
                  "How to use the platform, step by step."),
 }

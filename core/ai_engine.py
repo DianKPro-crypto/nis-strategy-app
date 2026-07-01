@@ -19,9 +19,10 @@ from core.models import (
     PrioritizationScore,
 )
 from core.epi_components import subcomponent_pairs, find_subcomponent
-from templates.prompts import (SYSTEM_PROMPT, build_generation_prompt, build_root_cause_prompt,
-                               build_intervention_prompt, build_indicator_prompt, build_swot_prompt,
-                               build_activity_prompt)
+from templates.prompts import (SYSTEM_PROMPT, SYSTEM_PROMPT_NARRATIVE, build_generation_prompt,
+                               build_root_cause_prompt, build_intervention_prompt, build_indicator_prompt,
+                               build_swot_prompt, build_activity_prompt, build_narrative_prompt,
+                               build_financial_prompt, build_qa_prompt)
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -53,6 +54,92 @@ def _extract_json(raw: str) -> dict:
             if depth == 0:
                 return json.loads(raw[start:i + 1])
     raise AIError("Réponse JSON invalide")
+
+
+def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE) -> str:
+    """Prose call (no JSON parsing) — for narrative writing and financial reports."""
+    client = _client()
+    msg = client.messages.create(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
+                                 system=system, messages=[{"role": "user", "content": prompt}])
+    return "".join(getattr(b, "text", "") for b in msg.content).strip()
+
+
+# ---- Step 11/12: full write-up, financial report, quality assurance ----
+NARRATIVE_SECTIONS = [
+    ("exec", "Résumé exécutif", "Executive summary"),
+    ("situation", "Analyse de la situation (synthèse FFOM et causes profondes)",
+     "Situation analysis (SWOT & root-cause synthesis)"),
+    ("vision", "Vision, objectif global et objectif général", "Vision, global goal and overall objective"),
+    ("objectives", "Objectifs stratégiques prioritaires et liens avec l’IA2030",
+     "Strategic priority objectives and links to IA2030"),
+    ("interventions", "Interventions principales", "Main interventions"),
+    ("me", "Cadre de suivi et d’évaluation", "Monitoring & evaluation framework"),
+    ("activities", "Activités opérationnelles", "Operational activities"),
+    ("conclusion", "Conclusion et prochaines étapes", "Conclusion and next steps"),
+]
+
+
+def _narrative_context(key, s, lang) -> str:
+    def comp_label(code):
+        from core.epi_components import EPI_COMPONENTS
+        return next((c.label(lang) for c in EPI_COMPONENTS if c.code == code), code)
+    if key == "exec":
+        return (f"Vision: {s.vision.vision}\nBut: {s.vision.goal}\nObjectif: {s.vision.overall_objective}\n"
+                f"{len(s.objectives)} objectifs, {len(s.interventions)} interventions, "
+                f"{len(s.indicators)} indicateurs, {len(s.activities)} activités.")
+    if key == "situation":
+        lines = []
+        for x in s.swot:
+            if any([x.strengths, x.weaknesses, x.opportunities, x.threats]):
+                lines.append(f"[{x.subcomponent_code}] F:{'; '.join(x.strengths)} | "
+                             f"Fa:{'; '.join(x.weaknesses)} | O:{'; '.join(x.opportunities)} | "
+                             f"M:{'; '.join(x.threats)}")
+        for rc in s.root_causes:
+            lines.append(f"Cause profonde [{rc.subcomponent_code}]: {rc.weakness} ⇒ {rc.final_why}")
+        return "\n".join(lines) or "(pas de données FFOM)"
+    if key == "vision":
+        return f"Vision: {s.vision.vision}\nBut: {s.vision.goal}\nObjectif général: {s.vision.overall_objective}"
+    if key == "objectives":
+        return "\n".join(f"[{o.obj_id} | {comp_label(o.component_code)}] {o.objective_text} "
+                         f"(obstacle: {o.main_obstacle})" for o in s.objectives) or "(aucun objectif)"
+    if key == "interventions":
+        return "\n".join(f"[{iv.objective_id}] {iv.title} — {iv.rationale} "
+                         f"(priorité {getattr(iv.priority_level,'value',iv.priority_level)}; "
+                         f"partenaires: {', '.join(iv.partners)})" for iv in s.interventions) or "(aucune)"
+    if key == "me":
+        return "\n".join(f"{i.name} ({i.indicator_type}) base={i.baseline} "
+                         f"cibles={i.targets}" for i in s.indicators) or "(aucun indicateur)"
+    if key == "activities":
+        return "\n".join(f"[{a.implementation_level}] {a.activity} (resp: {a.lead})"
+                         for a in s.activities) or "(aucune activité)"
+    if key == "conclusion":
+        return (f"Objectif général: {s.vision.overall_objective}. {len(s.objectives)} objectifs prioritaires, "
+                f"{len(s.interventions)} interventions. Prochaines étapes: validation MoH, chiffrage NIS.COST, POA.")
+    return ""
+
+
+def generate_narrative(strategy, language: str, progress=None) -> dict:
+    """Write polished prose for every NIS section; store in strategy.narrative."""
+    out = {}
+    for i, (key, fr, en) in enumerate(NARRATIVE_SECTIONS):
+        title = fr if language == "fr" else en
+        if progress:
+            progress(i, len(NARRATIVE_SECTIONS), title)
+        try:
+            ctx = _narrative_context(key, strategy, language)
+            out[key] = _call_claude_text(build_narrative_prompt(strategy.profile, language, title, ctx))
+        except Exception as e:
+            out[key] = f"[Erreur de rédaction: {e}]"
+    strategy.narrative = out
+    return out
+
+
+def generate_financial(profile, language: str, niscost_text: str) -> str:
+    return _call_claude_text(build_financial_prompt(profile, language, niscost_text))
+
+
+def generate_qa(profile, language: str, document_text: str) -> dict:
+    return _call_claude(build_qa_prompt(profile, language, document_text))
 
 
 def _call_claude(prompt: str) -> dict:

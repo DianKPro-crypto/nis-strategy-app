@@ -56,6 +56,73 @@ strengthening, sustainability and co-financing, new-vaccine introduction, and re
 no markdown fences, no comments. Use the requested output language for all human-readable text."""
 
 
+SYSTEM_PROMPT_NARRATIVE = """You are a Senior Public Health Expert and professional strategy writer \
+(EPI, NIS, IA2030, Gavi 6.0, WHO). Write polished, formal, cohesive NARRATIVE PROSE suitable for a \
+Ministry of Health / WHO / Gavi submission.
+RULES: base facts ONLY on the content provided (never invent figures/names); align systematically with \
+IA2030 and the Gavi 6.0 (2026-2030) strategy (zero-dose, equity, PHC & health-system strengthening, \
+sustainability & co-financing); use formal public-health language in the requested output language; \
+write flowing paragraphs (no JSON, no markdown code fences). Where information is missing, write one short \
+sentence noting it must be completed by the country team."""
+
+
+def build_narrative_prompt(profile: CountryProfile, language: str, section_title: str, context: str) -> str:
+    lang_name = "français" if language == "fr" else "English"
+    return f"""PAYS : {profile.country_name} — {profile.epi_programme_name}. \
+Période SNV : {profile.nis_start_year}-{profile.nis_start_year + profile.nis_duration_years - 1}.
+LANGUE DE SORTIE : {lang_name}
+
+SECTION À RÉDIGER : « {section_title} »
+
+CONTENU STRUCTURÉ DISPONIBLE (base-toi UNIQUEMENT là-dessus) :
+{context}
+
+CONSIGNE : Rédige cette section sous forme de PROSE professionnelle et cohérente (paragraphes rédigés,
+~250 à 500 mots), dans un langage de santé publique formel, en intégrant explicitement l'alignement avec
+l'IA2030 et la stratégie Gavi 6.0 (zéro dose, équité, RSS/SSP, durabilité et cofinancement) lorsque pertinent.
+N'invente aucun chiffre. Réponds uniquement par le texte rédigé de la section (pas de titre, pas de JSON)."""
+
+
+def build_financial_prompt(profile: CountryProfile, language: str, niscost_text: str) -> str:
+    lang_name = "français" if language == "fr" else "English"
+    return f"""PAYS : {profile.country_name} — {profile.epi_programme_name}. \
+Période : {profile.nis_start_year}-{profile.nis_start_year + profile.nis_duration_years - 1}. \
+Devise : {profile.currency}.
+LANGUE DE SORTIE : {lang_name}
+
+DONNÉES DE CHIFFRAGE (issues de l'outil NIS.COST — ta SEULE source chiffrée) :
+{niscost_text[:40000]}
+
+CONSIGNE : Rédige un RAPPORT FINANCIER de la SNV, structuré, professionnel, en prose, couvrant :
+1) Coût total de la SNV et coûts par composante du PEV et par année ;
+2) Analyse des sources de financement (État, Gavi, UNICEF, autres partenaires) ;
+3) Analyse de l'écart de financement (gap) ;
+4) Durabilité financière et transition (cofinancement Gavi 6.0, autofinancement progressif) ;
+5) Recommandations de mobilisation des ressources.
+Base tous les montants UNIQUEMENT sur les données fournies ; n'invente aucun chiffre (écris « à confirmer »
+si absent). Aligne l'analyse sur la trajectoire de cofinancement Gavi 6.0. Réponds par le texte du rapport."""
+
+
+def build_qa_prompt(profile: CountryProfile, language: str, document_text: str) -> str:
+    lang_name = "français" if language == "fr" else "English"
+    schema = {"score": "0-100", "overall": "str",
+              "findings": [{"section": "str", "severity": "critique|majeur|mineur",
+                            "issue": "str", "recommendation": "str"}]}
+    return f"""LANGUE DE SORTIE : {lang_name}
+Tu es évaluateur qualité senior d'une Stratégie Nationale de Vaccination (normes OMS/IA2030/Gavi 6.0).
+
+DOCUMENT À ÉVALUER :
+{document_text[:60000]}
+
+TÂCHE : Évalue la QUALITÉ, la COHÉRENCE et la COMPLÉTUDE du document selon les normes OMS/IA2030/Gavi 6.0.
+Identifie ce qui MANQUE ou doit être AMÉLIORÉ. Pour chaque point : section concernée, sévérité
+(critique|majeur|mineur), problème, recommandation concrète. Donne un score global /100 et une synthèse.
+Vérifie notamment : structure EMR complète, objectifs SMART, cohérence FFOM→causes→objectifs→interventions→S&E,
+cibles progressives, alignement Gavi 6.0/IA2030, sources/preuves.
+Réponds par UN SEUL objet JSON conforme :
+{json.dumps(schema, ensure_ascii=False, indent=2)}"""
+
+
 def _components_block(lang: str, focus=None) -> str:
     comps = [focus] if focus is not None else (EPI_COMPONENTS + [COUNTRY_SPECIFIC])
     lines = []

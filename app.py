@@ -28,6 +28,8 @@ from exports.excel_exporter import build_excel
 from exports.word_exporter import build_word
 from exports.pdf_exporter import build_pdf
 from exports.ppt_exporter import build_ppt
+from exports.narrative_exporter import build_narrative_word, build_financial_word, build_qa_word
+from core.ai_engine import NARRATIVE_SECTIONS
 
 st.set_page_config(page_title="NIS Strategy Builder", page_icon="💉", layout="wide")
 
@@ -162,7 +164,8 @@ def sidebar():
     else:
         st.sidebar.caption(f"IA: {settings.ANTHROPIC_MODEL}")
     pages = ["nav_profile", "nav_upload", "nav_vision", "nav_swot", "nav_root",
-             "nav_obj", "nav_interv", "nav_me", "nav_act", "nav_qc", "nav_export", "nav_help"]
+             "nav_obj", "nav_interv", "nav_me", "nav_act", "nav_qc", "nav_export",
+             "nav_writeup", "nav_qa", "nav_help"]
     choice = st.sidebar.radio(t("step", lg), pages, format_func=lambda k: t(k, lg))
     st.sidebar.divider()
 
@@ -657,16 +660,130 @@ def _show_evidence(evidence, lg):
             st.write(f"- **{e.document_name}** ({e.locator}) — _{conf}_ : {e.excerpt}")
 
 
+def page_writeup():
+    s = S(); lg = lang()
+    ai = settings.ai_available()
+    st.subheader("A. " + ("Rédaction complète de la SNV (IA)" if lg == "fr" else "Full NIS write-up (AI)"))
+    st.caption("L’IA rédige un document narratif professionnel (toutes les sections) à partir de vos analyses, "
+               "aligné IA2030/Gavi 6.0." if lg == "fr" else
+               "The AI writes a professional narrative (all sections) from your analyses, aligned to IA2030/Gavi 6.0.")
+    if st.button("✍️ " + ("Rédiger la SNV complète" if lg == "fr" else "Write the full NIS"), key="gen_narr"):
+        if not ai:
+            st.warning(t("no_api", lg))
+        else:
+            status = st.empty()
+            try:
+                with st.spinner("Rédaction en cours…"):
+                    ai_engine.generate_narrative(
+                        s, lg, progress=lambda i, n, l: status.info(f"Rédaction… {i+1}/{n} : {l}"))
+                status.empty()
+                for k in [k for k in list(st.session_state) if k.startswith("nar_")]:
+                    del st.session_state[k]
+                _autosave(s)
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erreur IA : {e}")
+    if s.narrative:
+        st.success("Rédaction disponible — relisez et ajustez, puis téléchargez." if lg == "fr"
+                   else "Draft ready — review, edit, then download.")
+        for key, tfr, ten in NARRATIVE_SECTIONS:
+            with st.expander(tfr if lg == "fr" else ten):
+                s.narrative[key] = st.text_area("", s.narrative.get(key, ""), key=f"nar_{key}", height=220,
+                                                label_visibility="collapsed")
+        base = (s.profile.country_name or "SNV").replace(" ", "_")
+        st.download_button("⬇️ " + ("Rapport SNV narratif (.docx)" if lg == "fr" else "NIS narrative report (.docx)"),
+                           build_narrative_word(s), f"SNV_narratif_{base}.docx",
+                           "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    st.divider()
+    st.subheader("B. " + ("Rapport financier (NIS.COST)" if lg == "fr" else "Financial report (NIS.COST)"))
+    up = st.file_uploader("Fichier NIS.COST" if lg == "fr" else "NIS.COST file",
+                          type=["xlsx", "csv", "pdf", "docx"], key="niscost_up")
+    if up is not None and st.button("📥 " + ("Charger le NIS.COST" if lg == "fr" else "Load NIS.COST")):
+        doc = extract_document(up.getvalue(), up.name, "NIS.COST")
+        s.niscost_text = doc.text or ""
+        _autosave(s)
+        st.success(f"{len(s.niscost_text)} " + ("caractères chargés." if lg == "fr" else "characters loaded."))
+    if s.niscost_text:
+        st.caption(f"NIS.COST : {len(s.niscost_text)} " + ("caractères" if lg == "fr" else "characters"))
+        if st.button("✨ " + ("Générer le rapport financier (IA)" if lg == "fr" else "Generate financial report (AI)"),
+                     key="gen_fin"):
+            if not ai:
+                st.warning(t("no_api", lg))
+            else:
+                try:
+                    with st.spinner("Analyse financière en cours…"):
+                        s.financial_report = ai_engine.generate_financial(s.profile, lg, s.niscost_text)
+                    for k in [k for k in list(st.session_state) if k.startswith("fin_")]:
+                        del st.session_state[k]
+                    _autosave(s)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erreur IA : {e}")
+    if s.financial_report:
+        s.financial_report = st.text_area("Rapport financier" if lg == "fr" else "Financial report",
+                                          s.financial_report, key="fin_report", height=320)
+        base = (s.profile.country_name or "SNV").replace(" ", "_")
+        st.download_button("⬇️ " + ("Rapport financier (.docx)" if lg == "fr" else "Financial report (.docx)"),
+                           build_financial_word(s), f"Rapport_financier_{base}.docx",
+                           "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+def _qa_document_text(s: NISStrategy) -> str:
+    if s.narrative:
+        parts = [f"## {k}\n{v}" for k, v in s.narrative.items() if v]
+        if s.financial_report:
+            parts.append("## financial\n" + s.financial_report)
+        return "\n\n".join(parts)
+    # fallback: structured summary
+    lines = [f"Vision: {s.vision.vision}", f"But: {s.vision.goal}", f"Objectif: {s.vision.overall_objective}"]
+    lines += [f"Objectif {o.obj_id}: {o.objective_text}" for o in s.objectives]
+    lines += [f"Intervention: {iv.title} — {iv.rationale}" for iv in s.interventions]
+    lines += [f"Indicateur: {i.name} base={i.baseline} cibles={i.targets}" for i in s.indicators]
+    return "\n".join(lines)
+
+
+def page_qa():
+    s = S(); lg = lang()
+    st.caption("L’IA relit la stratégie, vérifie cohérence/complétude/normes (OMS, IA2030, Gavi 6.0) et "
+               "surligne en rouge ce qui doit être ajouté ou amélioré." if lg == "fr" else
+               "The AI reviews the strategy for coherence/completeness/standards and flags in red what to improve.")
+    if st.button("🔎 " + ("Analyser la qualité (IA)" if lg == "fr" else "Analyze quality (AI)"), key="gen_qa"):
+        if not settings.ai_available():
+            st.warning(t("no_api", lg))
+        else:
+            try:
+                with st.spinner("Analyse qualité en cours…"):
+                    st.session_state["_qa"] = ai_engine.generate_qa(s.profile, lg, _qa_document_text(s))
+            except Exception as e:
+                st.error(f"Erreur IA : {e}")
+    qa = st.session_state.get("_qa")
+    if qa:
+        c1, c2 = st.columns([1, 3])
+        c1.metric("Score", f"{qa.get('score', '—')}/100")
+        c2.info(qa.get("overall", ""))
+        st.markdown("#### " + ("Points à ajouter / améliorer" if lg == "fr" else "Items to add / improve"))
+        order = {"critique": 0, "critical": 0, "majeur": 1, "major": 1, "mineur": 2, "minor": 2}
+        for f in sorted(qa.get("findings", []) or [], key=lambda x: order.get(str(x.get("severity", "")).lower(), 3)):
+            sev = str(f.get("severity", "")).lower()
+            msg = f"**[{f.get('severity','')}] {f.get('section','')}** — {f.get('issue','')}\n\n→ {f.get('recommendation','')}"
+            (st.error if sev in ("critique", "critical", "majeur", "major") else st.warning)(msg)
+        base = (s.profile.country_name or "SNV").replace(" ", "_")
+        st.download_button("⬇️ " + ("Rapport d’assurance qualité (.docx)" if lg == "fr" else "QA report (.docx)"),
+                           build_qa_word(s, qa), f"QA_SNV_{base}.docx",
+                           "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
 PAGES = {
     "nav_profile": page_profile, "nav_upload": page_upload, "nav_vision": page_vision,
     "nav_swot": page_swot, "nav_root": page_root, "nav_obj": page_obj,
     "nav_interv": page_interv, "nav_me": page_me, "nav_act": page_act,
-    "nav_qc": page_qc, "nav_export": page_export, "nav_help": page_help,
+    "nav_qc": page_qc, "nav_export": page_export, "nav_writeup": page_writeup,
+    "nav_qa": page_qa, "nav_help": page_help,
 }
 
 
 ALL_WIDGET_PREFIXES = ("sw_", "rc_", "o_id_", "o_sc_", "o_ob_", "o_vr_", "o_ot_", "o_sm_",
-                       "iv_", "me_", "a_", "val_")
+                       "iv_", "me_", "a_", "val_", "nar_", "fin_")
 
 
 def _clear_all_widget_state():

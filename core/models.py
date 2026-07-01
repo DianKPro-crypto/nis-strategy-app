@@ -275,6 +275,10 @@ class NISStrategy(_Model):
     activities: list[Activity] = Field(default_factory=list)
     grouping_option: str = "option1"          # option1 | option2 | option3
     validated_sections: dict[str, bool] = Field(default_factory=dict)
+    # Step 11 — full AI write-up
+    narrative: dict[str, str] = Field(default_factory=dict)   # section_key -> AI prose
+    financial_report: str = ""                                # from NIS.COST
+    niscost_text: str = ""                                    # extracted NIS.COST source
 
     # ---- serialization helpers (v1/v2 compatible) ----
     def to_dict(self) -> dict:

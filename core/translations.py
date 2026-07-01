@@ -18,6 +18,8 @@ STRINGS: dict[str, dict[str, str]] = {
     "nav_act": {"fr": "8 · Activités opérationnelles", "en": "8 · Operational activities"},
     "nav_qc": {"fr": "9 · Contrôle qualité", "en": "9 · Quality control"},
     "nav_export": {"fr": "10 · Exports", "en": "10 · Exports"},
+    "nav_writeup": {"fr": "11 · Rédaction SNV (IA)", "en": "11 · NIS write-up (AI)"},
+    "nav_qa": {"fr": "12 · Assurance qualité (IA)", "en": "12 · Quality assurance (AI)"},
     "nav_help": {"fr": "❓ Aide / Guide", "en": "❓ Help / Guide"},
     "generate": {"fr": "Générer avec l’IA", "en": "Generate with AI"},
     "regenerate": {"fr": "Régénérer", "en": "Regenerate"},
