@@ -155,9 +155,10 @@ def sidebar():
                           index=0 if cur == "fr" else 1,
                           format_func=lambda x: "Français" if x == "fr" else "English")
     s.profile.language = lg
-    lb = branding.logo_bytes(lg)
-    if lb:
-        st.sidebar.image(lb, width=220)   # bytes + fixed width = reliable across versions
+    # Inline data-URI so the logo shows immediately on first load (no media-server refresh needed).
+    who_html = branding.logo_html(lg, 210)
+    if who_html:
+        st.sidebar.markdown(who_html, unsafe_allow_html=True)
     st.sidebar.title(t("app_title", lg))
     if not settings.ai_available():
         st.sidebar.warning(t("no_api", lg))
@@ -212,16 +213,14 @@ def sidebar():
             st.rerun()
         else:
             st.sidebar.info("Aucun projet à ce nom.")
-    # --- Design credit (Dian K Pro) ---
+    # --- Design credit (Dian K Pro) — logo + text centered together ---
     st.sidebar.divider()
-    dk = branding.dk_logo_bytes()
-    if dk:
-        st.sidebar.image(dk, width=150)   # larger so "DK PRO" is legible
     line1 = ("Conception : OMS, améliorée par Dian K Pro" if lg == "fr"
              else "Design: WHO, enhanced by Dian K Pro")
-    line2 = ("Public Health & Digital Strategist")
+    line2 = "Public Health & Digital Strategist"
     st.sidebar.markdown(
-        f"<div style='font-size:0.75rem;color:#5b6b7b;line-height:1.3;text-align:center'>"
+        f"{branding.dk_logo_html(140)}"
+        f"<div style='font-size:0.75rem;color:#5b6b7b;line-height:1.35;text-align:center;margin-top:6px'>"
         f"{line1}<br><i>{line2}</i></div>", unsafe_allow_html=True)
     return choice
 
