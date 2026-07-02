@@ -230,36 +230,29 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
     The situation analysis is generated component-by-component for depth."""
     from core.epi_components import EPI_COMPONENTS
     out = {}
-    docs = _narrative_documents(strategy)
+    all_docs = _narrative_documents(strategy)
     draft = getattr(strategy, "snv_draft_text", "")
-    total = len(NARRATIVE_SECTIONS) + len(EPI_COMPONENTS) - 1   # situation expands to 7 sub-calls
-    step = 0
-    for (key, fr, en) in NARRATIVE_SECTIONS:
+    # Only the document-dependent chapters carry the source documents (lighter, faster calls).
+    DOC_SECTIONS = {"exec", "positioning", "situation", "financing", "special"}
+    total = len(NARRATIVE_SECTIONS)   # one call per chapter (situation is a single deep call)
+    for step, (key, fr, en) in enumerate(NARRATIVE_SECTIONS):
         title = fr if language == "fr" else en
-        if key == "situation":
-            intro = ""
-            if progress:
-                progress(step, total, title + " — introduction")
-            try:
-                intro = _call_claude_text(build_narrative_prompt(
-                    strategy.profile, language, title,
-                    _narrative_context(key, strategy, language) + "\n(Introduis le chapitre; l'analyse "
-                    "détaillée par composante suit en sous-parties.)", draft, documents=docs))
-            except Exception as e:
-                intro = f"[Erreur: {e}]"
-            body = _generate_situation_by_component(strategy, language, progress, base=step + 1, total=total)
-            out[key] = intro + "\n\n" + body
-            step += 1 + len(EPI_COMPONENTS)
-            continue
         if progress:
             progress(step, total, title)
+        docs = all_docs if key in DOC_SECTIONS else None
         try:
-            ctx = _narrative_context(key, strategy, language)
+            if key == "situation":
+                ctx = (_narrative_context(key, strategy, language)
+                       + "\n\nDÉTAIL PAR COMPOSANTE (FFOM + causes profondes) :\n"
+                       + "\n\n".join(_situation_context(c, strategy, language) for c in EPI_COMPONENTS)
+                       + "\n\n(STRUCTURE OBLIGATOIRE : rédige une sous-partie « ## <nom de la composante> » "
+                         "pour CHACUNE des 7 composantes du PEV, approfondie et chiffrée.)")
+            else:
+                ctx = _narrative_context(key, strategy, language)
             out[key] = _call_claude_text(build_narrative_prompt(
                 strategy.profile, language, title, ctx, draft=draft, documents=docs))
         except Exception as e:
             out[key] = f"[Erreur de rédaction: {e}]"
-        step += 1
     strategy.narrative = out
     return out
 

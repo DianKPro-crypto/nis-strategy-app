@@ -74,12 +74,12 @@ def build_narrative_prompt(profile: CountryProfile, language: str, section_title
     if draft and draft.strip():
         draft_block = (
             "\n\nSNV DÉJÀ RÉDIGÉE (BASE PRINCIPALE à conserver, compléter et enrichir — ne la résume pas, "
-            "développe-la et structure-la selon les normes OMS) :\n" + draft[:24000])
+            "développe-la et structure-la selon les normes OMS) :\n" + draft[:12000])
     docs_block = ""
     if documents:
         docs_block = ("\n\nDOCUMENTS SOURCES & DIRECTIVES (constats pays, stratégie sectorielle de santé, "
                       "cMYP/PPAC, IA2030, Gavi 6.0 — CONSULTE-les et cite-les pour étayer la rédaction) :\n"
-                      + _documents_block(documents, 18000))
+                      + _documents_block(documents, 10000))
     return f"""PAYS : {profile.country_name} — {profile.epi_programme_name}. \
 Période SNV : {profile.nis_start_year}-{profile.nis_start_year + profile.nis_duration_years - 1}.
 LANGUE DE SORTIE : {lang_name}
