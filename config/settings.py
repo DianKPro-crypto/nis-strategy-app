@@ -38,6 +38,8 @@ AI_MAX_TOKENS = int(os.getenv("AI_MAX_TOKENS", "16000"))
 AI_MAX_RETRIES = int(os.getenv("AI_MAX_RETRIES", "2"))
 # Effort for prose writing (Sonnet 5 / Opus): low|medium|high — 'low' is fastest, prose stays good.
 AI_EFFORT = _secret("AI_EFFORT", "low")
+# How many narrative sections to write concurrently (parallel API calls).
+AI_CONCURRENCY = int(_secret("AI_CONCURRENCY", "4"))
 
 # ---- Storage ----
 DB_PATH = os.getenv("NIS_DB_PATH", str(DATA_DIR / "nis.db"))

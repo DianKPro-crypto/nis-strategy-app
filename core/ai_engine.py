@@ -229,32 +229,44 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
     """Write polished prose for every NIS section; store in strategy.narrative.
     The situation analysis is generated component-by-component for depth."""
     from core.epi_components import EPI_COMPONENTS
-    out = {}
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     all_docs = _narrative_documents(strategy)
     draft = getattr(strategy, "snv_draft_text", "")
     # Only the document-dependent chapters carry the source documents (lighter, faster calls).
     DOC_SECTIONS = {"exec", "positioning", "situation", "financing", "special"}
-    total = len(NARRATIVE_SECTIONS)   # one call per chapter (situation is a single deep call)
-    for step, (key, fr, en) in enumerate(NARRATIVE_SECTIONS):
-        title = fr if language == "fr" else en
-        if progress:
-            progress(step, total, title)
+    total = len(NARRATIVE_SECTIONS)
+
+    def _ctx_for(key):
+        if key == "situation":
+            return (_narrative_context(key, strategy, language)
+                    + "\n\nDÉTAIL PAR COMPOSANTE (FFOM + causes profondes) :\n"
+                    + "\n\n".join(_situation_context(c, strategy, language) for c in EPI_COMPONENTS)
+                    + "\n\n(STRUCTURE OBLIGATOIRE : rédige une sous-partie « ## <nom de la composante> » "
+                      "pour CHACUNE des 7 composantes du PEV, approfondie et chiffrée.)")
+        return _narrative_context(key, strategy, language)
+
+    def _run(key, title):   # runs in a worker thread — no Streamlit access here
         docs = all_docs if key in DOC_SECTIONS else None
-        try:
-            if key == "situation":
-                ctx = (_narrative_context(key, strategy, language)
-                       + "\n\nDÉTAIL PAR COMPOSANTE (FFOM + causes profondes) :\n"
-                       + "\n\n".join(_situation_context(c, strategy, language) for c in EPI_COMPONENTS)
-                       + "\n\n(STRUCTURE OBLIGATOIRE : rédige une sous-partie « ## <nom de la composante> » "
-                         "pour CHACUNE des 7 composantes du PEV, approfondie et chiffrée.)")
-            else:
-                ctx = _narrative_context(key, strategy, language)
-            out[key] = _call_claude_text(build_narrative_prompt(
-                strategy.profile, language, title, ctx, draft=draft, documents=docs))
-        except Exception as e:
-            out[key] = f"[Erreur de rédaction: {e}]"
-    strategy.narrative = out
-    return out
+        return _call_claude_text(build_narrative_prompt(
+            strategy.profile, language, title, _ctx_for(key), draft=draft, documents=docs))
+
+    tasks = [(key, (fr if language == "fr" else en)) for (key, fr, en) in NARRATIVE_SECTIONS]
+    out = {}
+    workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), total))
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:   # sections are independent -> parallel
+        futs = {ex.submit(_run, key, title): (key, title) for key, title in tasks}
+        for fut in as_completed(futs):
+            key, title = futs[fut]
+            try:
+                out[key] = fut.result()
+            except Exception as e:
+                out[key] = f"[Erreur de rédaction: {e}]"
+            if progress:   # as_completed runs in the caller (main) thread -> UI-safe
+                progress(done, total, title)
+            done += 1
+    strategy.narrative = {key: out.get(key, "") for key, _, _ in NARRATIVE_SECTIONS}
+    return strategy.narrative
 
 
 def generate_financial(profile, language: str, niscost_text: str) -> str:
