@@ -27,7 +27,7 @@ _RED = RGBColor.from_string("C00000")
 _HEX_DARK = INSTITUTION_DARK.lstrip("#")
 
 
-def _field(p, instr, placeholder=""):
+def _field(p, instr, placeholder="", dirty=False):
     run = p.add_run()
     for kind, txt in (("begin", None), ("instr", instr), ("separate", None), ("text", placeholder), ("end", None)):
         if kind == "instr":
@@ -36,12 +36,14 @@ def _field(p, instr, placeholder=""):
             el = OxmlElement("w:t"); el.text = txt
         else:
             el = OxmlElement("w:fldChar"); el.set(qn("w:fldCharType"), kind)
+            if kind == "begin" and dirty:      # forces Word to recompute the field on open
+                el.set(qn("w:dirty"), "true")
         run._r.append(el)
 
 
 def _update_fields(doc):
     upd = OxmlElement("w:updateFields"); upd.set(qn("w:val"), "true")
-    doc.settings.element.append(upd)
+    doc.settings.element.insert(0, upd)   # early position so Word honours it
 
 
 def _footer(section, txt):
@@ -95,8 +97,8 @@ def _toc(doc, fr):
     _H(doc, "Table des matières" if fr else "Table of contents", 1, numbered_break=False)
     p = doc.add_paragraph()
     _field(p, 'TOC \\o "1-2" \\h \\z \\u',
-           "Se met à jour à l’ouverture (clic droit → Mettre à jour les champs)." if fr
-           else "Updates on open (right-click → Update field).")
+           "Se met à jour à l’ouverture (sinon : Ctrl+A puis F9)." if fr
+           else "Updates on open (else: Ctrl+A then F9).", dirty=True)
     doc.add_page_break()
 
 
@@ -242,7 +244,7 @@ def _seq_caption(doc, label, title):
 def _list_of(doc, heading, label):
     _H(doc, heading, 2, numbered_break=False)
     p = doc.add_paragraph()
-    _field(p, f'TOC \\h \\z \\c "{label}"', "(se met à jour à l’ouverture)")
+    _field(p, f'TOC \\h \\z \\c "{label}"', "(se met à jour à l’ouverture)", dirty=True)
 
 
 def _titled_table(doc, title, headers, rows):

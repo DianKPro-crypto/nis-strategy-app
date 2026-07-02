@@ -31,9 +31,11 @@ def _shade(cell, hex_color):
     tcPr.append(shd)
 
 
-def _field(paragraph, instr, placeholder=""):
+def _field(paragraph, instr, placeholder="", dirty=False):
     run = paragraph.add_run()
     b = OxmlElement("w:fldChar"); b.set(qn("w:fldCharType"), "begin")
+    if dirty:
+        b.set(qn("w:dirty"), "true")
     it = OxmlElement("w:instrText"); it.set(qn("xml:space"), "preserve"); it.text = instr
     sep = OxmlElement("w:fldChar"); sep.set(qn("w:fldCharType"), "separate")
     t = OxmlElement("w:t"); t.text = placeholder
@@ -44,7 +46,7 @@ def _field(paragraph, instr, placeholder=""):
 
 def _enable_update_fields(doc):
     upd = OxmlElement("w:updateFields"); upd.set(qn("w:val"), "true")
-    doc.settings.element.append(upd)
+    doc.settings.element.insert(0, upd)
 
 
 def build_word(s: NISStrategy) -> bytes:
@@ -138,8 +140,8 @@ def build_word(s: NISStrategy) -> bytes:
     r.bold = True; r.font.size = Pt(18); r.font.color.rgb = _DARK
     p = doc.add_paragraph()
     _field(p, 'TOC \\o "1-3" \\h \\z \\u',
-           "La table des matières se met à jour à l’ouverture (clic droit → Mettre à jour les champs)."
-           if fr else "The table of contents updates on open (right-click → Update field).")
+           "La table des matières se met à jour à l’ouverture (sinon : Ctrl+A puis F9)."
+           if fr else "The table of contents updates on open (else: Ctrl+A then F9).", dirty=True)
     doc.add_page_break()
 
     # ===================== ABBREVIATIONS + EXEC SUMMARY =====================
