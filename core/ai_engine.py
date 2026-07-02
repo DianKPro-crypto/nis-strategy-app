@@ -179,18 +179,31 @@ def _situation_context(comp, strategy, language):
     return "\n".join(lines)
 
 
+def _narrative_documents(strategy):
+    """Source documents + built-in IA2030/Gavi reference tables, for grounding the write-up."""
+    docs = list(getattr(strategy, "documents", []) or [])
+    try:
+        from core import reference_docs
+        docs += reference_docs.get_reference_documents()
+    except Exception:
+        pass
+    return docs
+
+
 def _generate_situation_by_component(strategy, language, progress=None, base=0, total=0):
     """Deep situation analysis: one sub-section per EPI component (## heading)."""
     from core.epi_components import EPI_COMPONENTS
     parts = []
     draft = getattr(strategy, "snv_draft_text", "")
+    docs = _narrative_documents(strategy)
     for j, comp in enumerate(EPI_COMPONENTS):
         if progress:
             progress(base + j, total, f"Analyse situation — {comp.label(language)}")
         try:
             ctx = _situation_context(comp, strategy, language)
             prose = _call_claude_text(build_narrative_prompt(
-                strategy.profile, language, f"Analyse de la composante « {comp.label(language)} »", ctx, draft))
+                strategy.profile, language, f"Analyse de la composante « {comp.label(language)} »",
+                ctx, draft, documents=docs))
         except Exception as e:
             prose = f"[Erreur: {e}]"
         parts.append(f"## {comp.label(language)}\n{prose}")
@@ -202,6 +215,8 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
     The situation analysis is generated component-by-component for depth."""
     from core.epi_components import EPI_COMPONENTS
     out = {}
+    docs = _narrative_documents(strategy)
+    draft = getattr(strategy, "snv_draft_text", "")
     total = len(NARRATIVE_SECTIONS) + len(EPI_COMPONENTS) - 1   # situation expands to 7 sub-calls
     step = 0
     for (key, fr, en) in NARRATIVE_SECTIONS:
@@ -212,7 +227,7 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
                 intro = _call_claude_text(build_narrative_prompt(
                     strategy.profile, language, title,
                     _narrative_context(key, strategy, language) + "\n(Introduis le chapitre; l'analyse "
-                    "détaillée par composante suit en sous-parties.)", getattr(strategy, "snv_draft_text", "")))
+                    "détaillée par composante suit en sous-parties.)", draft, documents=docs))
             except Exception as e:
                 intro = f"[Erreur: {e}]"
             body = _generate_situation_by_component(strategy, language, progress, base=step + 1, total=total)
@@ -224,7 +239,7 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
         try:
             ctx = _narrative_context(key, strategy, language)
             out[key] = _call_claude_text(build_narrative_prompt(
-                strategy.profile, language, title, ctx, draft=getattr(strategy, "snv_draft_text", "")))
+                strategy.profile, language, title, ctx, draft=draft, documents=docs))
         except Exception as e:
             out[key] = f"[Erreur de rédaction: {e}]"
         step += 1

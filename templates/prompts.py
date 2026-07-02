@@ -68,13 +68,18 @@ sentence noting it must be completed by the country team."""
 
 
 def build_narrative_prompt(profile: CountryProfile, language: str, section_title: str, context: str,
-                           draft: str = "") -> str:
+                           draft: str = "", documents: list[UploadedDocument] | None = None) -> str:
     lang_name = "français" if language == "fr" else "English"
     draft_block = ""
     if draft and draft.strip():
         draft_block = (
             "\n\nSNV DÉJÀ RÉDIGÉE (BASE PRINCIPALE à conserver, compléter et enrichir — ne la résume pas, "
-            "développe-la et structure-la selon les normes OMS) :\n" + draft[:28000])
+            "développe-la et structure-la selon les normes OMS) :\n" + draft[:24000])
+    docs_block = ""
+    if documents:
+        docs_block = ("\n\nDOCUMENTS SOURCES & DIRECTIVES (constats pays, stratégie sectorielle de santé, "
+                      "cMYP/PPAC, IA2030, Gavi 6.0 — CONSULTE-les et cite-les pour étayer la rédaction) :\n"
+                      + _documents_block(documents, 18000))
     return f"""PAYS : {profile.country_name} — {profile.epi_programme_name}. \
 Période SNV : {profile.nis_start_year}-{profile.nis_start_year + profile.nis_duration_years - 1}.
 LANGUE DE SORTIE : {lang_name}
@@ -82,7 +87,7 @@ LANGUE DE SORTIE : {lang_name}
 SECTION À RÉDIGER : « {section_title} »
 
 CONTENU STRUCTURÉ DISPONIBLE (analyses de la plateforme) :
-{context}{draft_block}
+{context}{docs_block}{draft_block}
 
 CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
 - STRUCTURE la section en SOUS-CHAPITRES : commence chaque sous-partie par un sous-titre au format
