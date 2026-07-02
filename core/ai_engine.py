@@ -62,10 +62,20 @@ def _fix_pct(text: str) -> str:
 
 
 def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE) -> str:
-    """Prose call (no JSON parsing) — for narrative writing and financial reports."""
+    """Prose call (no JSON parsing) — for narrative writing and financial reports.
+    Uses a lower reasoning effort (default 'medium') so the 19-call write-up is faster;
+    falls back gracefully if the model/SDK doesn't accept the effort parameter."""
     client = _client()
-    msg = client.messages.create(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
-                                 system=system, messages=[{"role": "user", "content": prompt}])
+    kw = dict(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
+              system=system, messages=[{"role": "user", "content": prompt}])
+    effort = (settings.AI_EFFORT or "").strip().lower()
+    if effort in ("low", "medium", "high"):
+        try:
+            msg = client.messages.create(extra_body={"output_config": {"effort": effort}}, **kw)
+        except Exception:
+            msg = client.messages.create(**kw)   # effort not supported -> plain call
+    else:
+        msg = client.messages.create(**kw)
     return _fix_pct("".join(getattr(b, "text", "") for b in msg.content).strip())
 
 
