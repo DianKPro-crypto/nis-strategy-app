@@ -133,73 +133,6 @@ def _prose(doc, text):
             _add_rich(doc.add_paragraph(), line)
 
 
-def _caption(doc, text):
-    p = doc.add_paragraph(); r = p.add_run(text)
-    r.italic = True; r.font.size = Pt(9); r.font.color.rgb = _PRIMARY
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-
-def _num(v):
-    try:
-        return float(str(v).replace("%", "").replace(",", ".").strip())
-    except Exception:
-        return None
-
-
-def _chart(doc, kind, s, fr):
-    """Embed a matplotlib chart (guarded — skipped if matplotlib is unavailable)."""
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-    except Exception:
-        return
-    years = s.profile.years
-    fig = None
-    try:
-        if kind == "targets":
-            inds = [i for i in s.indicators if any(_num(i.targets.get(f"Y{k+1}")) is not None
-                                                   for k in range(len(years)))][:4]
-            if not inds:
-                return
-            fig, ax = plt.subplots(figsize=(6.6, 3.2))
-            for i in inds:
-                ys = [_num(i.targets.get(f"Y{k+1}")) for k in range(len(years))]
-                ax.plot(years, ys, marker="o", label=(i.name[:32] + ("…" if len(i.name) > 32 else "")))
-            ax.set_title("Cibles des indicateurs par année" if fr else "Indicator targets by year")
-            ax.legend(fontsize=7, loc="best"); ax.grid(alpha=.3)
-        elif kind == "priority":
-            from collections import Counter
-            c = Counter(str(getattr(iv.priority_level, "value", iv.priority_level)) for iv in s.interventions)
-            if not c:
-                return
-            labels = {"high": "Élevée", "medium": "Moyenne", "low": "Faible"} if fr else \
-                     {"high": "High", "medium": "Medium", "low": "Low"}
-            keys = [k for k in ("high", "medium", "low") if c.get(k)]
-            fig, ax = plt.subplots(figsize=(5.2, 3.0))
-            ax.bar([labels.get(k, k) for k in keys], [c[k] for k in keys],
-                   color=["#2E7D32", "#EF6C00", "#909CA8"][:len(keys)])
-            ax.set_title("Interventions par niveau de priorité" if fr else "Interventions by priority")
-        elif kind == "activities":
-            counts = [sum(1 for a in s.activities if a.years.get(f"Y{k+1}")) for k in range(len(years))]
-            if not any(counts):
-                return
-            fig, ax = plt.subplots(figsize=(5.6, 3.0))
-            ax.bar([str(y) for y in years], counts, color="#0093D5")
-            ax.set_title("Activités par année" if fr else "Activities by year")
-        if fig is None:
-            return
-        fig.tight_layout()
-        buf = BytesIO(); fig.savefig(buf, format="png", dpi=130); plt.close(fig); buf.seek(0)
-        doc.add_picture(buf, width=Inches(5.8))
-        doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    except Exception:
-        try:
-            plt.close("all")
-        except Exception:
-            pass
-
-
 def _new_doc(s):
     doc = Document()
     doc.styles["Normal"].font.name = "Calibri"; doc.styles["Normal"].font.size = Pt(11)
@@ -275,17 +208,9 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                  ("AEFI", "Adverse Event Following Immunization"), ("VPD", "Vaccine-Preventable Disease"),
                  ("PHC", "Primary Health Care"), ("AOP", "Annual Operational Plan")])
     _list_of(doc, "Liste des tableaux" if fr else "List of tables", "Tableau")
-    _list_of(doc, "Liste des figures" if fr else "List of figures", "Figure")
     doc.add_page_break()
     from core.epi_components import EPI_COMPONENTS, find_subcomponent
     sw_by = {x.subcomponent_code: x for x in s.swot}
-    fig_n = [0]
-
-    def figure(kind, cap):
-        before = len(doc.inline_shapes)
-        _chart(doc, kind, s, fr)
-        if len(doc.inline_shapes) > before:
-            _seq_caption(doc, "Figure", cap)
 
     for n, (key, tfr, ten) in enumerate(NARRATIVE_SECTIONS, 1):
         _H(doc, f"{n}. {tfr if fr else ten}", 1)
@@ -316,16 +241,11 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                           [[iv.title, getattr(iv.priority_level, "value", iv.priority_level),
                             ", ".join(str(years[k]) for k in range(len(years)) if iv.timeline.get(f"Y{k+1}"))]
                            for iv in s.interventions])
-            figure("priority", "Répartition des interventions par priorité" if fr
-                   else "Interventions by priority")
         if key == "me" and s.indicators:
             cols = ["Indicateur" if fr else "Indicator", "Base" if fr else "Baseline"] + [str(y) for y in years]
             _titled_table(doc, "Indicateurs de suivi-évaluation et cibles" if fr else "M&E indicators and targets",
                           cols, [[i.name, i.baseline] + [i.targets.get(f"Y{k+1}", "")
                                  for k in range(len(years))] for i in s.indicators])
-            figure("targets", "Évolution des cibles par année" if fr else "Targets by year")
-        if key == "implementation" and s.activities:
-            figure("activities", "Activités programmées par année" if fr else "Activities by year")
 
     if s.financial_report:
         _H(doc, f"{len(NARRATIVE_SECTIONS)+1}. " + ("Rapport financier" if fr else "Financial report"), 1)

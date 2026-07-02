@@ -14,7 +14,6 @@ python-pptx>=0.6         # PowerPoint read + export
 
 # Exports
 reportlab>=4.1           # PDF export
-matplotlib>=3.8          # charts embedded in the narrative report
 
 # Durable cloud storage (optional — Supabase REST)
 requests>=2.31
