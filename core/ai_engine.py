@@ -35,7 +35,8 @@ def _client():
     if not settings.ai_available():
         raise AIError("ANTHROPIC_API_KEY manquante")
     import anthropic
-    return anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    # Bounded timeout so a stalled request fails fast instead of hanging forever.
+    return anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=300.0, max_retries=2)
 
 
 def _extract_json(raw: str) -> dict:
@@ -63,19 +64,23 @@ def _fix_pct(text: str) -> str:
 
 def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE) -> str:
     """Prose call (no JSON parsing) — for narrative writing and financial reports.
-    Uses a lower reasoning effort (default 'medium') so the 19-call write-up is faster;
+    STREAMS the response (keeps the connection alive for large max_tokens — avoids the
+    non-streaming hang on Streamlit Cloud) and uses a lower effort ('medium') for speed;
     falls back gracefully if the model/SDK doesn't accept the effort parameter."""
     client = _client()
     kw = dict(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
               system=system, messages=[{"role": "user", "content": prompt}])
     effort = (settings.AI_EFFORT or "").strip().lower()
-    if effort in ("low", "medium", "high"):
-        try:
-            msg = client.messages.create(extra_body={"output_config": {"effort": effort}}, **kw)
-        except Exception:
-            msg = client.messages.create(**kw)   # effort not supported -> plain call
-    else:
-        msg = client.messages.create(**kw)
+
+    def _stream(**extra):
+        with client.messages.stream(**kw, **extra) as st:
+            return st.get_final_message()
+
+    try:
+        msg = _stream(extra_body={"output_config": {"effort": effort}}) if effort in (
+            "low", "medium", "high") else _stream()
+    except Exception:
+        msg = _stream()   # effort not supported -> plain streamed call
     return _fix_pct("".join(getattr(b, "text", "") for b in msg.content).strip())
 
 
@@ -233,6 +238,8 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
         title = fr if language == "fr" else en
         if key == "situation":
             intro = ""
+            if progress:
+                progress(step, total, title + " — introduction")
             try:
                 intro = _call_claude_text(build_narrative_prompt(
                     strategy.profile, language, title,
