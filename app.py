@@ -385,6 +385,9 @@ def page_swot():
     # --- Import d'une analyse ADS existante (codes 3.X.Y) ---
     do_import = False
     with st.expander("📥 Importer une analyse ADS (.csv) et l’aligner sur l’outil"):
+        st.info("📄 Vos documents (Word, PDF, Excel) se chargent à l’**étape 2 · Documents** — "
+                "pas ici. Cet encadré n’accepte QUE le fichier **ADS .csv** (c’est pourquoi Word/Excel "
+                "y sont grisés).")
         st.caption("Charge votre fichier ADS (obstacles codés 3.X.Y). Chaque obstacle est rangé "
                    "dans la composante (2ᵉ chiffre) et la sous-composante correspondantes. "
                    "« Point fort » → Forces, sinon → Faiblesses. L’IA pourra ensuite enrichir.")
