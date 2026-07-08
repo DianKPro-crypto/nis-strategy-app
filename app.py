@@ -175,10 +175,11 @@ def sidebar():
     store = cloud_store if use_cloud else storage
     st.sidebar.caption("☁️ Stockage cloud (durable)" if use_cloud
                        else "💾 Stockage local (temporaire — préférez l’export .json)")
-    pname = st.sidebar.text_input("Nom du projet", value=s.profile.country_name or "projet")
+    pname = st.sidebar.text_input("Nom du projet" if lg == "fr" else "Project name",
+                                  value=s.profile.country_name or "projet")
     st.session_state["_project_name"] = pname
 
-    # Cloud: offer a dropdown of saved projects to reload
+    # Cloud: dropdown of saved projects — the reliable way to restore all data.
     if use_cloud:
         try:
             saved = [n for n, _, _ in store.list_projects()]
@@ -186,8 +187,15 @@ def sidebar():
             saved = []
             st.sidebar.warning(f"Cloud injoignable : {e}")
         if saved:
-            pick = st.sidebar.selectbox("Projets enregistrés", ["—"] + saved, index=0)
-            if pick != "—" and st.sidebar.button("📂 Ouvrir ce projet"):
+            st.sidebar.caption("↩️ " + ("Reprendre un projet sauvegardé :" if lg == "fr"
+                                        else "Reopen a saved project:"))
+            pick = st.sidebar.selectbox("Projets enregistrés" if lg == "fr" else "Saved projects",
+                                        ["—"] + saved, index=0, label_visibility="collapsed")
+            if pick != "—" and st.sidebar.button(
+                    "📂 " + ("Ouvrir ce projet" if lg == "fr" else "Open this project"),
+                    use_container_width=True,
+                    help=("Récupère TOUTES les données du projet sélectionné (recommandé)." if lg == "fr"
+                          else "Restores ALL data of the selected project (recommended).")):
                 loaded = store.load_project(pick)
                 if loaded:
                     st.session_state.strategy = loaded
@@ -195,13 +203,19 @@ def sidebar():
                     st.rerun()
 
     c1, c2 = st.sidebar.columns(2)
-    if c1.button("💾 " + t("save", lg)):
+    if c1.button("💾 " + t("save", lg),
+                 help=("Sauvegarde le projet en cours dans le cloud, sous le nom ci-dessus." if lg == "fr"
+                       else "Save the current project to the cloud, under the name above.")):
         try:
             store.save_project(pname, s)
             st.sidebar.success("Enregistré ✅")
         except Exception as e:
             st.sidebar.error(f"Échec sauvegarde : {e}")
-    if c2.button("📂 Charger"):
+    if c2.button("🔄 " + ("Recharger" if lg == "fr" else "Reload"),
+                 help=("Recharge depuis le cloud le projet portant EXACTEMENT le nom saisi ci-dessus. "
+                       "Pour reprendre un projet, utilisez plutôt « Ouvrir ce projet »." if lg == "fr"
+                       else "Reload from the cloud the project named EXACTLY as above. "
+                       "To resume a project, use “Open this project” instead.")):
         try:
             loaded = store.load_project(pname)
         except Exception as e:
@@ -212,7 +226,7 @@ def sidebar():
             _clear_all_widget_state()
             st.rerun()
         else:
-            st.sidebar.info("Aucun projet à ce nom.")
+            st.sidebar.info("Aucun projet à ce nom." if lg == "fr" else "No project with that name.")
     # --- Design credit (Dian K Pro) — logo + text centered together ---
     st.sidebar.divider()
     line1 = ("Conception : OMS, améliorée par Dian K Pro" if lg == "fr"
