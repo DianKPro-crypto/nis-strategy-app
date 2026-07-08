@@ -288,18 +288,31 @@ def page_upload():
     s = S(); lg = lang()
     st.caption("⚠️ Documents confidentiels: ils sont traités localement et temporairement.")
     cat = st.selectbox("Catégorie du document", DOCUMENT_CATEGORIES_FR)
-    files = st.file_uploader("Glissez-déposez vos fichiers",
-                             type=list(settings.ALLOWED_EXTENSIONS), accept_multiple_files=True)
-    if files and st.button("📥 Extraire le contenu"):
+    # No 'type=' filter: some OS file pickers grey out all files when a type list is set
+    # (symptom: "only folders selectable"). We accept several files and validate the extension after.
+    fmts = ", ".join(sorted(settings.ALLOWED_EXTENSIONS))
+    files = st.file_uploader(
+        "Glissez-déposez vos fichiers (plusieurs à la fois)" if lg == "fr"
+        else "Drag & drop your files (several at once)",
+        accept_multiple_files=True, key="doc_upl",
+        help=(f"Formats acceptés : {fmts}." if lg == "fr" else f"Accepted formats: {fmts}."))
+    if files and st.button("📥 " + ("Extraire le contenu" if lg == "fr" else "Extract content")):
+        n_ok = 0
         for f in files:
+            ext = f.name.rsplit(".", 1)[-1].lower() if "." in f.name else ""
+            if ext not in settings.ALLOWED_EXTENSIONS:
+                st.warning(f"{f.name} : format « {ext or '?'} » non pris en charge — ignoré "
+                           f"(formats : {fmts}).")
+                continue
             data = f.getvalue()
             if len(data) > settings.MAX_FILE_MB * 1024 * 1024:
                 st.error(f"{f.name}: fichier trop volumineux (>{settings.MAX_FILE_MB} Mo)")
                 continue
             doc = extract_document(data, f.name, cat)
             s.documents = [d for d in s.documents if d.name != f.name] + [doc]
+            n_ok += 1
         _autosave(s)   # persist immediately so documents survive a reboot
-        st.success(f"{len(files)} document(s) traité(s)."
+        st.success(f"{n_ok} document(s) traité(s)."
                    + (" ☁️ Sauvegardé." if cloud_store.cloud_available() else ""))
     if s.documents:
         total_chars = sum(len((d.text or "").strip()) for d in s.documents)
@@ -336,10 +349,11 @@ def page_swot():
     s = S(); lg = lang()
     st.caption("Forces/Faiblesses = INTERNES au PEV · Opportunités/Menaces = EXTERNES")
     stats = st.session_state.pop("_ads_stats", None)
+    total = st.session_state.pop("_ads_total", None)
     if stats:
-        if stats.get("mapped"):
-            st.success(f"Import ADS ✅ : {stats['mapped']} obstacle(s) aligné(s) sur l’outil "
-                       f"({stats['weaknesses']} faiblesse(s), {stats['strengths']} force(s)).")
+        if total or stats.get("mapped"):
+            n = total or stats.get("mapped", 0)
+            st.success(f"Import ADS ✅ : {n} obstacle(s) aligné(s) sur l’outil.")
         else:
             st.error("Aucun obstacle reconnu dans le fichier. Vérifiez qu’il contient bien une colonne "
                      "**Code** (format 3.X.Y) et **Obstacle / faiblesse**.")
@@ -351,17 +365,22 @@ def page_swot():
         st.caption("Charge votre fichier ADS (obstacles codés 3.X.Y). Chaque obstacle est rangé "
                    "dans la composante (2ᵉ chiffre) et la sous-composante correspondantes. "
                    "« Point fort » → Forces, sinon → Faiblesses. L’IA pourra ensuite enrichir.")
-        up = st.file_uploader("Fichier ADS (.csv)", type=["csv"], key="ads_csv")
-        if up is not None and st.button("Importer et aligner", key="ads_import_btn"):
+        ups = st.file_uploader("Fichier(s) ADS (.csv)", type=["csv"], key="ads_csv",
+                               accept_multiple_files=True)
+        if ups and st.button("Importer et aligner", key="ads_import_btn"):
             do_import = True
     if do_import:
         from core import ads_import
         try:
-            items, stats = ads_import.import_ads_csv(up.getvalue())
-            ads_import.merge_into(s, items)
+            total, last_stats = 0, {}
+            for up in ups:
+                items, last_stats = ads_import.import_ads_csv(up.getvalue())
+                ads_import.merge_into(s, items)
+                total += len(items)
             for k in [k for k in list(st.session_state.keys()) if k.startswith("sw_")]:
                 del st.session_state[k]
-            st.session_state["_ads_stats"] = stats
+            st.session_state["_ads_stats"] = last_stats
+            st.session_state["_ads_total"] = total
             _autosave(s)
         except Exception as e:
             st.error(f"Import ADS impossible : {e}")
