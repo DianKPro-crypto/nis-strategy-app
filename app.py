@@ -12,6 +12,8 @@ import json
 from datetime import date
 import streamlit as st
 
+APP_VERSION = "2026-07-05 · v7 (upload sans filtre + coller texte)"
+
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
 from core.translations import t
@@ -236,6 +238,7 @@ def sidebar():
         f"{branding.dk_logo_html(140)}"
         f"<div style='font-size:0.75rem;color:#5b6b7b;line-height:1.35;text-align:center;margin-top:6px'>"
         f"{line1}<br><i>{line2}</i></div>", unsafe_allow_html=True)
+    st.sidebar.caption(f"🔖 Version : {APP_VERSION}")
     return choice
 
 
