@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v8 (docs = etape 1 Documents sources)"
+APP_VERSION = "2026-07-05 · v9 (etape 3: upload tous types + multi)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -374,6 +374,9 @@ def page_vision():
 def page_swot():
     s = S(); lg = lang()
     st.caption("Forces/Faiblesses = INTERNES au PEV · Opportunités/Menaces = EXTERNES")
+    docs_added = st.session_state.pop("_docs_added_msg", None)
+    if docs_added:
+        st.success(f"📄 {docs_added} document(s) ajouté(s) aux sources (visibles à l’étape « 1 · Documents »).")
     stats = st.session_state.pop("_ads_stats", None)
     total = st.session_state.pop("_ads_total", None)
     if stats:
@@ -385,36 +388,52 @@ def page_swot():
                      "**Code** (format 3.X.Y) et **Obstacle / faiblesse**.")
             st.caption(f"Séparateur détecté : « {stats.get('delimiter')} » · "
                        f"Colonnes lues : {stats.get('columns')}")
-    # --- Import d'une analyse ADS existante (codes 3.X.Y) ---
+    # --- Import: documents sources (Word/PDF/Excel/…) ET/OU analyse ADS (.csv) — tous types, 1 ou plusieurs ---
     do_import = False
-    with st.expander("📥 Importer une analyse ADS (.csv) et l’aligner sur l’outil"):
-        st.info("📄 Vos documents (Word, PDF, Excel) se chargent à l’étape **« 1 · Documents sources »** "
-                "(menu de gauche) — PAS ici. Cet encadré n’accepte QUE le fichier **ADS .csv** "
-                "(c’est pourquoi Word/Excel y sont grisés).")
-        st.caption("Charge votre fichier ADS (obstacles codés 3.X.Y). Chaque obstacle est rangé "
-                   "dans la composante (2ᵉ chiffre) et la sous-composante correspondantes. "
-                   "« Point fort » → Forces, sinon → Faiblesses. L’IA pourra ensuite enrichir.")
-        ups = st.file_uploader("Fichier(s) ADS (.csv)", type=["csv"], key="ads_csv",
-                               accept_multiple_files=True)
-        if ups and st.button("Importer et aligner", key="ads_import_btn"):
+    with st.expander("📥 Importer des fichiers ici (documents Word/PDF/Excel **ou** analyse ADS .csv)"):
+        st.caption("Déposez **tous types de fichiers**, un ou plusieurs. Un **.csv ADS** (obstacles 3.X.Y) "
+                   "est aligné automatiquement sur les composantes ; un **document** (Word, PDF, Excel…) "
+                   "est ajouté comme source pour l’IA. (Vous pouvez aussi utiliser l’étape « 1 · Documents ».)")
+        # No 'type=' filter -> nothing is greyed out; we route each file by its extension.
+        ups = st.file_uploader("Fichiers (tous types)", key="ads_csv", accept_multiple_files=True)
+        if ups and st.button("📥 Importer", key="ads_import_btn"):
             do_import = True
     if do_import:
         from core import ads_import
-        try:
-            total, last_stats = 0, {}
-            for up in ups:
-                items, last_stats = ads_import.import_ads_csv(up.getvalue())
-                ads_import.merge_into(s, items)
-                total += len(items)
+        ads_total, last_stats, docs_added, skipped = 0, {}, 0, []
+        for up in ups:
+            name = up.name
+            ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+            data = up.getvalue()
+            try:
+                if ext == "csv":
+                    items, last_stats = ads_import.import_ads_csv(data)
+                    if items:
+                        ads_import.merge_into(s, items)
+                        ads_total += len(items)
+                    else:  # a CSV that isn't an ADS obstacle file -> keep it as a source document
+                        s.documents = [d for d in s.documents if d.name != name] + \
+                                      [extract_document(data, name, "Analyse ADS / autre")]
+                        docs_added += 1
+                elif ext in settings.ALLOWED_EXTENSIONS:
+                    s.documents = [d for d in s.documents if d.name != name] + \
+                                  [extract_document(data, name, "Document source")]
+                    docs_added += 1
+                else:
+                    skipped.append(f"{name} ({ext or '?'})")
+            except Exception as e:
+                skipped.append(f"{name} : {e}")
+        if ads_total:
             for k in [k for k in list(st.session_state.keys()) if k.startswith("sw_")]:
                 del st.session_state[k]
             st.session_state["_ads_stats"] = last_stats
-            st.session_state["_ads_total"] = total
-            _autosave(s)
-        except Exception as e:
-            st.error(f"Import ADS impossible : {e}")
-            do_import = False
-    if do_import:
+            st.session_state["_ads_total"] = ads_total
+        if docs_added:
+            st.session_state["_docs_added_msg"] = docs_added
+        if skipped:
+            st.warning("Ignoré(s) : " + " ; ".join(skipped))
+        _autosave(s)
+    if do_import and (ads_total or docs_added):
         st.rerun()
     if st.button("✨ " + t("generate", lg), key="gen_swot"):
         _gen_or_warn("swot")
