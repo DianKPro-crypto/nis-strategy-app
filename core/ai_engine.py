@@ -516,17 +516,28 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
                 weak_by_sub[sw.subcomponent_code] = ws
     pairs = subcomponent_pairs()  # [(component, subcomponent), ...] — the 26
     items, errors = [], []
-    for i, (comp, sub) in enumerate(pairs):
-        if progress:
-            progress(i, len(pairs), sub.label(language))
-        try:
-            data = _call_claude(build_swot_prompt(profile, documents, language, comp,
-                                                  weak_by_sub.get(sub.code), only_subs=[sub], doc_budget=18000))
-            chunk = _items(data)
-            _assign_subcomponents(comp, chunk, candidate_subs=[sub])
-            items.extend(chunk)
-        except Exception as e:
-            errors.append(f"{sub.code}: {e}")
+
+    def _one(comp, sub):   # runs in a worker thread — independent per subcomponent
+        data = _call_claude(build_swot_prompt(profile, documents, language, comp,
+                                              weak_by_sub.get(sub.code), only_subs=[sub], doc_budget=18000))
+        chunk = _items(data)
+        _assign_subcomponents(comp, chunk, candidate_subs=[sub])
+        return chunk
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), len(pairs)))
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:   # 26 independent calls -> parallel
+        futs = {ex.submit(_one, comp, sub): (comp, sub) for comp, sub in pairs}
+        for fut in as_completed(futs):
+            comp, sub = futs[fut]
+            try:
+                items.extend(fut.result())
+            except Exception as e:
+                errors.append(f"{sub.code}: {e}")
+            if progress:   # as_completed runs in the caller (main) thread -> UI-safe
+                progress(done, len(pairs), sub.label(language))
+            done += 1
     if not items and errors:
         raise AIError("FFOM non générée — " + " · ".join(errors[:5]))
     return {"items": items, "_errors": errors}
