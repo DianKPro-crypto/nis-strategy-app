@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v7 (upload sans filtre + coller texte)"
+APP_VERSION = "2026-07-05 · v8 (docs = etape 1 Documents sources)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -388,9 +388,9 @@ def page_swot():
     # --- Import d'une analyse ADS existante (codes 3.X.Y) ---
     do_import = False
     with st.expander("📥 Importer une analyse ADS (.csv) et l’aligner sur l’outil"):
-        st.info("📄 Vos documents (Word, PDF, Excel) se chargent à l’**étape 2 · Documents** — "
-                "pas ici. Cet encadré n’accepte QUE le fichier **ADS .csv** (c’est pourquoi Word/Excel "
-                "y sont grisés).")
+        st.info("📄 Vos documents (Word, PDF, Excel) se chargent à l’étape **« 1 · Documents sources »** "
+                "(menu de gauche) — PAS ici. Cet encadré n’accepte QUE le fichier **ADS .csv** "
+                "(c’est pourquoi Word/Excel y sont grisés).")
         st.caption("Charge votre fichier ADS (obstacles codés 3.X.Y). Chaque obstacle est rangé "
                    "dans la composante (2ᵉ chiffre) et la sous-composante correspondantes. "
                    "« Point fort » → Forces, sinon → Faiblesses. L’IA pourra ensuite enrichir.")
