@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v11 (SWOT en parallele, ~4x plus rapide)"
+APP_VERSION = "2026-07-05 · v12 (SWOT: retry auto -> 26/26 garanties)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR

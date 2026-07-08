@@ -515,7 +515,7 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
             if ws:
                 weak_by_sub[sw.subcomponent_code] = ws
     pairs = subcomponent_pairs()  # [(component, subcomponent), ...] — the 26
-    items, errors = [], []
+    errors: list[str] = []
 
     def _one(comp, sub):   # runs in a worker thread — independent per subcomponent
         data = _call_claude(build_swot_prompt(profile, documents, language, comp,
@@ -524,23 +524,44 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
         _assign_subcomponents(comp, chunk, candidate_subs=[sub])
         return chunk
 
+    def _valid(chunk):   # a real analysis has at least one non-empty quadrant
+        return any(it and any(it.get(q) for q in ("strengths", "weaknesses", "opportunities", "threats"))
+                   for it in (chunk or []))
+
     from concurrent.futures import ThreadPoolExecutor, as_completed
     workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), len(pairs)))
-    done = 0
-    with ThreadPoolExecutor(max_workers=workers) as ex:   # 26 independent calls -> parallel
-        futs = {ex.submit(_one, comp, sub): (comp, sub) for comp, sub in pairs}
-        for fut in as_completed(futs):
-            comp, sub = futs[fut]
-            try:
-                items.extend(fut.result())
-            except Exception as e:
-                errors.append(f"{sub.code}: {e}")
-            if progress:   # as_completed runs in the caller (main) thread -> UI-safe
-                progress(done, len(pairs), sub.label(language))
-            done += 1
+    total = len(pairs)
+    by_code: dict[str, list] = {}   # sub.code -> valid chunk (guarantees one per subcomponent)
+    counter = [0]
+
+    def _pool(pending):
+        failed = []
+        with ThreadPoolExecutor(max_workers=workers) as ex:   # independent calls -> parallel
+            futs = {ex.submit(_one, comp, sub): (comp, sub) for comp, sub in pending}
+            for fut in as_completed(futs):
+                comp, sub = futs[fut]
+                try:
+                    chunk = fut.result()
+                    if _valid(chunk):
+                        by_code[sub.code] = chunk
+                    else:
+                        failed.append((comp, sub))   # empty answer -> retry
+                except Exception as e:
+                    errors.append(f"{sub.code}: {e}")
+                    failed.append((comp, sub))        # failed call -> retry
+                if progress:   # as_completed runs in the caller (main) thread -> UI-safe
+                    progress(min(counter[0], total - 1), total, sub.label(language))
+                    counter[0] += 1
+        return failed
+
+    failed = _pool(pairs)
+    if failed:                       # one automatic retry pass so all 26 are covered
+        _pool(failed)
+
+    items = [it for chunk in by_code.values() for it in chunk]
     if not items and errors:
         raise AIError("FFOM non générée — " + " · ".join(errors[:5]))
-    return {"items": items, "_errors": errors}
+    return {"items": items, "_errors": errors, "_covered": len(by_code), "_expected": total}
 
 
 def _resolve_sub(comp, item: dict):
