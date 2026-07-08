@@ -320,6 +320,47 @@ SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 """
 
 
+def build_objective_prompt(profile: CountryProfile, documents: list[UploadedDocument], language: str,
+                           component, causes_ctx: str, per_sub: bool, doc_budget: int = 12000) -> str:
+    """Strategic-objective prompt for ONE component, chained from its root causes/obstacles.
+    per_sub=True -> one SMART objective per subcomponent (option ≥26); False -> one per component (≥7)."""
+    lang_name = "français" if language == "fr" else "English"
+    ph = PLACEHOLDER_FR if language == "fr" else PLACEHOLDER_EN
+    schema = SCHEMAS["objectives"]
+    sub_lines = "\n".join(f"   {s.code} {s.label(language)}" for s in component.subcomponents)
+    count_rule = (
+        "Produis UN objectif stratégique SMART par SOUS-COMPOSANTE ci-dessous qui présente un obstacle "
+        "(subcomponent_code = code exact). Il y aura donc PLUSIEURS objectifs." if per_sub else
+        "Produis UN seul objectif stratégique SMART CONSOLIDÉ pour toute la composante "
+        "(subcomponent_code = la sous-composante la plus centrale).")
+    return f"""CONTEXTE PAYS : {profile.country_name} — {profile.epi_programme_name}. \
+Période SNV : {profile.nis_start_year}-{profile.nis_start_year + profile.nis_duration_years - 1}.
+OUTPUT LANGUAGE: {lang_name}
+PLACEHOLDER (donnée pays manquante — à recopier tel quel) : "{ph}"
+
+COMPOSANTE PEV : {component.label(language)}
+SOUS-COMPOSANTES :
+{sub_lines}
+
+OBSTACLES / CAUSES PROFONDES (ta base — chaîne : faiblesse → cause profonde → objectif) :
+{causes_ctx or "(peu de causes documentées — appuie-toi sur les faiblesses et ton expertise, confidence low)"}
+
+DOCUMENTS & TABLES DE RÉFÉRENCE (codes IA2030 SPO, mapping EPI↔SPO, domaines Gavi GIA) :
+{_documents_block(documents, doc_budget)}
+
+TÂCHE — OBJECTIFS STRATÉGIQUES PRIORITAIRES :
+{count_rule}
+Pour CHAQUE objectif : 'main_obstacle' (problème central issu des causes), 'visionary_result' (résultat
+visé), puis 'objective_text' = objectif SMART (verbe d'action, cible chiffrée ou "{ph}", valeur de base
+ou "{ph}", échéance dans la période). Rattache chaque objectif à un CODE SPO IA2030 pertinent (mets le
+code SPO dans 'objective_text' ou 'evidence'). N'invente AUCUN chiffre pays.
+{gavi_clause(language)}
+
+SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
+{json.dumps(schema, ensure_ascii=False, indent=2)}
+"""
+
+
 def build_intervention_prompt(profile: CountryProfile, documents: list[UploadedDocument],
                               language: str, comp_label: str, objectives: list) -> str:
     """Interventions prompt: for EACH strategic objective, propose fully-completed,

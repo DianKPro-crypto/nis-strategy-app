@@ -22,7 +22,7 @@ from core.epi_components import subcomponent_pairs, find_subcomponent
 from templates.prompts import (SYSTEM_PROMPT, SYSTEM_PROMPT_NARRATIVE, build_generation_prompt,
                                build_root_cause_prompt, build_intervention_prompt, build_indicator_prompt,
                                build_swot_prompt, build_activity_prompt, build_narrative_prompt,
-                               build_financial_prompt, build_qa_prompt)
+                               build_financial_prompt, build_qa_prompt, build_objective_prompt)
 
 SECTIONS = ["vision", "swot", "root_causes", "objectives", "interventions", "indicators", "activities"]
 
@@ -348,6 +348,11 @@ def generate_section(section: str, profile: CountryProfile,
         if rc["items"]:
             return rc
         # no FFOM weaknesses yet -> fall back to the document-based prompt
+    if section == "objectives" and strategy is not None:
+        og = _generate_objectives_from_causes(profile, documents, language, strategy, progress)
+        if og["items"]:
+            return og
+        # else (contextual grouping or no causes) -> single doc-based call below
     if section == "interventions" and strategy is not None and strategy.objectives:
         iv = _generate_interventions_from_objectives(profile, documents, language, strategy, progress)
         if iv["items"]:
@@ -562,6 +567,64 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
     if not items and errors:
         raise AIError("FFOM non générée — " + " · ".join(errors[:5]))
     return {"items": items, "_errors": errors, "_covered": len(by_code), "_expected": total}
+
+
+def _generate_objectives_from_causes(profile, documents, language, strategy, progress=None) -> dict:
+    """Strategic objectives chained from the root causes, per component, IN PARALLEL — honouring the
+    grouping option (option1 ≥26: one per subcomponent; option2 ≥7: one per component; option3: caller
+    falls back to a single contextual call)."""
+    from core.epi_components import EPI_COMPONENTS
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    grouping = (getattr(strategy, "grouping_option", "option1") or "option1")
+    if grouping == "option3":
+        return {"items": []}   # contextual grouping -> single doc-based call (handled by caller)
+
+    rc_by_comp: dict[str, list] = {}
+    for rc in (getattr(strategy, "root_causes", []) or []):
+        rc_by_comp.setdefault(rc.component_code, []).append(rc)
+    weak_by_comp: dict[str, list] = {}
+    for sw in strategy.swot:
+        for w in sw.weaknesses:
+            if w and w.strip():
+                weak_by_comp.setdefault(sw.component_code, []).append((sw.subcomponent_code, w.strip()))
+
+    def _ctx(comp):
+        lines = [f"- [{rc.subcomponent_code}] faiblesse: {rc.weakness} ⇒ cause profonde: {rc.final_why}"
+                 for rc in rc_by_comp.get(comp.code, [])]
+        if not lines:
+            lines = [f"- [{sc}] faiblesse: {w}" for sc, w in weak_by_comp.get(comp.code, [])]
+        return "\n".join(lines[:40])
+
+    comps = [c for c in EPI_COMPONENTS if rc_by_comp.get(c.code) or weak_by_comp.get(c.code)]
+    if not comps:
+        return {"items": []}
+    per_sub = grouping != "option2"
+
+    def _one(comp):
+        return _items(_call_claude(build_objective_prompt(
+            profile, documents, language, comp, _ctx(comp), per_sub)))
+
+    workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), len(comps)))
+    out, done = [], 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(_one, c): c for c in comps}
+        for fut in as_completed(futs):
+            c = futs[fut]
+            try:
+                out.extend(fut.result())
+            except Exception:
+                pass
+            if progress:
+                progress(done, len(comps), c.label(language))
+                done += 1
+    seen = set()   # ensure every objective has a unique id (needed to chain interventions later)
+    for i, it in enumerate(out, 1):
+        oid = str(it.get("obj_id") or "").strip()
+        if not oid or oid in seen:
+            oid = f"OS{i}"
+        seen.add(oid)
+        it["obj_id"] = oid
+    return {"items": out}
 
 
 def _resolve_sub(comp, item: dict):
