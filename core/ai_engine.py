@@ -376,19 +376,13 @@ def _generate_activities_from_interventions(profile, documents, language, strate
     for iv in strategy.interventions:
         if (iv.title or "").strip():
             iv_by_comp.setdefault(iv.component_code or "?", []).append(iv)
-    items = []
-    groups = list(iv_by_comp.items())
-    for i, (comp_code, ivs) in enumerate(groups):
+    tasks = []
+    for comp_code, ivs in iv_by_comp.items():
         comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
         label = comp.label(language) if comp else "Interventions"
-        if progress:
-            progress(i, len(groups), label)
-        try:
-            data = _call_claude(build_activity_prompt(profile, documents, language, label, ivs))
-            items.extend(_items(data))
-        except Exception:
-            pass
-    return {"items": items}
+        tasks.append((label, lambda l=label, v=ivs: _items(_call_claude(
+            build_activity_prompt(profile, documents, language, l, v)))))
+    return {"items": _parallel_calls(tasks, progress)}
 
 
 def _generate_indicators_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
@@ -403,43 +397,30 @@ def _generate_indicators_from_objectives(profile, documents, language, strategy,
     else:
         # No objectives yet -> derive key indicators per component from the reference documents.
         groups = [(c.code, []) for c in EPI_COMPONENTS]
-    items = []
-    for i, (comp_code, objs) in enumerate(groups):
+    tasks = []
+    for comp_code, objs in groups:
         comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
         label = comp.label(language) if comp else "Objectifs"
-        if progress:
-            progress(i, len(groups), label)
-        try:
-            prompt = build_indicator_prompt(profile, documents, language, label, objs)
-            data = _call_claude(prompt)
-            items.extend(_items(data))
-        except Exception:
-            pass
-    return {"items": items}
+        tasks.append((label, lambda l=label, o=objs: _items(_call_claude(
+            build_indicator_prompt(profile, documents, language, l, o)))))
+    return {"items": _parallel_calls(tasks, progress)}
 
 
 def _generate_interventions_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
     """For each strategic objective, generate fully-completed, evidence-grounded interventions
     (grouped per component to keep responses valid). Consults the uploaded documents."""
-    from core.epi_components import EPI_COMPONENTS, find_subcomponent
+    from core.epi_components import EPI_COMPONENTS
     objs_by_comp: dict[str, list] = {}
     for o in strategy.objectives:
         if (o.objective_text or "").strip():
             objs_by_comp.setdefault(o.component_code or "?", []).append(o)
-    items = []
-    groups = list(objs_by_comp.items())
-    for i, (comp_code, objs) in enumerate(groups):
+    tasks = []
+    for comp_code, objs in objs_by_comp.items():
         comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
         label = comp.label(language) if comp else "Objectifs"
-        if progress:
-            progress(i, len(groups), label)
-        try:
-            prompt = build_intervention_prompt(profile, documents, language, label, objs)
-            data = _call_claude(prompt)
-            items.extend(_items(data))
-        except Exception:
-            pass
-    return {"items": items}
+        tasks.append((label, lambda l=label, o=objs: _items(_call_claude(
+            build_intervention_prompt(profile, documents, language, l, o)))))
+    return {"items": _parallel_calls(tasks, progress)}
 
 
 def _generate_root_causes_from_weaknesses(profile, documents, language, strategy, progress=None) -> dict:
@@ -452,17 +433,11 @@ def _generate_root_causes_from_weaknesses(profile, documents, language, strategy
             if w and w.strip():
                 weak_by_comp.setdefault(sw.component_code, []).append((sw.subcomponent_code, w.strip()))
     comps = [c for c in EPI_COMPONENTS if weak_by_comp.get(c.code)]
-    items = []
-    for i, comp in enumerate(comps):
-        if progress:
-            progress(i, len(comps), comp.label(language))
-        try:
-            prompt = build_root_cause_prompt(profile, documents, language, comp, weak_by_comp[comp.code])
-            data = _call_claude(prompt)
-            items.extend(_items(data))
-        except Exception:
-            pass
-    return {"items": items}
+    tasks = [(c.label(language),
+              lambda c=c: _items(_call_claude(
+                  build_root_cause_prompt(profile, documents, language, c, weak_by_comp[c.code]))))
+             for c in comps]
+    return {"items": _parallel_calls(tasks, progress)}
 
 
 def _weak_by_sub(strategy) -> dict:
@@ -567,6 +542,30 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
     if not items and errors:
         raise AIError("FFOM non générée — " + " · ".join(errors[:5]))
     return {"items": items, "_errors": errors, "_covered": len(by_code), "_expected": total}
+
+
+def _parallel_calls(tasks, progress=None) -> list:
+    """Run (label, thunk) tasks CONCURRENTLY; each thunk returns a list of items -> flattened.
+    Progress is reported from the caller (main) thread, so it is Streamlit-safe."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    if not tasks:
+        return []
+    workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), len(tasks)))
+    out, done, n = [], 0, len(tasks)
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(thunk): label for label, thunk in tasks}
+        for fut in as_completed(futs):
+            label = futs[fut]
+            try:
+                r = fut.result()
+                if r:
+                    out.extend(r)
+            except Exception:
+                pass
+            if progress:
+                progress(done, n, label)
+                done += 1
+    return out
 
 
 def _generate_objectives_from_causes(profile, documents, language, strategy, progress=None) -> dict:
