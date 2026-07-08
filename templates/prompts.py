@@ -63,8 +63,9 @@ intervention types). Do NOT copy a generic intervention: adapt it to the country
 populations, geography, resources, local data). Embed the alignment inside the element's rationale/text (e.g. \
 "aligné SPO3.2 / GIA1 Prestation de services") and cite the reference table in 'evidence'. If no framework \
 covers it, flag it rather than forcing an artificial link.
-9. Indicators: prefer the IA2030 standard catalogue (SPOGCInd codes); give a coherent calculation formula \
-(numerator/denominator); NEVER invent baselines or targets → placeholder.
+9. Indicators: prefer the IA2030 standard indicator catalogue (SPOCInd codes, e.g. SPOCInd1.1.2) provided in \
+the reference tables; give a coherent calculation formula (numerator/denominator); NEVER invent baselines or \
+targets → placeholder.
 10. NEVER silently overwrite a human entry: if an input is mis-formulated (a cause/solution written as a \
 weakness, a threat filed as a weakness, vague, two problems merged, wrong subcomponent), propose a justified \
 correction rather than discarding the original.

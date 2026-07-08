@@ -65,8 +65,8 @@ générale, **la consigne du classeur prime**.
   ne s'appliquent pas aux pays).
 - **`IA2030 aligned EPI comp`** : correspondance **composante/sous-composante PEV ↔ SPO
   IA2030 ↔ Domaines clés (KFA)**. Grille d'alignement obligatoire.
-- **`IA2030SP_SPO_Indicators`** : catalogue d'indicateurs pays standard, codés `SPOGCInd…`
-  (ex. taux d'abandon DTP1–DTP3 = `SPOGCInd1.5.8`). **Priorise ces indicateurs** en Section 6.
+- **`IA2030SP_SPO_Indicators`** : catalogue d'indicateurs pays standard, codés `SPOCInd…`
+  (ex. taux d'abandon DTP1–DTP3 = `SPOCInd1.5.8`). **Priorise ces indicateurs** en Section 6.
 - **`Main Interventions`** : **codification hiérarchique** des interventions
   (Objectif `1.1.1` → Intervention `1.1.1.1`, `1.1.1.2`, `1.1.1.3`).
 - **`NIS DevTeam`** : étapes, durées et TdR des acteurs (Task Manager, Content Producer, TWG,
@@ -142,7 +142,7 @@ retenir les 3 meilleures. Une intervention = de haut niveau (≠ activité). Niv
 Haute/Moyenne/Faible (§8) + positionnement Y1–Y5. Codification `x.y.z.1/.2/.3`.
 
 **SECTION 6 — Cadre de S&E** : pour chaque OSP, un indicateur d'impact/résultat, en priorité
-`SPOGCInd`. 13 variables (composante · sous-composante · OSP · nom · définition · **formule** ·
+`SPOCInd`. 13 variables (composante · sous-composante · OSP · nom · définition · **formule** ·
 source numérateur · source dénominateur · fréquence · responsable mesure · responsable action ·
 **baseline** · **cibles Y1–Y5**). Aucune donnée inventée → `[À COMPLÉTER — donnée pays requise]`.
 
@@ -156,14 +156,14 @@ santé/Communauté/FOSA ; Tous ; ou combinaison). Positionne Y1–Y5. 3 niveaux 
 ## 6bis. ALIGNEMENT STRATÉGIQUE OBLIGATOIRE (IA2030 · EMRO · Gavi)
 
 Aucune intervention (S5), activité (S7) ou indicateur (S6) n'est valide s'il n'est pas
-**aligné et contextualisé** sur : (1) **IA2030** (codes SP/SPO, KFA, indicateurs `SPOGCInd`) ;
+**aligné et contextualisé** sur : (1) **IA2030** (codes SP/SPO, KFA, indicateurs `SPOCInd`) ;
 (2) **cadre régional EMRO** (structure/terminologie/attendus du toolkit) ; (3) **Gavi**
 (8 domaines GIA 1–8, interventions-types).
 
 - **Interventions** : dérivent d'une intervention-type reconnue (SPO IA2030 + domaine GIA +
   conformité EMRO), **reformulées dans le contexte pays** (zéro-dose, géographie, ressources).
 - **Activités** : déclinent une intervention alignée, granularité type Gavi, exigences EMRO.
-- **Indicateurs** : priorité `SPOGCInd` ; à défaut, équivalent EMRO/Gavi ; contextualisé.
+- **Indicateurs** : priorité `SPOCInd` ; à défaut, équivalent EMRO/Gavi ; contextualisé.
 
 **Étiquette de traçabilité** (dans la Note de vérification) :
 ```
@@ -195,7 +195,7 @@ Protocole : `⚠ CORRECTION PROPOSÉE [réf.] : "<original>" → "<reformulation
 
 - Traçabilité (aucun maillon orphelin) · Registre SWOT (S/W internes, O/T externes) · SMART ·
   Interventions ≠ activités · Code SPO IA2030 valide · **Triple alignement + contextualisation** ·
-  Cohérence Gavi↔IA2030 · Indicateurs `SPOGCInd` + formule cohérente · Aucune donnée inventée ·
+  Cohérence Gavi↔IA2030 · Indicateurs `SPOCInd` + formule cohérente · Aucune donnée inventée ·
   Cohérence terminologique · Français pro sans jargon · Sources web fiables.
 
 Si un test échoue, **corrige puis re-teste**.

@@ -316,12 +316,15 @@ def generate_section(section: str, profile: CountryProfile,
     """
     if section not in SECTIONS:
         raise ValueError(section)
-    # Always append the bundled IA2030 / Gavi 6.0 reference tables so every step is aligned.
-    try:
-        from core import reference_docs
-        documents = list(documents) + reference_docs.get_reference_documents()
-    except Exception:
-        pass
+    # Append the IA2030/Gavi CODE tables only where exact codes matter (objectives, interventions,
+    # indicators, activities) — SWOT & root causes are diagnostic and don't need them (keeps calls light).
+    CODE_SECTIONS = {"objectives", "interventions", "indicators", "activities"}
+    if section in CODE_SECTIONS:
+        try:
+            from core import reference_docs
+            documents = list(documents) + reference_docs.get_reference_documents()
+        except Exception:
+            pass
     if section == "swot":
         return _generate_swot_chunked(profile, documents, language, progress, strategy)
     if section == "root_causes" and strategy is not None:

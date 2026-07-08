@@ -14,33 +14,48 @@ from core.models import UploadedDocument
 
 REFERENCE_DIR = BASE_DIR / "reference_docs"
 
-# The reference sheets most useful to ground objectives / interventions / indicators.
+# Reference sheets, ordered SMALL CODE TABLES FIRST so exact codes (SPO / GIA / SPOGCInd) are
+# always transmitted; the huge exhaustive catalogues come last and are abridged per-sheet.
 KEY_SHEETS = [
-    "Gavi 6.0 Obj-Intervtns 2026", "IA2030 aligned EPI comp", "RegIA2030", "Gavi & IA2030",
-    "Main interventions", "IA2030SP_SPO_Indicators", "IA2030 focus areas_Objs", "Scorecard",
+    "IA2030 SP_SPO codes",          # 7 Strategic Priorities + 23 SPO codes (essential)
+    "IA2030 aligned EPI comp",      # EPI component/subcomponent ↔ SPO ↔ Key Focus Areas
+    "Gavi & IA2030",                # 8 Gavi investment domains (GIA 1-8) ↔ IA2030 SPA/SPO
+    "IA2030 focus areas_Objs",      # IA2030 focus areas & objectives
+    "NIS DevTeam",                  # roles/responsibilities (M&E responsible person)
+    "IA2030SP_SPO_Indicators",      # SPOGCInd standard indicator catalogue
+    "Main interventions",           # hierarchical intervention codification
+    "Gavi 6.0 Obj-Intervtns 2026",  # Gavi objectives & intervention types (large -> abridged)
+    "RegIA2030", "Scorecard",
 ]
-_CAP = 16000            # total chars of reference text passed to the AI (cost control)
+_CAP = 27000            # total chars of reference text passed to the AI (cost control)
+_PER_SHEET_CAP = 4000   # per-sheet char budget: keeps small code tables whole, abridges huge ones
 _cache: list[UploadedDocument] | None = None
 
 
 def _extract_key_sheets(path: Path, cap: int) -> str:
     import openpyxl
     wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
-    parts, used = [], 0
+    parts, total = [], 0
     names = [s for s in KEY_SHEETS if s in wb.sheetnames] or wb.sheetnames
     for name in names:
+        if total >= cap:
+            break
         ws = wb[name]
-        parts.append(f"\n=== {name} ===")
+        header = f"\n=== {name} ==="
+        parts.append(header); total += len(header)
+        sheet_used = 0
         for i, row in enumerate(ws.iter_rows(values_only=True)):
-            if i > 120:
+            if i > 200:
                 break
             cells = [str(c).strip() for c in row if c is not None and str(c).strip()]
             if not cells:
                 continue
             line = " | ".join(cells)
-            parts.append(line)
-            used += len(line)
-            if used > cap:
+            if sheet_used + len(line) > _PER_SHEET_CAP:   # abridge this sheet, keep budget for the rest
+                parts.append("… (onglet abrégé)")
+                break
+            parts.append(line); sheet_used += len(line); total += len(line)
+            if total >= cap:
                 parts.append("… (référence tronquée)")
                 return "\n".join(parts)
     return "\n".join(parts)
@@ -57,9 +72,9 @@ def get_reference_documents() -> list[UploadedDocument]:
         try:
             text = _extract_key_sheets(xlsx, _CAP)
             docs.append(UploadedDocument(
-                name="Référence IA2030 & Gavi 6.0 — tableaux (objectifs, interventions, indicateurs)",
+                name="Référence IA2030 & Gavi 6.0 — codes SPO, mapping EPI↔SPO, GIA 1-8, indicateurs SPOGCInd",
                 file_type="xlsx", doc_category="Référence méthodologique OMS/IA2030/Gavi",
-                text=text, tables_summary="[Référence intégrée: IA2030 & Gavi 6.0]"))
+                text=text, tables_summary="[Codes normatifs: IA2030 SP/SPO, EPI↔SPO, Gavi GIA, SPOGCInd]"))
         except Exception:
             pass
     _cache = docs
