@@ -278,19 +278,35 @@ def generate_qa(profile, language: str, document_text: str) -> dict:
 
 
 def _call_claude(prompt: str) -> dict:
+    """Structured-JSON call. STREAMS the response (keeps the connection alive — avoids the
+    non-streaming hang on Streamlit Cloud) with a lower effort for speed; retries on invalid JSON."""
     client = _client()
     last_err = None
     truncated = False
+    effort = (settings.AI_EFFORT or "").strip().lower()
+    use_effort = [effort in ("low", "medium", "high")]   # list = mutable flag for the closure
+
+    def _stream(p):
+        kw = dict(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
+                  system=SYSTEM_PROMPT, messages=[{"role": "user", "content": p}])
+        if use_effort[0]:
+            try:
+                with client.messages.stream(**kw, extra_body={"output_config": {"effort": effort}}) as s:
+                    return s.get_final_message()
+            except Exception:
+                use_effort[0] = False   # effort not supported -> stop trying it
+        with client.messages.stream(**kw) as s:
+            return s.get_final_message()
+
     for attempt in range(settings.AI_MAX_RETRIES + 1):
         suffix = "" if attempt == 0 else \
             "\n\nIMPORTANT: Your previous reply was not valid JSON. Reply with ONE valid JSON object only, " \
             "and keep it concise enough to finish completely."
-        msg = client.messages.create(
-            model=settings.ANTHROPIC_MODEL,
-            max_tokens=settings.AI_MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt + suffix}],
-        )
+        try:
+            msg = _stream(prompt + suffix)
+        except Exception as e:
+            last_err = e
+            continue
         truncated = getattr(msg, "stop_reason", None) == "max_tokens"
         text = "".join(getattr(b, "text", "") for b in msg.content)
         try:
