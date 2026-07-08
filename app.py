@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v14 (toutes les etapes IA en parallele)"
+APP_VERSION = "2026-07-05 · v15 (interventions par objectif, plus de troncature)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR

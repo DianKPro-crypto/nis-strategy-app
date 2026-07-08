@@ -362,7 +362,8 @@ SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 
 
 def build_intervention_prompt(profile: CountryProfile, documents: list[UploadedDocument],
-                              language: str, comp_label: str, objectives: list) -> str:
+                              language: str, comp_label: str, objectives: list,
+                              doc_budget: int = 12000) -> str:
     """Interventions prompt: for EACH strategic objective, propose fully-completed,
     evidence-grounded interventions (every field filled, sourced from the documents)."""
     lang_name = "français" if language == "fr" else "English"
@@ -381,7 +382,7 @@ OBJECTIFS STRATÉGIQUES PRIORITAIRES (pour CHACUN, proposer 3 à 5 interventions
 {olist}
 
 DOCUMENTS SOURCES (ta SEULE source de vérité — consulte-les pour étayer chaque champ) :
-{_documents_block(documents)}
+{_documents_block(documents, doc_budget)}
 
 TÂCHE — INTERVENTIONS PRINCIPALES ET PRIORISATION :
 Pour CHAQUE objectif ci-dessus, propose 3 à 5 interventions à fort impact et réalisables. Pour CHAQUE

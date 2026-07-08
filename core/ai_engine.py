@@ -410,16 +410,15 @@ def _generate_interventions_from_objectives(profile, documents, language, strate
     """For each strategic objective, generate fully-completed, evidence-grounded interventions
     (grouped per component to keep responses valid). Consults the uploaded documents."""
     from core.epi_components import EPI_COMPONENTS
-    objs_by_comp: dict[str, list] = {}
-    for o in strategy.objectives:
-        if (o.objective_text or "").strip():
-            objs_by_comp.setdefault(o.component_code or "?", []).append(o)
+    # ONE call per OBJECTIVE -> small output (3-5 interventions), no truncation/retry loops.
     tasks = []
-    for comp_code, objs in objs_by_comp.items():
-        comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
-        label = comp.label(language) if comp else "Objectifs"
-        tasks.append((label, lambda l=label, o=objs: _items(_call_claude(
-            build_intervention_prompt(profile, documents, language, l, o)))))
+    for o in strategy.objectives:
+        if not (o.objective_text or "").strip():
+            continue
+        comp = next((c for c in EPI_COMPONENTS if c.code == (o.component_code or "")), None)
+        label = comp.label(language) if comp else (o.obj_id or "Objectif")
+        tasks.append((f"{o.obj_id or label}", lambda oo=o, l=label: _items(_call_claude(
+            build_intervention_prompt(profile, documents, language, l, [oo])))))
     return {"items": _parallel_calls(tasks, progress)}
 
 
