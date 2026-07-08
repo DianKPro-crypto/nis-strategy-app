@@ -16,7 +16,7 @@ from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
 from core.translations import t
 from core.models import (NISStrategy, CountryProfile, SWOTItem, RootCauseAnalysis,
-                         StrategicObjective, Intervention, MEIndicator, Activity)
+                         StrategicObjective, Intervention, MEIndicator, Activity, UploadedDocument)
 from core.epi_components import EPI_COMPONENTS, subcomponent_pairs, find_subcomponent, all_components
 from core.document_loader import extract_document
 from core import ai_engine
@@ -314,6 +314,29 @@ def page_upload():
         _autosave(s)   # persist immediately so documents survive a reboot
         st.success(f"{n_ok} document(s) traité(s)."
                    + (" ☁️ Sauvegardé." if cloud_store.cloud_available() else ""))
+
+    # --- Fallback: paste text directly (works on any device, no file picker needed) ---
+    with st.expander("✍️ " + ("Ou coller le texte d’un document (si le téléversement ne marche pas)"
+                              if lg == "fr" else "Or paste a document's text (if upload doesn't work)")):
+        st.caption("Copiez le texte de votre document (Word/PDF) et collez-le ici. Utile sur mobile ou "
+                   "si le sélecteur de fichiers ne s’ouvre pas." if lg == "fr"
+                   else "Copy your document's text and paste it here — useful on mobile or if the file "
+                   "picker won't open.")
+        pname = st.text_input("Nom du document" if lg == "fr" else "Document name",
+                              value="Document collé" if lg == "fr" else "Pasted document", key="paste_name")
+        pasted = st.text_area("Contenu" if lg == "fr" else "Content", height=200, key="paste_doc",
+                              label_visibility="collapsed",
+                              placeholder="Collez ici le texte…" if lg == "fr" else "Paste text here…")
+        if pasted.strip() and st.button("➕ " + ("Ajouter ce texte comme document" if lg == "fr"
+                                                 else "Add this text as a document"), key="add_pasted"):
+            name = (pname or "Document collé").strip()
+            doc = UploadedDocument(name=name, file_type="txt", doc_category=cat,
+                                   text=pasted.strip(), n_pages=1)
+            s.documents = [d for d in s.documents if d.name != name] + [doc]
+            _autosave(s)
+            st.session_state.pop("paste_doc", None)
+            st.success(f"« {name} » ajouté ({len(pasted.strip())} caractères).")
+            st.rerun()
     if s.documents:
         total_chars = sum(len((d.text or "").strip()) for d in s.documents)
         st.subheader(f"Documents ({len(s.documents)}) — {total_chars:,} caractères extraits".replace(",", " "))
