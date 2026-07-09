@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v20 (codes SPO + GIA visibles dans la prose)"
+APP_VERSION = "2026-07-05 · v21 (export PDF SNV, pagination correcte garantie)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -30,7 +30,8 @@ from exports.excel_exporter import build_excel
 from exports.word_exporter import build_word
 from exports.pdf_exporter import build_pdf
 from exports.ppt_exporter import build_ppt
-from exports.narrative_exporter import build_narrative_word, build_financial_word, build_qa_word
+from exports.narrative_exporter import (build_narrative_word, build_financial_word, build_qa_word,
+                                        build_narrative_pdf)
 from core.ai_engine import NARRATIVE_SECTIONS
 
 st.set_page_config(page_title="NIS Strategy Builder", page_icon="💉", layout="wide")
@@ -833,9 +834,19 @@ def page_writeup():
                 s.narrative[key] = st.text_area("", s.narrative.get(key, ""), key=f"nar_{key}", height=220,
                                                 label_visibility="collapsed")
         base = (s.profile.country_name or "SNV").replace(" ", "_")
-        st.download_button("⬇️ " + ("Rapport SNV narratif (.docx)" if lg == "fr" else "NIS narrative report (.docx)"),
-                           build_narrative_word(s), f"SNV_narratif_{base}.docx",
-                           "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        dc1, dc2 = st.columns(2)
+        dc1.download_button("⬇️ " + ("SNV narrative (.docx)" if lg == "fr" else "NIS narrative (.docx)"),
+                            build_narrative_word(s), f"SNV_narratif_{base}.docx",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            use_container_width=True)
+        dc2.download_button("⬇️ " + ("SNV narrative (.pdf) — pagination correcte" if lg == "fr"
+                                     else "NIS narrative (.pdf) — correct pagination"),
+                            build_narrative_pdf(s), f"SNV_narratif_{base}.pdf", "application/pdf",
+                            use_container_width=True)
+        st.caption("💡 " + ("Le PDF a une table des matières paginée automatiquement (aucune mise à jour "
+                            "Word nécessaire). Pour le Word : Ctrl+A puis F9 met à jour la pagination." if lg == "fr"
+                            else "The PDF has an auto-paginated table of contents (no Word update needed). "
+                            "For Word: Ctrl+A then F9 updates pagination."))
     st.divider()
     st.subheader("B. " + ("Rapport financier (NIS.COST)" if lg == "fr" else "Financial report (NIS.COST)"))
     up = st.file_uploader("Fichier NIS.COST" if lg == "fr" else "NIS.COST file",

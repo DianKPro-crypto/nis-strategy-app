@@ -357,3 +357,182 @@ def build_qa_word(s: NISStrategy, qa: dict) -> bytes:
     if not findings:
         doc.add_paragraph("Aucun problème majeur détecté." if fr else "No major issue detected.")
     _update_fields(doc); buf = BytesIO(); doc.save(buf); return buf.getvalue()
+
+
+def build_narrative_pdf(s: NISStrategy) -> bytes:
+    """SNV narrative as a PDF with REAL page numbers + clickable TOC (ReportLab computes pagination —
+    no dependency on Word field updates)."""
+    import re as _re
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import (BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer,
+                                    Table, TableStyle, PageBreak)
+    from reportlab.platypus.tableofcontents import TableOfContents
+
+    fr = s.profile.language == "fr"
+    DARK = colors.HexColor("#003366"); PRIM = colors.HexColor("#0093D5")
+    period = f"{s.profile.nis_start_year}–{s.profile.nis_start_year + s.profile.nis_duration_years - 1}"
+    header = (f"SNV {s.profile.country_name} {period}" if fr else f"NIS {s.profile.country_name} {period}")
+    lp = logo_path(s.profile.language)
+    years = s.profile.years
+    st = getSampleStyleSheet()
+    h1 = ParagraphStyle("h1", parent=st["Heading1"], textColor=DARK, spaceBefore=10, spaceAfter=6, fontSize=15)
+    h2 = ParagraphStyle("h2", parent=st["Heading2"], textColor=PRIM, spaceBefore=8, spaceAfter=4, fontSize=12)
+    h3 = ParagraphStyle("h3", parent=st["Heading3"], textColor=DARK, fontSize=10.5, spaceBefore=5, spaceAfter=2)
+    body = ParagraphStyle("body", parent=st["BodyText"], fontSize=9.7, leading=13.5, spaceAfter=5, alignment=4)
+    cell = ParagraphStyle("cell", parent=st["BodyText"], fontSize=8, leading=10, spaceAfter=0)
+    cellh = ParagraphStyle("cellh", parent=cell, textColor=colors.white, fontName="Helvetica-Bold")
+
+    def esc(v):
+        return (str(v if v is not None else "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+    def rich(text):
+        return _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc(text))
+
+    class _DocT(BaseDocTemplate):
+        def afterFlowable(self, fl):
+            lvl = getattr(fl, "_toc_level", None)
+            if lvl is not None:
+                key = f"h{id(fl)}"; self.canv.bookmarkPage(key)
+                self.notify("TOCEntry", (lvl, fl.getPlainText(), self.page, key))
+                try: self.canv.addOutlineEntry(fl.getPlainText(), key, level=lvl, closed=False)
+                except Exception: pass
+
+    def _decorate(cv, d):
+        cv.saveState(); cv.setFont("Helvetica", 8); cv.setFillColor(DARK)
+        if lp:
+            try:
+                cv.drawImage(str(lp), 2 * cm, A4[1] - 1.9 * cm, width=3.2 * cm, height=0.85 * cm,
+                             preserveAspectRatio=True, mask="auto")
+            except Exception: pass
+        cv.drawRightString(A4[0] - 2 * cm, A4[1] - 1.3 * cm, header)
+        cv.setStrokeColor(PRIM); cv.line(2 * cm, A4[1] - 2.0 * cm, A4[0] - 2 * cm, A4[1] - 2.0 * cm)
+        cv.setFillColor(colors.grey); cv.drawCentredString(A4[0] / 2, 1 * cm, f"{d.page}")
+        cv.restoreState()
+
+    buf = BytesIO()
+    doc = _DocT(buf, pagesize=A4, title=header)
+    frame = Frame(2 * cm, 2 * cm, A4[0] - 4 * cm, A4[1] - 2.6 * cm - 2 * cm, id="body")
+    doc.addPageTemplates([PageTemplate(id="main", frames=[frame], onPage=_decorate)])
+    story = []
+
+    def chapter(t):
+        p = Paragraph(esc(t), h1); p._toc_level = 0; story.append(p)
+
+    def prose(text):
+        for raw in (text or "").split("\n"):
+            line = raw.strip()
+            if not line:
+                continue
+            if line.startswith("### ") or line.startswith("#### "):
+                story.append(Paragraph(rich(line.lstrip("#").strip().strip("*")), h3))
+            elif line.startswith("## ") or line.startswith("# "):
+                p = Paragraph(rich(line.lstrip("#").strip().strip("*")), h2); p._toc_level = 1; story.append(p)
+            elif line[:2] in ("- ", "* ") or line.startswith("• "):
+                story.append(Paragraph("•&nbsp; " + rich(line[2:].strip()), body))
+            else:
+                story.append(Paragraph(rich(line), body))
+
+    def table(headers, rows, widths):
+        data = [[Paragraph(esc(h), cellh) for h in headers]]
+        for row in rows:
+            data.append([Paragraph((("• " if isinstance(v, (list, tuple)) else "") +
+                         ("<br/>• ".join(esc(str(x)[:240]) for x in v if x) if isinstance(v, (list, tuple))
+                          else esc(str(v)[:600]))) or "—", cell) for v in row])
+        t = Table(data, colWidths=widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), DARK), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#B9C6D4")),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#EEF3F8")]),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3)]))
+        story.append(Spacer(1, 4)); story.append(t); story.append(Spacer(1, 6))
+
+    W = A4[0] - 4 * cm
+    # ---- Cover ----
+    story += [Spacer(1, 5 * cm),
+              Paragraph("Stratégie Nationale de Vaccination" if fr else "National Immunization Strategy",
+                        ParagraphStyle("t", parent=h1, fontSize=24, alignment=1, textColor=DARK)),
+              Spacer(1, .4 * cm),
+              Paragraph(f"{esc(s.profile.country_name)} · {period}",
+                        ParagraphStyle("t2", parent=body, fontSize=14, alignment=1)),
+              Spacer(1, .3 * cm),
+              Paragraph(f"{esc(s.profile.ministry_name)}<br/>{esc(s.profile.epi_programme_name)}"
+                        f"<br/>{esc(s.profile.generation_date)}",
+                        ParagraphStyle("t3", parent=body, alignment=1)),
+              Spacer(1, 2.5 * cm),
+              Paragraph(esc(dk_credit(s.profile.language)),
+                        ParagraphStyle("dk", parent=body, alignment=1, fontSize=9,
+                                       textColor=colors.HexColor("#8A6D1B"))),
+              PageBreak()]
+    # ---- Clickable TOC (real page numbers via multiBuild) ----
+    story.append(Paragraph("Table des matières" if fr else "Table of contents", h1))
+    toc = TableOfContents()
+    toc.levelStyles = [
+        ParagraphStyle("toc0", fontSize=11, leading=18, textColor=DARK, leftIndent=6, firstLineIndent=-6),
+        ParagraphStyle("toc1", fontSize=9.5, leading=14, textColor=PRIM, leftIndent=22, firstLineIndent=-6)]
+    story += [toc, PageBreak()]
+
+    # ---- Chapters ----
+    for n, (key, tfr, ten) in enumerate(NARRATIVE_SECTIONS, 1):
+        chapter(f"{n}. {tfr if fr else ten}")
+        prose(s.narrative.get(key, "") or ("À compléter par l’équipe pays" if fr
+                                           else "To be completed by the country team"))
+        if key == "objectives" and s.objectives:
+            table(["ID", "Objectif" if fr else "Objective", "Obstacle" if fr else "Obstacle"],
+                  [[o.obj_id, o.objective_text, o.main_obstacle] for o in s.objectives],
+                  [1.8 * cm, W - 6.3 * cm, 4.5 * cm])
+        if key == "interventions" and s.interventions:
+            table(["Intervention", "Prio." if fr else "Prio.", "Calendrier" if fr else "Timeline"],
+                  [[iv.title, getattr(iv.priority_level, "value", iv.priority_level),
+                    ", ".join(str(years[k]) for k in range(len(years)) if iv.timeline.get(f"Y{k+1}"))]
+                   for iv in s.interventions], [W - 5.5 * cm, 1.8 * cm, 3.7 * cm])
+        if key == "me" and s.indicators:
+            cols = ["Indicateur" if fr else "Indicator", "Base"] + [str(y) for y in years]
+            yw = (W - 5.5 * cm) / max(1, len(years))
+            table(cols, [[i.name, i.baseline] + [i.targets.get(f"Y{k+1}", "") for k in range(len(years))]
+                         for i in s.indicators], [3.7 * cm, 1.8 * cm] + [yw] * len(years))
+
+    if s.financial_report:
+        chapter(f"{len(NARRATIVE_SECTIONS)+1}. " + ("Rapport financier" if fr else "Financial report"))
+        prose(s.financial_report)
+
+    # ---- Annexes (detailed tables) ----
+    story.append(PageBreak()); chapter("Annexes")
+    if s.swot:
+        story.append(Paragraph("Annexe A — Synthèse FFOM par sous-composante" if fr
+                               else "Annex A — SWOT summary by subcomponent", h2))
+        sw = {x.subcomponent_code: x for x in s.swot}
+        rows = []
+        for c in EPI_COMPONENTS:
+            for sub in c.subcomponents:
+                it = sw.get(sub.code)
+                rows.append([sub.label(s.profile.language),
+                             it.strengths if it else "—", it.weaknesses if it else "—",
+                             it.opportunities if it else "—", it.threats if it else "—"])
+        table(["Sous-comp." if fr else "Subcomp.", "Forces", "Faiblesses", "Opport.", "Menaces"],
+              rows, [3.2 * cm, (W - 3.2 * cm) / 4] * 1 + [(W - 3.2 * cm) / 4] * 4)
+    if s.activities:
+        story.append(Paragraph("Annexe B — Chronogramme des activités" if fr
+                               else "Annex B — Activity timeline", h2))
+        table(["Activité" if fr else "Activity", "Niveau" if fr else "Level", "Resp.",
+               "Années" if fr else "Years"],
+              [[a.activity, a.implementation_level, a.lead,
+                ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
+               for a in s.activities], [W - 8.5 * cm, 3 * cm, 2.5 * cm, 3 * cm])
+    if s.root_causes:
+        story.append(Paragraph("Annexe C — Analyse des causes profondes" if fr
+                               else "Annex C — Root-cause analysis", h2))
+        table(["Faiblesse" if fr else "Weakness", "POURQUOI" if fr else "WHYs",
+               "Cause profonde" if fr else "Root cause"],
+              [[rc.weakness, " → ".join(rc.whys), rc.final_why] for rc in s.root_causes[:40]],
+              [(W) / 3] * 3)
+    if s.documents:
+        story.append(Paragraph("Annexe D — Sources et références" if fr else "Annex D — Sources", h2))
+        for d in s.documents:
+            story.append(Paragraph(f"•&nbsp; {esc(d.name)} ({esc(d.doc_category)})", body))
+
+    doc.multiBuild(story)   # multiple passes -> correct TOC page numbers
+    return buf.getvalue()
