@@ -363,6 +363,7 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
     """SNV narrative as a PDF with REAL page numbers + clickable TOC (ReportLab computes pagination —
     no dependency on Word field updates)."""
     import re as _re
+    from core.epi_components import EPI_COMPONENTS
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
