@@ -436,13 +436,17 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
             else:
                 story.append(Paragraph(rich(line), body))
 
+    def _cellval(v):   # bound cell content so no single row can exceed a page (avoids LayoutError)
+        if isinstance(v, (list, tuple)):
+            items = [esc(str(x)[:130]) for x in v if x][:4]
+            return ("• " + "<br/>• ".join(items)) if items else "—"
+        return esc(str(v)[:350]) or "—"
+
     def table(headers, rows, widths):
         data = [[Paragraph(esc(h), cellh) for h in headers]]
         for row in rows:
-            data.append([Paragraph((("• " if isinstance(v, (list, tuple)) else "") +
-                         ("<br/>• ".join(esc(str(x)[:240]) for x in v if x) if isinstance(v, (list, tuple))
-                          else esc(str(v)[:600]))) or "—", cell) for v in row])
-        t = Table(data, colWidths=widths, repeatRows=1)
+            data.append([Paragraph(_cellval(v), cell) for v in row])
+        t = Table(data, colWidths=widths, repeatRows=1, splitByRow=1)
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), DARK), ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#B9C6D4")),
