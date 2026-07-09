@@ -404,7 +404,8 @@ SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
 
 
 def build_activity_prompt(profile: CountryProfile, documents: list[UploadedDocument],
-                          language: str, comp_label: str, interventions: list) -> str:
+                          language: str, comp_label: str, interventions: list,
+                          doc_budget: int = 12000) -> str:
     """Operational-activities prompt: break EACH main intervention into fully-completed key activities."""
     lang_name = "français" if language == "fr" else "English"
     years = profile.nis_duration_years
@@ -422,9 +423,11 @@ INTERVENTIONS PRINCIPALES À DÉCLINER EN ACTIVITÉS :
 {ilist}
 
 DOCUMENTS SOURCES & DIRECTIVES (constats pays, guides OMS/IA2030, Gavi 6.0) :
-{_documents_block(documents)}
+{_documents_block(documents, doc_budget)}
 
 TÂCHE — ACTIVITÉS OPÉRATIONNELLES (compatibles NIS.COST) :
+IMPÉRATIF DE COMPLÉTUDE : produis des activités pour CHACUNE des interventions listées ci-dessus —
+n'en omets AUCUNE (au moins 2 activités par intervention, en recopiant son intervention_id).
 Pour CHAQUE intervention ci-dessus, décompose-la en 2 à 4 ACTIVITÉS CLÉS concrètes. Pour CHAQUE activité,
 REMPLIS TOUS LES CHAMPS : intervention_id (recopie l'ID lié), objective_id, subcomponent_code, activity,
 implementation_level (National / Région-Gouvernorat / District / Formation sanitaire / Communauté /

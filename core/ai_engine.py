@@ -372,17 +372,30 @@ def generate_section(section: str, profile: CountryProfile,
 def _generate_activities_from_interventions(profile, documents, language, strategy, progress=None) -> dict:
     """Break each main intervention into fully-completed key activities (grouped per component)."""
     from core.epi_components import EPI_COMPONENTS
-    iv_by_comp: dict[str, list] = {}
-    for iv in strategy.interventions:
-        if (iv.title or "").strip():
-            iv_by_comp.setdefault(iv.component_code or "?", []).append(iv)
-    tasks = []
-    for comp_code, ivs in iv_by_comp.items():
-        comp = next((c for c in EPI_COMPONENTS if c.code == comp_code), None)
-        label = comp.label(language) if comp else "Interventions"
-        tasks.append((label, lambda l=label, v=ivs: _items(_call_claude(
-            build_activity_prompt(profile, documents, language, l, v)))))
-    return {"items": _parallel_calls(tasks, progress)}
+    ivs_all = [iv for iv in strategy.interventions if (iv.title or "").strip()]
+
+    def _label(iv):
+        comp = next((c for c in EPI_COMPONENTS if c.code == (iv.component_code or "")), None)
+        return comp.label(language) if comp else "Interventions"
+
+    # Group by OBJECTIVE (fewer interventions per call -> the AI covers every one).
+    groups: dict[str, list] = {}
+    for iv in ivs_all:
+        groups.setdefault(iv.objective_id or iv.component_code or "?", []).append(iv)
+    tasks = [(_label(ivs[0]), (lambda v=ivs: _items(_call_claude(
+              build_activity_prompt(profile, documents, language, _label(v[0]), v)))))
+             for ivs in groups.values()]
+    items = _parallel_calls(tasks, progress)
+
+    # Coverage guarantee: any intervention with NO activity is retried (one call per missing intervention).
+    covered = {str(a.get("intervention_id") or "") for a in items if a.get("intervention_id")}
+    missing = [iv for iv in ivs_all if iv.intervention_id and iv.intervention_id not in covered]
+    if missing:
+        retry = [(_label(iv), (lambda v=iv: _items(_call_claude(
+                  build_activity_prompt(profile, documents, language, _label(v), [v])))))
+                 for iv in missing]
+        items += _parallel_calls(retry)
+    return {"items": items}
 
 
 def _generate_indicators_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
