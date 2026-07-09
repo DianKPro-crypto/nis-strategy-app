@@ -100,6 +100,16 @@ country; write flowing paragraphs (no JSON, no markdown code fences). Where coun
 short sentence noting it must be completed by the country team. Use the requested output language."""
 
 
+_ALIGN_REF = """
+ANCRAGE STRATÉGIQUE À CITER (IA2030 SPO + domaine d'investissement Gavi « GIA ») :
+- Chaque OBJECTIF du contenu ci-dessus porte déjà un code SPO IA2030 dans son texte — RE-CITE ce code entre
+  parenthèses (ex. « (SPO3.2) »).
+- Domaine Gavi (GIA 1-8) par composante PEV : 1 Gestion du programme & financement → GIA 7 (gouvernance) &
+  GIA 8 (financement) ; 2 Ressources humaines → GIA 2 ; 3 Approvisionnement, chaîne du froid & logistique →
+  GIA 3 ; 4 Prestation des services → GIA 1 ; 5 Couverture, données & MAPI → GIA 4 ; 6 Surveillance des
+  maladies → GIA 5 ; 7 Génération de la demande & engagement communautaire → GIA 6."""
+
+
 def build_narrative_prompt(profile: CountryProfile, language: str, section_title: str, context: str,
                            draft: str = "", documents: list[UploadedDocument] | None = None) -> str:
     lang_name = "français" if language == "fr" else "English"
@@ -121,6 +131,7 @@ SECTION À RÉDIGER : « {section_title} »
 
 CONTENU STRUCTURÉ DISPONIBLE (analyses de la plateforme) :
 {context}{docs_block}{draft_block}
+{_ALIGN_REF}
 
 CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
 - STRUCTURE la section en SOUS-CHAPITRES : commence chaque sous-partie par un sous-titre au format
@@ -130,8 +141,10 @@ CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
   supprime le remplissage ; chaque phrase apporte une information utile.
 - Si une « SNV déjà rédigée » est fournie ci-dessus, sers-t'en comme BASE PRINCIPALE : conserve son contenu
   pertinent, complète les lacunes et harmonise le style, en restant concis.
-- Intègre EXPLICITEMENT l'alignement avec l'IA2030 et la stratégie Gavi 6.0 (zéro dose, équité, RSS/SSP,
-  durabilité et cofinancement, introduction de nouveaux vaccins, résilience).
+- ANCRAGE VISIBLE (impératif) : pour CHAQUE objectif et intervention mentionné, indique entre parenthèses
+  son code IA2030 SPO ET son domaine Gavi (GIA 1-8), ex. « (SPO3.2 ; Gavi GIA 1 — Prestation de services) ».
+  Utilise le tableau d'ancrage ci-dessus. Intègre aussi les priorités Gavi 6.0 (zéro dose, équité, RSS/SSP,
+  durabilité et cofinancement, nouveaux vaccins, résilience).
 - Développe : contexte, constats, justification, implications, orientations stratégiques et résultats attendus.
 - STATISTIQUES : enrichis l'analyse (surtout l'analyse de situation) avec des données chiffrées pertinentes
   (couverture vaccinale DTC3/RR, taux de zéro dose, démographie, financement) issues de SOURCES FIABLES ET
