@@ -135,7 +135,20 @@ def _prose(doc, text):
 
 def _new_doc(s):
     doc = Document()
-    doc.styles["Normal"].font.name = "Calibri"; doc.styles["Normal"].font.size = Pt(11)
+    # --- Premium typography (UN-publication feel: clean, justified body, colour-coded headings) ---
+    normal = doc.styles["Normal"]
+    normal.font.name = "Calibri"; normal.font.size = Pt(11)
+    normal.font.color.rgb = RGBColor.from_string("1A1A1A")
+    pf = normal.paragraph_format
+    pf.line_spacing = 1.15; pf.space_after = Pt(6); pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    for name, size, color in (("Heading 1", 17, _DARK), ("Heading 2", 13, _PRIMARY), ("Heading 3", 11.5, _DARK)):
+        try:
+            stl = doc.styles[name]
+            stl.font.name = "Calibri"; stl.font.size = Pt(size); stl.font.bold = True; stl.font.color.rgb = color
+            hp = stl.paragraph_format
+            hp.space_before = Pt(14 if name == "Heading 1" else 9); hp.space_after = Pt(4); hp.keep_with_next = True
+        except Exception:
+            pass
     for sec in doc.sections:   # 1-inch margins on all four sides
         sec.top_margin = sec.bottom_margin = sec.left_margin = sec.right_margin = Inches(1)
     fr = s.profile.language == "fr"
@@ -145,18 +158,26 @@ def _new_doc(s):
     return doc
 
 
+def _set_fill(cell, hexfill):
+    tcPr = cell._tc.get_or_add_tcPr(); shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear"); shd.set(qn("w:fill"), hexfill); tcPr.append(shd)
+
+
 def _mini_table(doc, headers, rows):
     t = doc.add_table(rows=1, cols=len(headers)); t.style = "Table Grid"; t.alignment = WD_TABLE_ALIGNMENT.CENTER
     for i, h in enumerate(headers):
         c = t.rows[0].cells[i]; c.text = ""
-        r = c.paragraphs[0].add_run(h); r.bold = True; r.font.color.rgb = RGBColor.from_string("FFFFFF")
-        r.font.size = Pt(9)
-        tcPr = c._tc.get_or_add_tcPr(); shd = OxmlElement("w:shd")
-        shd.set(qn("w:val"), "clear"); shd.set(qn("w:fill"), _HEX_DARK); tcPr.append(shd)
-    for row in rows:
+        pr = c.paragraphs[0]; pr.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        r = pr.add_run(h); r.bold = True; r.font.color.rgb = RGBColor.from_string("FFFFFF"); r.font.size = Pt(9)
+        _set_fill(c, _HEX_DARK)
+    for ri, row in enumerate(rows):
         cells = t.add_row().cells
         for i, v in enumerate(row):
-            cells[i].text = ""; cells[i].paragraphs[0].add_run("" if v is None else str(v)).font.size = Pt(9)
+            cells[i].text = ""
+            pr = cells[i].paragraphs[0]; pr.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            pr.add_run("" if v is None else str(v)).font.size = Pt(9)
+            if ri % 2 == 0:                     # zebra striping for readability
+                _set_fill(cells[i], "EEF3F8")
 
 
 def _seq_caption(doc, label, title):
