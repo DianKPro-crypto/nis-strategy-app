@@ -251,20 +251,30 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
             strategy.profile, language, title, _ctx_for(key), draft=draft, documents=docs))
 
     tasks = [(key, (fr if language == "fr" else en)) for (key, fr, en) in NARRATIVE_SECTIONS]
-    out = {}
+    out: dict[str, str] = {}
     workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), total))
-    done = 0
-    with ThreadPoolExecutor(max_workers=workers) as ex:   # sections are independent -> parallel
-        futs = {ex.submit(_run, key, title): (key, title) for key, title in tasks}
-        for fut in as_completed(futs):
-            key, title = futs[fut]
-            try:
-                out[key] = fut.result()
-            except Exception as e:
-                out[key] = f"[Erreur de rédaction: {e}]"
-            if progress:   # as_completed runs in the caller (main) thread -> UI-safe
-                progress(done, total, title)
-            done += 1
+    counter = [0]
+
+    def _valid(txt):
+        return bool(txt) and txt.strip() and not txt.strip().startswith("[Erreur")
+
+    def _run_pool(pending):
+        with ThreadPoolExecutor(max_workers=workers) as ex:   # sections are independent -> parallel
+            futs = {ex.submit(_run, key, title): (key, title) for key, title in pending}
+            for fut in as_completed(futs):
+                key, title = futs[fut]
+                try:
+                    out[key] = fut.result()
+                except Exception as e:
+                    out[key] = f"[Erreur de rédaction: {e}]"
+                if progress:   # as_completed runs in the caller (main) thread -> UI-safe
+                    progress(min(counter[0], total - 1), total, title)
+                    counter[0] += 1
+
+    _run_pool(tasks)
+    retry = [(k, t) for (k, t) in tasks if not _valid(out.get(k, ""))]  # empty/errored -> retry once
+    if retry:
+        _run_pool(retry)
     strategy.narrative = {key: out.get(key, "") for key, _, _ in NARRATIVE_SECTIONS}
     return strategy.narrative
 

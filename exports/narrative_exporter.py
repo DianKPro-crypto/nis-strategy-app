@@ -239,19 +239,10 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                                                   else "To be completed by the country team"))
         # ---- section tables & figures ----
         if key == "situation" and s.swot:
-            def _cell(items):  # all items, joined; capped only to avoid an oversized cell
-                txt = " ; ".join(x for x in items if x)
-                return (txt[:600] + "…") if len(txt) > 600 else (txt or "—")
-            rows = []
-            for c in EPI_COMPONENTS:
-                for sub in c.subcomponents:   # ALL 26 subcomponents (complete)
-                    it = sw_by.get(sub.code)
-                    rows.append([sub.label(s.profile.language),
-                                 _cell(it.strengths) if it else "—", _cell(it.weaknesses) if it else "—",
-                                 _cell(it.opportunities) if it else "—", _cell(it.threats) if it else "—"])
-            _titled_table(doc, "Synthèse FFOM par sous-composante" if fr else "SWOT summary by subcomponent",
-                          ["Sous-composante" if fr else "Subcomponent", "Forces", "Faiblesses",
-                           "Opportunités", "Menaces"], rows)
+            p = doc.add_paragraph()
+            r = p.add_run("La synthèse FFOM complète par sous-composante figure en Annexe A." if fr
+                          else "The full SWOT summary by subcomponent is provided in Annex A.")
+            r.italic = True; r.font.size = Pt(9); r.font.color.rgb = _PRIMARY
         if key == "objectives" and s.objectives:
             _titled_table(doc, "Objectifs stratégiques prioritaires" if fr else "Priority strategic objectives",
                           ["ID", "Objectif" if fr else "Objective", "Obstacle principal" if fr else "Main obstacle"],
@@ -274,7 +265,24 @@ def build_narrative_word(s: NISStrategy) -> bytes:
 
     # ===================== ANNEXES =====================
     _H(doc, ("Annexes" if fr else "Annexes"), 1)
-    _H(doc, "Annexe A — Chronogramme des activités" if fr else "Annex A — Activity timeline", 2)
+    _H(doc, "Annexe A — Synthèse FFOM par sous-composante" if fr else "Annex A — SWOT summary by subcomponent", 2)
+    if s.swot:
+        def _cell(items):  # all items, joined; capped to avoid an oversized cell
+            txt = " ; ".join(x for x in items if x)
+            return (txt[:600] + "…") if len(txt) > 600 else (txt or "—")
+        rows = []
+        for c in EPI_COMPONENTS:
+            for sub in c.subcomponents:   # ALL 26 subcomponents
+                it = sw_by.get(sub.code)
+                rows.append([sub.label(s.profile.language),
+                             _cell(it.strengths) if it else "—", _cell(it.weaknesses) if it else "—",
+                             _cell(it.opportunities) if it else "—", _cell(it.threats) if it else "—"])
+        _titled_table(doc, "Synthèse FFOM par sous-composante" if fr else "SWOT summary by subcomponent",
+                      ["Sous-composante" if fr else "Subcomponent", "Forces", "Faiblesses",
+                       "Opportunités", "Menaces"], rows)
+    else:
+        doc.add_paragraph("À compléter." if fr else "To be completed.")
+    _H(doc, "Annexe B — Chronogramme des activités" if fr else "Annex B — Activity timeline", 2)
     if s.activities:
         _titled_table(doc, "Chronogramme des activités" if fr else "Activity timeline",
                       ["Activité" if fr else "Activity", "Niveau" if fr else "Level",
@@ -284,7 +292,7 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                        for a in s.activities])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
-    _H(doc, "Annexe B — Cadre de S&E détaillé" if fr else "Annex B — Detailed M&E framework", 2)
+    _H(doc, "Annexe C — Cadre de S&E détaillé" if fr else "Annex C — Detailed M&E framework", 2)
     if s.indicators:
         _titled_table(doc, "Cadre de S&E détaillé" if fr else "Detailed M&E framework",
                       ["Indicateur" if fr else "Indicator", "Type", "Définition" if fr else "Definition",
@@ -293,7 +301,7 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                        for i in s.indicators])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
-    _H(doc, "Annexe C — Analyse des causes profondes" if fr else "Annex C — Root-cause analysis", 2)
+    _H(doc, "Annexe D — Analyse des causes profondes" if fr else "Annex D — Root-cause analysis", 2)
     if s.root_causes:
         _titled_table(doc, "Analyse des causes profondes" if fr else "Root-cause analysis",
                       ["Faiblesse" if fr else "Weakness", "POURQUOI" if fr else "WHYs",
@@ -301,7 +309,7 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                       [[rc.weakness, " → ".join(rc.whys), rc.final_why] for rc in s.root_causes[:40]])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
-    _H(doc, "Annexe D — Sources et références" if fr else "Annex D — Sources and references", 2)
+    _H(doc, "Annexe E — Sources et références" if fr else "Annex E — Sources and references", 2)
     for d in s.documents:
         doc.add_paragraph(f"{d.name} ({d.doc_category})", style="List Bullet")
     if not s.documents:

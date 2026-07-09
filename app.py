@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v18 (mise en forme premium + registre Nations Unies)"
+APP_VERSION = "2026-07-05 · v19 (chapitres tous remplis, longueur maitrisee, FFOM en annexe)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
