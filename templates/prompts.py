@@ -159,10 +159,12 @@ def build_qa_prompt(profile: CountryProfile, language: str, document_text: str) 
     return f"""LANGUE DE SORTIE : {lang_name}
 Tu es évaluateur qualité senior d'une Stratégie Nationale de Vaccination (normes OMS/IA2030/Gavi 6.0).
 
-DOCUMENT À ÉVALUER :
-{document_text[:60000]}
+DOCUMENT À ÉVALUER (intégralité) :
+{document_text[:200000]}
 
 TÂCHE : Évalue la QUALITÉ, la COHÉRENCE et la COMPLÉTUDE du document selon les normes OMS/IA2030/Gavi 6.0.
+IMPORTANT : le document ci-dessus est COMPLET (résumé → conclusion + annexes). Ne signale une section comme
+« manquante » que si elle est RÉELLEMENT absente du texte fourni — parcours tout le document avant de juger.
 Identifie ce qui MANQUE ou doit être AMÉLIORÉ. Pour chaque point : section concernée, sévérité
 (critique|majeur|mineur), problème, recommandation concrète. Donne un score global /100 et une synthèse.
 Vérifie notamment : structure EMR complète, objectifs SMART, cohérence FFOM→causes→objectifs→interventions→S&E,
