@@ -45,8 +45,11 @@ def _field(paragraph, instr, placeholder="", dirty=False):
 
 
 def _enable_update_fields(doc):
+    el = doc.settings.element
+    for ex in el.findall(qn("w:updateFields")):
+        el.remove(ex)
     upd = OxmlElement("w:updateFields"); upd.set(qn("w:val"), "true")
-    doc.settings.element.insert(0, upd)
+    el.append(upd)   # standard placement so Word honours it
 
 
 def build_word(s: NISStrategy) -> bytes:

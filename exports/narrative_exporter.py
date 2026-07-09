@@ -42,8 +42,12 @@ def _field(p, instr, placeholder="", dirty=False):
 
 
 def _update_fields(doc):
+    # Standard placement (append) so Word honours "recompute fields on open" (schema-valid).
+    el = doc.settings.element
+    for ex in el.findall(qn("w:updateFields")):
+        el.remove(ex)
     upd = OxmlElement("w:updateFields"); upd.set(qn("w:val"), "true")
-    doc.settings.element.insert(0, upd)   # early position so Word honours it
+    el.append(upd)
 
 
 def _footer(section, txt):
