@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v22 (Word: updateFields conforme + PDF pagine)"
+APP_VERSION = "2026-07-05 · v23 (keep-alive + demarrage plus rapide)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -26,12 +26,8 @@ from core.prioritization import INTERVENTION_CRITERIA, SCORE_LEGEND
 from core.validators import run_quality_check
 from core import storage, cloud_store, branding, ui
 from core.seed_djibouti import seed_djibouti
-from exports.excel_exporter import build_excel
-from exports.word_exporter import build_word
-from exports.pdf_exporter import build_pdf
-from exports.ppt_exporter import build_ppt
-from exports.narrative_exporter import (build_narrative_word, build_financial_word, build_qa_word,
-                                        build_narrative_pdf)
+# NOTE: export libraries (reportlab, python-pptx, openpyxl, python-docx) are imported LAZILY inside the
+# export pages so the app cold-starts faster (less to load on wake).
 from core.ai_engine import NARRATIVE_SECTIONS
 
 st.set_page_config(page_title="NIS Strategy Builder", page_icon="💉", layout="wide")
@@ -697,6 +693,10 @@ def page_help():
 
 
 def page_export():
+    from exports.excel_exporter import build_excel
+    from exports.word_exporter import build_word
+    from exports.pdf_exporter import build_pdf
+    from exports.ppt_exporter import build_ppt
     s = S(); lg = lang()
     # Stamp the report with today's date (not the day the project was first created/saved).
     s.profile.generation_date = date.today().isoformat()
@@ -742,6 +742,7 @@ def _show_evidence(evidence, lg):
 
 
 def page_writeup():
+    from exports.narrative_exporter import (build_narrative_word, build_financial_word, build_narrative_pdf)
     s = S(); lg = lang()
     ai = settings.ai_available()
     st.subheader("A. " + ("Rédaction complète de la SNV (IA)" if lg == "fr" else "Full NIS write-up (AI)"))
@@ -896,6 +897,7 @@ def _qa_document_text(s: NISStrategy) -> str:
 
 
 def page_qa():
+    from exports.narrative_exporter import build_qa_word
     s = S(); lg = lang()
     st.caption("L’IA relit la stratégie, vérifie cohérence/complétude/normes (OMS, IA2030, Gavi 6.0) et "
                "surligne en rouge ce qui doit être ajouté ou amélioré." if lg == "fr" else
@@ -966,10 +968,24 @@ def _debounced_autosave():
             pass
 
 
+def _keep_alive():
+    """Ping the app's own health endpoint from the browser every 2 min so Streamlit Cloud keeps the
+    app AWAKE (and the connection alive) as long as a tab stays open — prevents idle sleep/disconnect."""
+    try:
+        import streamlit.components.v1 as components
+        components.html(
+            "<script>(function(){function p(){try{var o=document.referrer?new URL(document.referrer)"
+            ".origin:'';if(o){fetch(o+'/_stcore/health',{mode:'no-cors',cache:'no-store'}).catch(function(){});}}"
+            "catch(e){}}p();setInterval(p,120000);})();</script>", height=0)
+    except Exception:
+        pass
+
+
 def main():
     # Report date always reflects the current day.
     S().profile.generation_date = date.today().isoformat()
     ui.inject_theme()
+    _keep_alive()   # keep the app awake while a tab is open
     choice = sidebar()
     ui.hero(choice, lang())
     res = st.session_state.pop("_gen_result", None)
