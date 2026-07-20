@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v23 (keep-alive + demarrage plus rapide)"
+APP_VERSION = "2026-07-05 · v24 (logo Dian K Pro + import fichiers corrige)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -155,9 +155,9 @@ def sidebar():
                           format_func=lambda x: "Français" if x == "fr" else "English")
     s.profile.language = lg
     # Inline data-URI so the logo shows immediately on first load (no media-server refresh needed).
-    who_html = branding.logo_html(lg, 210)
-    if who_html:
-        st.sidebar.markdown(who_html, unsafe_allow_html=True)
+    brand_html = branding.dk_logo_html(190)
+    if brand_html:
+        st.sidebar.markdown(brand_html, unsafe_allow_html=True)
     st.sidebar.title(t("app_title", lg))
     if not settings.ai_available():
         st.sidebar.warning(t("no_api", lg))
@@ -182,9 +182,15 @@ def sidebar():
     if use_cloud:
         try:
             saved = [n for n, _, _ in store.list_projects()]
-        except Exception as e:
+        except Exception:
+            # Cloud down (e.g. Supabase project paused/deleted): degrade to local storage
+            # instead of leaving the user with dead Save/Reload buttons.
             saved = []
-            st.sidebar.warning(f"Cloud injoignable : {e}")
+            use_cloud = False
+            store = storage
+            st.sidebar.info("☁️ Stockage cloud indisponible pour le moment. "
+                            "Vos enregistrements se font en local — pensez à télécharger le "
+                            "fichier .json à l’étape « 10 · Exports » pour ne rien perdre.")
         if saved:
             st.sidebar.caption("↩️ " + ("Reprendre un projet sauvegardé :" if lg == "fr"
                                         else "Reopen a saved project:"))
@@ -231,8 +237,8 @@ def sidebar():
     line1 = ("Conception : OMS, améliorée par Dian K Pro" if lg == "fr"
              else "Design: WHO, enhanced by Dian K Pro")
     line2 = "Public Health & Digital Strategist"
+    # Logo moved to the TOP of the sidebar — only the credit text remains here.
     st.sidebar.markdown(
-        f"{branding.dk_logo_html(140)}"
         f"<div style='font-size:0.75rem;color:#5b6b7b;line-height:1.35;text-align:center;margin-top:6px'>"
         f"{line1}<br><i>{line2}</i></div>", unsafe_allow_html=True)
     st.sidebar.caption(f"🔖 Version : {APP_VERSION}")
@@ -247,7 +253,10 @@ def page_profile():
     with st.expander("♻️ Reprendre un projet (fichier .json)"):
         st.caption("Importez le fichier .json téléchargé à l’étape « 10 · Exports » lors d’une session "
                    "précédente pour continuer le travail là où vous l’aviez laissé.")
-        up = st.file_uploader("Fichier de sauvegarde (.json)", type=["json"], key="resume_json")
+        # No 'type=' filter: some OS file pickers (macOS/Safari) grey out every file when a type
+        # list is set. We accept any file and validate the content when the button is pressed.
+        up = st.file_uploader("Fichier de sauvegarde (.json)", key="resume_json",
+                              help="Sélectionnez le fichier .json exporté à l’étape « 10 · Exports ».")
         if up is not None and st.button("Charger ce projet", key="load_json"):
             try:
                 data = json.loads(up.getvalue())
@@ -765,8 +774,9 @@ def page_writeup():
         with cc1:
             st.markdown("**1. " + ("Document SNV (Word) — étape 10 ou SNV rédigée" if lg == "fr"
                                    else "NIS document (Word) — from step 10 or a drafted NIS") + "**")
-            d_up = st.file_uploader("SNV (.docx / .pdf / .txt)", type=["docx", "pdf", "txt"],
-                                    key="snv_draft_up", label_visibility="collapsed")
+            d_up = st.file_uploader("SNV (.docx / .pdf / .txt)",
+                                    key="snv_draft_up", label_visibility="collapsed",
+                                    help="Formats lus : .docx, .pdf, .txt")
             if d_up is not None:
                 if st.button("📥 " + ("Charger la SNV" if lg == "fr" else "Load NIS"), key="load_draft"):
                     s.snv_draft_text = extract_document(d_up.getvalue(), d_up.name, "SNV").text or ""
@@ -782,8 +792,9 @@ def page_writeup():
         with cc2:
             st.markdown("**2. " + ("Rapport financier — issu du NIS.COST (étape B)" if lg == "fr"
                                    else "Financial report — from NIS.COST (part B)") + "**")
-            f_up = st.file_uploader("Rapport financier", type=["docx", "pdf", "xlsx", "csv", "txt"],
-                                    key="fin_input_up", label_visibility="collapsed")
+            f_up = st.file_uploader("Rapport financier",
+                                    key="fin_input_up", label_visibility="collapsed",
+                                    help="Formats lus : .docx, .pdf, .xlsx, .csv, .txt")
             if f_up is not None:
                 if st.button("📥 " + ("Charger le rapport financier" if lg == "fr"
                                       else "Load financial report"), key="load_fin_input"):
@@ -851,7 +862,7 @@ def page_writeup():
     st.divider()
     st.subheader("B. " + ("Rapport financier (NIS.COST)" if lg == "fr" else "Financial report (NIS.COST)"))
     up = st.file_uploader("Fichier NIS.COST" if lg == "fr" else "NIS.COST file",
-                          type=["xlsx", "csv", "pdf", "docx"], key="niscost_up")
+                          key="niscost_up", help="Formats lus : .xlsx, .csv, .pdf, .docx")
     if up is not None and st.button("📥 " + ("Charger le NIS.COST" if lg == "fr" else "Load NIS.COST")):
         doc = extract_document(up.getvalue(), up.name, "NIS.COST")
         s.niscost_text = doc.text or ""
