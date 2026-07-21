@@ -188,9 +188,10 @@ def _situation_context(comp, strategy, language):
         if it.threats: lines.append(f"    Menaces: {'; '.join(it.threats)}")
     rcs = [rc for rc in strategy.root_causes if rc.component_code == comp.code]
     if rcs:
-        lines.append("\nCauses profondes (POURQUOI) :")
+        lines.append("\nProblèmes principaux par sous-composante (obstacle consolidé — base de l'objectif) :")
         for rc in rcs[:12]:
-            lines.append(f"- {rc.weakness} ⇒ {rc.final_why}")
+            obstacle = rc.main_problem or rc.final_why or rc.weakness
+            lines.append(f"- [{rc.subcomponent_code}] {obstacle}")
     return "\n".join(lines)
 
 
@@ -459,7 +460,23 @@ def _generate_root_causes_from_weaknesses(profile, documents, language, strategy
               lambda c=c: _items(_call_claude(
                   build_root_cause_prompt(profile, documents, language, c, weak_by_comp[c.code]))))
              for c in comps]
-    return {"items": _parallel_calls(tasks, progress)}
+    items = _parallel_calls(tasks, progress)
+    # OMS method: at most ONE "problème principal" per sub-component -> <= 26 obstacles total.
+    # Keep the first (richest) record per subcomponent_code; merge stray extras' whys into it.
+    by_sub: dict = {}
+    for it in items:
+        code = (it.get("subcomponent_code") or "").strip()
+        key = code or f"_{len(by_sub)}"      # keep uncoded rows rather than collapsing them together
+        if key not in by_sub:
+            by_sub[key] = it
+        else:
+            first = by_sub[key]
+            for w in (it.get("whys") or []):
+                if w and w not in (first.get("whys") or []):
+                    first.setdefault("whys", []).append(w)
+            if not first.get("main_problem") and it.get("main_problem"):
+                first["main_problem"] = it["main_problem"]
+    return {"items": list(by_sub.values())}
 
 
 def _weak_by_sub(strategy) -> dict:

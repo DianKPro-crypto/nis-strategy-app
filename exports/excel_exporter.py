@@ -174,13 +174,19 @@ def _sheet_sequence(ws, s, lang):
                 ws.cell(r, 4, "\n".join(sw.weaknesses)).alignment = _WRAP
                 ws.cell(r, 5, "\n".join(sw.opportunities)).alignment = _WRAP
                 ws.cell(r, 6, "\n".join(sw.threats)).alignment = _WRAP
+            main_problem = ""
             for rc in rc_by_sub.get(sub.code, []):
                 ws.cell(r, 7, rc.weakness).alignment = _WRAP
                 for i, why in enumerate(rc.whys[:3]):
                     ws.cell(r, 8 + i, why).alignment = _WRAP
                 ws.cell(r, 11, rc.final_why).alignment = _WRAP
+                main_problem = main_problem or rc.main_problem
+            # SECTION 3 — Problème principal (obstacle) : regroupement des derniers POURQUOI.
+            if main_problem:
+                ws.cell(r, 12, main_problem).alignment = _WRAP
             for o in obj_by_sub.get(sub.code, []):
-                ws.cell(r, 12, o.main_obstacle).alignment = _WRAP
+                if not main_problem:
+                    ws.cell(r, 12, o.main_obstacle).alignment = _WRAP
                 ws.cell(r, 13, o.visionary_result).alignment = _WRAP
                 ws.cell(r, 14, o.objective_text).alignment = _WRAP
                 ivs = iv_by_obj.get(o.obj_id, [])

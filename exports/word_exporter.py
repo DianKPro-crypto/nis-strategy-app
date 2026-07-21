@@ -240,6 +240,10 @@ def build_word(s: NISStrategy) -> bytes:
                 p = doc.add_paragraph()
                 p.add_run(("Cause profonde : " if fr else "Root cause: ")).bold = True
                 p.add_run(f"{' → '.join(rc.whys)} ⇒ {rc.final_why}")
+                if rc.main_problem:
+                    p = doc.add_paragraph()
+                    p.add_run(("Problème principal : " if fr else "Main problem: ")).bold = True
+                    p.add_run(rc.main_problem)
 
     # ===================== 5. VISION =====================
     H("5. Vision, objectif global et objectif général de la SNV" if fr else

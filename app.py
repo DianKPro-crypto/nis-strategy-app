@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v24 (logo Dian K Pro + import fichiers corrige)"
+APP_VERSION = "2026-07-05 · v25 (causes profondes : 26 obstacles max + probleme principal + import docs)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -486,22 +486,71 @@ def page_swot():
 
 def page_root():
     s = S(); lg = lang()
-    st.caption("Méthode des POURQUOI : pour chaque faiblesse, remonter jusqu’à la cause profonde.")
+    st.caption("Méthode OMS : pour chaque sous-composante, remonter par les POURQUOI jusqu’aux causes "
+               "profondes, puis **regrouper les derniers POURQUOI en UN « problème principal »** (obstacle). "
+               "Un seul problème principal par sous-composante → **26 obstacles au maximum**.")
+
+    # --- Import de documents à ce niveau (XLS / WORD / PPTX / PDF …) pour éclairer l'analyse ---
+    with st.expander("📎 " + ("Ajouter des documents pour l’analyse (XLS, Word, PPTX…)" if lg == "fr"
+                              else "Add documents for the analysis (XLS, Word, PPTX…)")):
+        fmts = ", ".join(sorted(settings.ALLOWED_EXTENSIONS))
+        # No 'type=' filter (macOS/Safari greys out files); we validate the extension after selection.
+        rfiles = st.file_uploader(
+            "Glissez-déposez un ou plusieurs fichiers" if lg == "fr" else "Drag & drop one or several files",
+            accept_multiple_files=True, key="root_upl",
+            help=(f"Formats acceptés : {fmts}." if lg == "fr" else f"Accepted formats: {fmts}."))
+        if rfiles and st.button("📥 " + ("Ajouter ces documents" if lg == "fr" else "Add these documents"),
+                                key="root_add_docs"):
+            n_ok = 0
+            for f in rfiles:
+                ext = f.name.rsplit(".", 1)[-1].lower() if "." in f.name else ""
+                if ext not in settings.ALLOWED_EXTENSIONS:
+                    st.warning(f"{f.name} : format « {ext or '?'} » non pris en charge — ignoré.")
+                    continue
+                data = f.getvalue()
+                if len(data) > settings.MAX_FILE_MB * 1024 * 1024:
+                    st.error(f"{f.name}: fichier trop volumineux (>{settings.MAX_FILE_MB} Mo)")
+                    continue
+                doc = extract_document(data, f.name, "Causes profondes")
+                s.documents = [d for d in s.documents if d.name != f.name] + [doc]
+                n_ok += 1
+            _autosave(s)
+            st.success(f"{n_ok} document(s) ajouté(s). Ils seront utilisés par l’IA ci-dessous.")
+        if s.documents:
+            st.caption("🗂️ Documents disponibles : " + ", ".join(d.name for d in s.documents[:12]))
+
     if st.button("✨ " + t("generate", lg), key="gen_root"):
         _gen_or_warn("root_causes")
+
+    # Compteur d'obstacles (problèmes principaux) vs le plafond OMS de 26.
+    n = len(s.root_causes)
+    if n:
+        (st.warning if n > 26 else st.info)(
+            f"**{n} / 26** problème(s) principal(aux). "
+            + ("⚠️ Au-delà de 26 : regroupez davantage les sous-composantes." if n > 26
+               else "✅ Un obstacle consolidé par sous-composante."))
+
     if st.button("➕ Ajouter une ligne"):
-        s.root_causes.append(RootCauseAnalysis(whys=[""]))
+        if n >= 26:
+            st.warning("Limite de 26 obstacles atteinte (une par sous-composante).")
+        else:
+            s.root_causes.append(RootCauseAnalysis(whys=[""]))
     for i, rc in enumerate(s.root_causes):
-        with st.expander(f"#{i+1} {rc.weakness[:60] or '(faiblesse)'}"):
+        title = (rc.main_problem or rc.weakness or "(problème principal)")[:60]
+        with st.expander(f"#{i+1} [{rc.subcomponent_code or '?'}] {title}"):
             rc.subcomponent_code = st.text_input("Sous-composante (ex: 1.1)", rc.subcomponent_code,
                                                  key=f"rc_sub_{i}")
             sc = find_subcomponent(rc.subcomponent_code)
             rc.component_code = sc[0].code if sc else rc.component_code
-            rc.weakness = st.text_area("Faiblesse", rc.weakness, key=f"rc_w_{i}", height=60)
+            rc.weakness = st.text_area("Faiblesse(s)", rc.weakness, key=f"rc_w_{i}", height=60)
             rc.whys = _lines(st.text_area("POURQUOI (une ligne par POURQUOI)", "\n".join(rc.whys),
                                           key=f"rc_y_{i}", height=100))
-            rc.final_why = st.text_area("Dernier POURQUOI (cause profonde)", rc.final_why,
+            rc.final_why = st.text_area("Dernier(s) POURQUOI (causes profondes)", rc.final_why,
                                         key=f"rc_f_{i}", height=60)
+            rc.main_problem = st.text_area(
+                "🎯 Problème principal (obstacle consolidé — regroupe les derniers POURQUOI)",
+                rc.main_problem, key=f"rc_mp_{i}", height=70,
+                help="C’est cet obstacle qui servira de base à l’objectif stratégique de la sous-composante.")
     _validate_button("root_causes")
 
 

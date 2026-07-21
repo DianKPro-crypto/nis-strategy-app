@@ -120,6 +120,9 @@ class RootCauseAnalysis(_Model):
     weakness: str = ""
     whys: list[str] = Field(default_factory=list)   # Why-1, Why-2, ... (extensible)
     final_why: str = ""
+    # Section 3 (méthode OMS) : les "derniers POURQUOI" d'une sous-composante sont regroupés
+    # pour former UN "problème principal" (obstacle). Un seul par sous-composante -> max 26.
+    main_problem: str = ""
     evidence: list[EvidenceReference] = Field(default_factory=list)
 
 

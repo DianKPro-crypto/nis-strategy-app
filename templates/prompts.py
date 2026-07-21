@@ -319,27 +319,40 @@ def build_root_cause_prompt(profile: CountryProfile, documents: list[UploadedDoc
     """Root-cause prompt: the AI applies the 5-Whys (its reasoning) to EACH FFOM weakness,
     informed by the reference documents/directives."""
     lang_name = "français" if language == "fr" else "English"
-    wlist = "\n".join(f"- [{code}] {w}" for code, w in weaknesses)
+    # Group weaknesses by sub-component so the AI produces ONE consolidated problème principal each.
+    by_sub: dict[str, list[str]] = {}
+    for code, w in weaknesses:
+        by_sub.setdefault(code, []).append(w)
+    wlist = "\n".join(
+        f"• SOUS-COMPOSANTE {code} :\n" + "\n".join(f"    - {w}" for w in ws)
+        for code, ws in by_sub.items())
+    n_sub = len(by_sub)
     schema = SCHEMAS["root_causes"]
     return f"""CONTEXTE PAYS : {profile.country_name} — Programme {profile.epi_programme_name}.
 OUTPUT LANGUAGE: {lang_name}
 
 COMPOSANTE PEV : {component.label(language)}
 
-FAIBLESSES DOCUMENTÉES (issues de l'analyse FFOM — analyse CHACUNE d'elles) :
+FAIBLESSES DOCUMENTÉES, REGROUPÉES PAR SOUS-COMPOSANTE (issues de l'analyse FFOM) :
 {wlist}
 
 DOCUMENTS SOURCES & DIRECTIVES (consulte-les pour éclairer ton raisonnement : constats pays, guides OMS, normes) :
 {_documents_block(documents)}
 
-TÂCHE — ANALYSE DES CAUSES PROFONDES (méthode des POURQUOI) :
-Pour CHAQUE faiblesse ci-dessus, applique la méthode des « 5 POURQUOI ». Les POURQUOI sont TON
-RAISONNEMENT d'expert en santé publique, ÉCLAIRÉ par les documents et directives ci-dessus : pars de la
-faiblesse et demande « pourquoi cela se produit-il ? », puis « pourquoi ? » sur la réponse, et ainsi de
-suite (3 à 5 niveaux) jusqu'à la CAUSE PROFONDE.
+TÂCHE — ANALYSE DES CAUSES PROFONDES (méthode OMS « SWOT to Activities », Sections 2 et 3) :
+Tu produis EXACTEMENT UN enregistrement PAR SOUS-COMPOSANTE listée ci-dessus (au plus {n_sub} pour cette
+composante). Pour CHAQUE sous-composante :
+1) Applique la méthode des « POURQUOI » à ses faiblesses. Les POURQUOI sont TON RAISONNEMENT d'expert en
+   santé publique, ÉCLAIRÉ par les documents/directives : pars des faiblesses, demande « pourquoi cela
+   se produit-il ? », puis « pourquoi ? » sur la réponse (3 à 5 niveaux) jusqu'à la CAUSE PROFONDE.
+2) Renseigne 'subcomponent_code' = le code exact (ex : 1.1) ; 'weakness' = synthèse courte des faiblesses
+   de la sous-composante ; 'whys' = liste ordonnée des POURQUOI ; 'final_why' = le/les dernier(s) POURQUOI.
+3) **REGROUPE les « derniers POURQUOI » de la sous-composante en UN SEUL « problème principal »** ('main_problem') :
+   une phrase-obstacle claire et consolidée qui capture la cause profonde commune (c'est la Section 3 « Problème
+   principal » de la méthode OMS). C'est cet obstacle qui servira ensuite à formuler l'objectif stratégique.
+RÈGLES STRICTES :
+- JAMAIS plus d'un enregistrement par sous-composante (donc au maximum 26 « problèmes principaux » sur l'ensemble).
 - Appuie ton raisonnement sur les constats des documents quand ils existent ; ne fabrique pas de faits.
-- Recopie la faiblesse mot pour mot dans 'weakness' et son code dans 'subcomponent_code'.
-- 'whys' = liste ordonnée des POURQUOI ; 'final_why' = la cause profonde (dernier POURQUOI).
 {gavi_clause(language)}
 
 SCHÉMA JSON (retourne exactement cette forme, rien d'autre) :
@@ -525,8 +538,10 @@ SECTION_INSTRUCTIONS = {
               "health-system resilience, life-course vaccination and sustainable financing.",
     "swot": "For EACH EPI subcomponent (code like '1.1'), list strengths, weaknesses (INTERNAL) and "
             "opportunities, threats (EXTERNAL). Empty lists are allowed where evidence is absent.",
-    "root_causes": "For each documented weakness, apply the '5 Whys'. Provide an array 'whys' (Why-1..n) and "
-                   "a 'final_why' (root cause). Add as many whys as the evidence supports.",
+    "root_causes": "Produce ONE consolidated record PER SUB-COMPONENT (max 26 total). For that sub-component, "
+                   "apply the '5 Whys' to its weaknesses ('whys' array, 'final_why' = deepest cause), then "
+                   "REGROUP the deepest causes (last Whys) into a single 'main_problem' (problème principal). "
+                   "Never more than one record per subcomponent_code.",
     "objectives": "From the final whys, formulate the main obstacle, the visionary change result, and ONE "
                    "SMART strategic objective per item. Respect the requested grouping option.",
     "interventions": "For each strategic objective, propose 3-5 high-impact, feasible interventions with "
@@ -548,7 +563,7 @@ SCHEMAS: dict[str, dict] = {
         "evidence": [_EVIDENCE]}]},
     "root_causes": {"items": [{
         "component_code": "str", "subcomponent_code": "str", "weakness": "str",
-        "whys": ["str"], "final_why": "str", "evidence": [_EVIDENCE]}]},
+        "whys": ["str"], "final_why": "str", "main_problem": "str", "evidence": [_EVIDENCE]}]},
     "objectives": {"items": [{
         "obj_id": "str", "component_code": "str", "subcomponent_code": "str",
         "main_obstacle": "str", "visionary_result": "str", "objective_text": "str",

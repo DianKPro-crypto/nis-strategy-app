@@ -308,9 +308,11 @@ def build_narrative_word(s: NISStrategy) -> bytes:
     _H(doc, "Annexe D — Analyse des causes profondes" if fr else "Annex D — Root-cause analysis", 2)
     if s.root_causes:
         _titled_table(doc, "Analyse des causes profondes" if fr else "Root-cause analysis",
-                      ["Faiblesse" if fr else "Weakness", "POURQUOI" if fr else "WHYs",
-                       "Cause profonde" if fr else "Root cause"],
-                      [[rc.weakness, " → ".join(rc.whys), rc.final_why] for rc in s.root_causes[:40]])
+                      ["Sous-comp." if fr else "Sub-comp.", "Faiblesse" if fr else "Weakness",
+                       "POURQUOI" if fr else "WHYs", "Dernier POURQUOI" if fr else "Last WHY",
+                       "Problème principal" if fr else "Main problem"],
+                      [[rc.subcomponent_code, rc.weakness, " → ".join(rc.whys), rc.final_why,
+                        rc.main_problem] for rc in s.root_causes[:40]])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
     _H(doc, "Annexe E — Sources et références" if fr else "Annex E — Sources and references", 2)
@@ -534,10 +536,11 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
     if s.root_causes:
         story.append(Paragraph("Annexe C — Analyse des causes profondes" if fr
                                else "Annex C — Root-cause analysis", h2))
-        table(["Faiblesse" if fr else "Weakness", "POURQUOI" if fr else "WHYs",
-               "Cause profonde" if fr else "Root cause"],
-              [[rc.weakness, " → ".join(rc.whys), rc.final_why] for rc in s.root_causes[:40]],
-              [(W) / 3] * 3)
+        table(["Sous-comp." if fr else "Sub-comp.", "Faiblesse" if fr else "Weakness",
+               "POURQUOI" if fr else "WHYs", "Problème principal" if fr else "Main problem"],
+              [[rc.subcomponent_code, rc.weakness, " → ".join(rc.whys),
+                rc.main_problem or rc.final_why] for rc in s.root_causes[:40]],
+              [2.2 * cm, (W - 6.6 * cm) / 2, (W - 6.6 * cm) / 2, 4.4 * cm])
     if s.documents:
         story.append(Paragraph("Annexe D — Sources et références" if fr else "Annex D — Sources", h2))
         for d in s.documents:
