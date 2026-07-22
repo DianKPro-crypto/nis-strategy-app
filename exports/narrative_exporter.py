@@ -26,6 +26,17 @@ _GOLD = RGBColor.from_string("8A6D1B")
 _RED = RGBColor.from_string("C00000")
 _HEX_DARK = INSTITUTION_DARK.lstrip("#")
 
+# Missing / to-complete markers — highlighted in RED across Word & PDF to ease finalisation.
+_MISSING_RE = re.compile(
+    r"(à\s+compléter[^\n.;]*|to\s+be\s+completed[^\n.;]*|à\s+préciser|à\s+déterminer|"
+    r"non\s+renseigné[e]?|non\s+disponible|à\s+vérifier\s+par\s+l['’]équipe[^\n.;]*|"
+    r"\[\s*(?:à\s+compléter|to\s+complete|xxx+|\.\.\.)\s*\])",
+    re.IGNORECASE)
+
+
+def _is_missing(text: str) -> bool:
+    return bool(text) and bool(_MISSING_RE.search(str(text)))
+
 
 def _field(p, instr, placeholder="", dirty=False):
     run = p.add_run()
@@ -106,31 +117,52 @@ def _toc(doc, fr):
     doc.add_page_break()
 
 
+def _emit_colored(paragraph, text, bold=False):
+    """Add runs, colouring any missing/to-complete marker in RED (bold) for easy spotting."""
+    for chunk in _MISSING_RE.split(text):
+        if not chunk:
+            continue
+        run = paragraph.add_run(chunk)
+        if bold:
+            run.bold = True
+        if _MISSING_RE.fullmatch(chunk):
+            run.font.color.rgb = _RED; run.bold = True
+
+
 def _add_rich(paragraph, text):
-    """Add text to a paragraph, rendering **bold** markdown as real bold runs."""
+    """Add text to a paragraph, rendering **bold** markdown as real bold runs and
+    highlighting missing/to-complete data in red."""
     for part in re.split(r"(\*\*.+?\*\*)", text):
         if not part:
             continue
         if part.startswith("**") and part.endswith("**") and len(part) > 4:
-            paragraph.add_run(part[2:-2]).bold = True
+            _emit_colored(paragraph, part[2:-2], bold=True)
         else:
-            paragraph.add_run(part.replace("**", ""))
+            _emit_colored(paragraph, part.replace("**", ""), bold=False)
 
 
 def _clean_head(t):
     return t.strip().lstrip("#").strip().replace("**", "").strip("* ")
 
 
-def _prose(doc, text):
-    """Render AI prose: '## '/'### ' -> Heading 2/3, '- ' -> bullets, **bold** -> bold runs."""
+def _prose(doc, text, chap=None):
+    """Render AI prose: '## '/'### ' -> Heading 2/3, '- ' -> bullets, **bold** -> bold runs.
+    When `chap` is given, sub-chapters are numbered 'chap.sub' / 'chap.sub.subsub'."""
+    sub = [0]; subsub = [0]
     for raw in (text or "").split("\n"):
         line = raw.strip()
         if not line:
             continue
         if line.startswith("#### ") or line.startswith("### "):
-            _H(doc, _clean_head(line), 3, numbered_break=False)
+            title = _clean_head(line)
+            if chap and sub[0]:
+                subsub[0] += 1; title = f"{chap}.{sub[0]}.{subsub[0]} {title}"
+            _H(doc, title, 3, numbered_break=False)
         elif line.startswith("## ") or line.startswith("# "):
-            _H(doc, _clean_head(line), 2, numbered_break=False)
+            title = _clean_head(line)
+            if chap:
+                sub[0] += 1; subsub[0] = 0; title = f"{chap}.{sub[0]} {title}"
+            _H(doc, title, 2, numbered_break=False)
         elif line[:2] in ("- ", "* ") or line.startswith("• "):
             _add_rich(doc.add_paragraph(style="List Bullet"), line[2:].strip())
         else:
@@ -179,7 +211,12 @@ def _mini_table(doc, headers, rows):
         for i, v in enumerate(row):
             cells[i].text = ""
             pr = cells[i].paragraphs[0]; pr.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            pr.add_run("" if v is None else str(v)).font.size = Pt(9)
+            val = "" if v is None else str(v)
+            run = pr.add_run(val); run.font.size = Pt(9)
+            if _is_missing(val) or not val.strip():   # missing/empty -> red so it stands out
+                run.font.color.rgb = _RED; run.bold = True
+                if not val.strip():
+                    run.text = "À COMPLÉTER"
             if ri % 2 == 0:                     # zebra striping for readability
                 _set_fill(cells[i], "EEF3F8")
 
@@ -240,7 +277,7 @@ def build_narrative_word(s: NISStrategy) -> bytes:
     for n, (key, tfr, ten) in enumerate(NARRATIVE_SECTIONS, 1):
         _H(doc, f"{n}. {tfr if fr else ten}", 1)
         _prose(doc, s.narrative.get(key, "") or ("À compléter par l’équipe pays" if fr
-                                                  else "To be completed by the country team"))
+                                                  else "To be completed by the country team"), chap=n)
         # ---- section tables & figures ----
         if key == "situation" and s.swot:
             p = doc.add_paragraph()
@@ -406,8 +443,11 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
     def esc(v):
         return (str(v if v is not None else "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
+    def _redify(html):   # colour missing/to-complete markers in red (bold)
+        return _MISSING_RE.sub(lambda m: f'<font color="#C00000"><b>{m.group(0)}</b></font>', html)
+
     def rich(text):
-        return _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc(text))
+        return _redify(_re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", esc(text)))
 
     class _DocT(BaseDocTemplate):
         def afterFlowable(self, fl):
@@ -439,15 +479,24 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
     def chapter(t):
         p = Paragraph(esc(t), h1); p._toc_level = 0; story.append(p)
 
-    def prose(text):
+    def prose(text, chap=None):
+        sub = [0]; subsub = [0]   # sub-chapter counters for "chap.sub" / "chap.sub.subsub" numbering
         for raw in (text or "").split("\n"):
             line = raw.strip()
             if not line:
                 continue
             if line.startswith("### ") or line.startswith("#### "):
-                story.append(Paragraph(rich(line.lstrip("#").strip().strip("*")), h3))
+                title = line.lstrip("#").strip().strip("*")
+                if chap and sub[0]:
+                    subsub[0] += 1
+                    title = f"{chap}.{sub[0]}.{subsub[0]} {title}"
+                story.append(Paragraph(rich(title), h3))
             elif line.startswith("## ") or line.startswith("# "):
-                p = Paragraph(rich(line.lstrip("#").strip().strip("*")), h2); p._toc_level = 1; story.append(p)
+                title = line.lstrip("#").strip().strip("*")
+                if chap:
+                    sub[0] += 1; subsub[0] = 0
+                    title = f"{chap}.{sub[0]} {title}"
+                p = Paragraph(rich(title), h2); p._toc_level = 1; story.append(p)
             elif line[:2] in ("- ", "* ") or line.startswith("• "):
                 story.append(Paragraph("•&nbsp; " + rich(line[2:].strip()), body))
             else:
@@ -456,8 +505,8 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
     def _cellval(v):   # bound cell content so no single row can exceed a page (avoids LayoutError)
         if isinstance(v, (list, tuple)):
             items = [esc(str(x)[:130]) for x in v if x][:4]
-            return ("• " + "<br/>• ".join(items)) if items else "—"
-        return esc(str(v)[:350]) or "—"
+            return _redify(("• " + "<br/>• ".join(items)) if items else "—")
+        return _redify(esc(str(v)[:350])) or "—"
 
     def table(headers, rows, widths):
         data = [[Paragraph(esc(h), cellh) for h in headers]]
@@ -501,7 +550,7 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
     for n, (key, tfr, ten) in enumerate(NARRATIVE_SECTIONS, 1):
         chapter(f"{n}. {tfr if fr else ten}")
         prose(s.narrative.get(key, "") or ("À compléter par l’équipe pays" if fr
-                                           else "To be completed by the country team"))
+                                           else "To be completed by the country team"), chap=n)
         if key == "objectives" and s.objectives:
             table(["ID", "Objectif" if fr else "Objective", "Obstacle" if fr else "Obstacle"],
                   [[o.obj_id, o.objective_text, o.main_obstacle] for o in s.objectives],
