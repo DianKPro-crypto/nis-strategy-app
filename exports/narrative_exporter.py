@@ -212,11 +212,17 @@ def _mini_table(doc, headers, rows):
             cells[i].text = ""
             pr = cells[i].paragraphs[0]; pr.alignment = WD_ALIGN_PARAGRAPH.LEFT
             val = "" if v is None else str(v)
-            run = pr.add_run(val); run.font.size = Pt(9)
-            if _is_missing(val) or not val.strip():   # missing/empty -> red so it stands out
+            missing = _is_missing(val) or not val.strip()
+            display = "À COMPLÉTER" if not val.strip() else val
+            lines = display.split("\n")     # render bulleted/multi-line values on separate lines
+            run = pr.add_run(lines[0]); run.font.size = Pt(9)
+            if missing:
                 run.font.color.rgb = _RED; run.bold = True
-                if not val.strip():
-                    run.text = "À COMPLÉTER"
+            for ln in lines[1:]:
+                run.add_break()
+                run = pr.add_run(ln); run.font.size = Pt(9)
+                if missing:
+                    run.font.color.rgb = _RED; run.bold = True
             if ri % 2 == 0:                     # zebra striping for readability
                 _set_fill(cells[i], "EEF3F8")
 
@@ -557,7 +563,7 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
         if isinstance(v, (list, tuple)):
             items = [esc(str(x)[:130]) for x in v if x][:4]
             return _redify(("• " + "<br/>• ".join(items)) if items else "—")
-        return _redify(esc(str(v)[:350])) or "—"
+        return _redify(esc(str(v)[:600]).replace("\n", "<br/>")) or "—"
 
     def table(headers, rows, widths):
         data = [[Paragraph(esc(h), cellh) for h in headers]]

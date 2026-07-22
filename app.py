@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v31 (colonnes K/L du classeur imposees VERBATIM aux causes profondes - fin de la paraphrase)"
+APP_VERSION = "2026-07-05 · v32 (colonne K : obstacles separes par des puces pour la lisibilite)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR

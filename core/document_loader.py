@@ -179,8 +179,11 @@ def _parse_who_sequence(wb) -> dict:
         clean = {}
         for code, v in out.items():
             if v["probleme_principal"] or v["dernier_pourquoi"]:
+                # Bullet each distinct obstacle on its own line for readability (col K).
+                obstacles = [o for o in v["dernier_pourquoi"] if o]
+                dernier = ("• " + "\n• ".join(obstacles)) if len(obstacles) > 1 else "".join(obstacles)
                 clean[code] = {"probleme_principal": v["probleme_principal"],
-                               "dernier_pourquoi": " ; ".join(v["dernier_pourquoi"]),
+                               "dernier_pourquoi": dernier,
                                "weaknesses": v["weaknesses"]}
         if clean:
             return clean
