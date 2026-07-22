@@ -469,9 +469,17 @@ OBJECTIFS STRATÉGIQUES PRIORITAIRES (pour CHACUN, proposer 3 à 5 interventions
 DOCUMENTS SOURCES (ta SEULE source de vérité — consulte-les pour étayer chaque champ) :
 {_documents_block(documents, doc_budget)}
 
+⚠️ PRIORITÉ — RÉUTILISER LES INTERVENTIONS DU PAYS :
+Si un document source contient déjà une colonne « Interventions principales » renseignée (classeur OMS de
+l'atelier — feuilles « Séquence_événements_pays » et surtout « Section 7_Activités »), tu DOIS REPRENDRE
+TOUTES ces interventions existantes, SANS EN OMETTRE AUCUNE, en les rattachant à l'objectif et à la
+sous-composante correspondants. N'invente de NOUVELLES interventions que pour combler les objectifs qui n'en
+ont pas encore. Le contenu du pays PRIME.
+
 TÂCHE — INTERVENTIONS PRINCIPALES ET PRIORISATION :
-Pour CHAQUE objectif ci-dessus, propose 3 à 5 interventions à fort impact et réalisables. Pour CHAQUE
-intervention, REMPLIS TOUS LES CHAMPS avec des arguments SOLIDES et ANCRÉS DANS LES DOCUMENTS (jamais inventés) :
+Pour CHAQUE objectif ci-dessus, propose 3 à 5 interventions à fort impact et réalisables (en incluant
+d'abord celles déjà définies par le pays). Pour CHAQUE intervention, REMPLIS TOUS LES CHAMPS avec des
+arguments SOLIDES et ANCRÉS DANS LES DOCUMENTS (jamais inventés) :
 - objective_id : l'ID de l'objectif lié (ex. {objectives[0].obj_id if objectives else 'OBJ1'})
 - title, rationale (justification fondée sur les constats des documents), expected_impact, feasibility_note
 - prerequisites[], risks[], partners[] (concrets et pertinents pour le contexte du pays)
@@ -510,9 +518,15 @@ INTERVENTIONS PRINCIPALES À DÉCLINER EN ACTIVITÉS :
 DOCUMENTS SOURCES & DIRECTIVES (constats pays, guides OMS/IA2030, Gavi 6.0) :
 {_documents_block(documents, doc_budget)}
 
+⚠️ PRIORITÉ — RÉUTILISER LES ACTIVITÉS DU PAYS :
+Si le classeur OMS contient une feuille « Section 7_Activités » avec une colonne « Activités clés »
+renseignée, REPRENDS FIDÈLEMENT ces activités pour l'intervention correspondante (recopie-les), puis
+complète si nécessaire. Ne les réinvente pas quand elles existent déjà.
+
 TÂCHE — ACTIVITÉS OPÉRATIONNELLES (compatibles NIS.COST) :
 IMPÉRATIF DE COMPLÉTUDE : produis des activités pour CHACUNE des interventions listées ci-dessus —
-n'en omets AUCUNE (au moins 2 activités par intervention, en recopiant son intervention_id).
+n'en omets AUCUNE (au moins 2 activités par intervention, en recopiant EXACTEMENT son intervention_id).
+Vérifie AVANT de répondre que chaque intervention_id de la liste ci-dessus apparaît dans au moins une activité.
 Pour CHAQUE intervention ci-dessus, décompose-la en 2 à 4 ACTIVITÉS CLÉS concrètes. Pour CHAQUE activité,
 REMPLIS TOUS LES CHAMPS : intervention_id (recopie l'ID lié), objective_id, subcomponent_code, activity,
 implementation_level (National / Région-Gouvernorat / District / Formation sanitaire / Communauté /

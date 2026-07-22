@@ -294,6 +294,23 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                           [[iv.title, getattr(iv.priority_level, "value", iv.priority_level),
                             ", ".join(str(years[k]) for k in range(len(years)) if iv.timeline.get(f"Y{k+1}"))]
                            for iv in s.interventions])
+            # Intervention -> its activities (shows the link; one intervention has several activities).
+            if s.activities:
+                acts_by_iv: dict = {}
+                for a in s.activities:
+                    acts_by_iv.setdefault(a.intervention_id or "", []).append(a)
+                p = doc.add_paragraph()
+                p.add_run("Activités rattachées à chaque intervention" if fr
+                          else "Activities linked to each intervention").bold = True
+                for iv in s.interventions:
+                    acts = acts_by_iv.get(iv.intervention_id, [])
+                    q = doc.add_paragraph(style="List Bullet")
+                    r = q.add_run(f"{iv.title} : "); r.bold = True
+                    if acts:
+                        q.add_run("; ".join(a.activity for a in acts))
+                    else:
+                        rr = q.add_run("aucune activité — à compléter" if fr else "no activity — to complete")
+                        rr.font.color.rgb = _RED; rr.bold = True
         if key == "me" and s.indicators:
             cols = ["Indicateur" if fr else "Indicator", "Base" if fr else "Baseline"] + [str(y) for y in years]
             _titled_table(doc, "Indicateurs de suivi-évaluation et cibles" if fr else "M&E indicators and targets",
@@ -344,15 +361,19 @@ def build_narrative_word(s: NISStrategy) -> bytes:
 
         for iv in s.interventions:
             acts = acts_by_iv.get(iv.intervention_id, [])
-            if not acts:
-                continue
             p = doc.add_paragraph()
             r = p.add_run(f"{iv.intervention_id} — {iv.title}")
             r.bold = True; r.font.color.rgb = _PRIMARY; r.font.size = Pt(10.5)
             if iv.objective_id:
                 sub = p.add_run(f"   (objectif {iv.objective_id})" if fr else f"   (objective {iv.objective_id})")
                 sub.italic = True; sub.font.size = Pt(9)
-            _mini_table(doc, hdr, _act_rows(acts))
+            if acts:
+                _mini_table(doc, hdr, _act_rows(acts))
+            else:   # intervention with no activity -> flag in red so the gap is fixed
+                q = doc.add_paragraph()
+                rr = q.add_run("⚠️ Aucune activité rattachée — à compléter" if fr
+                               else "⚠️ No activity linked — to be completed")
+                rr.font.color.rgb = _RED; rr.bold = True; rr.font.size = Pt(9.5)
         # Activities not attached to any known intervention.
         orphans = [a for a in s.activities if (a.intervention_id or "") not in iv_ids]
         if orphans:
@@ -590,6 +611,22 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
                   [[iv.title, getattr(iv.priority_level, "value", iv.priority_level),
                     ", ".join(str(years[k]) for k in range(len(years)) if iv.timeline.get(f"Y{k+1}"))]
                    for iv in s.interventions], [W - 5.5 * cm, 1.8 * cm, 3.7 * cm])
+            if s.activities:
+                acts_by_iv2: dict = {}
+                for a in s.activities:
+                    acts_by_iv2.setdefault(a.intervention_id or "", []).append(a)
+                story.append(Paragraph("<b>Activités rattachées à chaque intervention</b>" if fr
+                                       else "<b>Activities linked to each intervention</b>", body))
+                for iv in s.interventions:
+                    acts = acts_by_iv2.get(iv.intervention_id, [])
+                    if acts:
+                        story.append(Paragraph(f"•&nbsp; <b>{esc(iv.title)}</b> : "
+                                               + esc("; ".join(a.activity for a in acts)), body))
+                    else:
+                        story.append(Paragraph(f'•&nbsp; <b>{esc(iv.title)}</b> : '
+                                               '<font color="#C00000"><b>aucune activité — à compléter</b></font>'
+                                               if fr else f'•&nbsp; <b>{esc(iv.title)}</b> : '
+                                               '<font color="#C00000"><b>no activity — to complete</b></font>', body))
         if key == "me" and s.indicators:
             cols = ["Indicateur" if fr else "Indicator", "Base"] + [str(y) for y in years]
             yw = (W - 5.5 * cm) / max(1, len(years))
@@ -640,13 +677,17 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
                                  spaceBefore=8, spaceAfter=2, fontName="Helvetica-Bold")
         for iv in s.interventions:
             acts = acts_by_iv.get(iv.intervention_id, [])
-            if not acts:
-                continue
             obj = (f"   (objectif {iv.objective_id})" if fr else f"   (objective {iv.objective_id})") \
                 if iv.objective_id else ""
             story.append(Paragraph(f"{esc(iv.intervention_id)} — {esc(iv.title)}<font size=8>{esc(obj)}</font>",
                                    iv_head))
-            table(act_hdr, _act_rows(acts), act_w)
+            if acts:
+                table(act_hdr, _act_rows(acts), act_w)
+            else:
+                story.append(Paragraph('<font color="#C00000"><b>⚠️ Aucune activité rattachée — à compléter'
+                                       '</b></font>' if fr else
+                                       '<font color="#C00000"><b>⚠️ No activity linked — to be completed'
+                                       '</b></font>', body))
         orphans = [a for a in s.activities if (a.intervention_id or "") not in iv_ids]
         if orphans:
             story.append(Paragraph(('<font color="#C00000"><b>Activités non rattachées à une intervention'

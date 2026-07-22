@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v29 (rapport : activites regroupees sous leur intervention)"
+APP_VERSION = "2026-07-05 · v30 (Excel+chapitre 7 groupes par intervention + IA reutilise Section 7 + interventions sans activite signalees)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR

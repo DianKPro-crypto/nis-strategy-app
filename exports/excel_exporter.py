@@ -248,11 +248,17 @@ def _sheet_activities(ws, s, lang):
 
     iv_by_id = {iv.intervention_id: iv for iv in s.interventions}
     obj_by_id = {o.obj_id: o for o in s.objectives}
-    r = 4
+    _RED_FONT = Font(color="C00000", bold=True)
+    _IV_FILL = PatternFill("solid", fgColor="E7EEF6")
+
+    # Group activities by intervention so EVERY intervention appears (grouped),
+    # and interventions with NO activity are flagged in red -> nothing is silently dropped.
+    acts_by_iv: dict = {}
     for a in s.activities:
+        acts_by_iv.setdefault(a.intervention_id or "", []).append(a)
+
+    def _emit_activity(r, a, iv, obj):
         cs = find_subcomponent(a.subcomponent_code)
-        iv = iv_by_id.get(a.intervention_id)
-        obj = obj_by_id.get(a.objective_id)
         vals = [cs[0].label(lang) if cs else a.component_code,
                 cs[1].label(lang) if cs else a.subcomponent_code,
                 obj.objective_text if obj else a.objective_id,
@@ -264,7 +270,28 @@ def _sheet_activities(ws, s, lang):
         for ci, v in enumerate([a.lead, ", ".join(a.partners), "; ".join(a.prerequisites),
                                 "; ".join(a.risks), "; ".join(a.deliverables)]):
             ws.cell(r, estart + ci, v).alignment = _WRAP
-        r += 1
+
+    r = 4
+    for iv in s.interventions:
+        obj = obj_by_id.get(iv.objective_id)
+        acts = acts_by_iv.get(iv.intervention_id, [])
+        if acts:
+            for a in acts:
+                _emit_activity(r, a, iv, obj); r += 1
+        else:   # intervention with no activity -> visible red flag instead of being dropped
+            cs = find_subcomponent(iv.subcomponent_code)
+            for ci, v in enumerate([cs[0].label(lang) if cs else iv.component_code,
+                                    cs[1].label(lang) if cs else iv.subcomponent_code,
+                                    obj.objective_text if obj else iv.objective_id, iv.title], 1):
+                ws.cell(r, ci, v).alignment = _WRAP
+            c = ws.cell(r, 5, "⚠️ AUCUNE ACTIVITÉ — À COMPLÉTER" if lang == "fr"
+                        else "⚠️ NO ACTIVITY — TO COMPLETE")
+            c.font = _RED_FONT; c.alignment = _WRAP
+            r += 1
+    # Orphan activities whose intervention_id matches no intervention.
+    for a in s.activities:
+        if (a.intervention_id or "") not in iv_by_id:
+            _emit_activity(r, a, None, obj_by_id.get(a.objective_id)); r += 1
     _widths(ws, {1: 20, 2: 20, 3: 28, 4: 26, 5: 32, 6: 22, **{c: 8 for c in range(ystart, ystart + len(years))}})
     ws.auto_filter.ref = f"A3:{get_column_letter(ncols)}3"
     ws.freeze_panes = "C4"
