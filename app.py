@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v33 (interventions/activites : appels 3x plus legers + garde anti-blocage)"
+APP_VERSION = "2026-07-05 · v34 (SWOT : chaque appel ne recoit que sa sous-composante - 24x plus leger)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR

@@ -9,6 +9,7 @@ Design principles enforced here (spec §6, §10):
 """
 from __future__ import annotations
 import json
+import re
 from core.epi_components import EPI_COMPONENTS, COUNTRY_SPECIFIC
 from core.models import CountryProfile, UploadedDocument
 
@@ -248,8 +249,27 @@ def _key_slice(text: str, cap: int) -> str:
     return head
 
 
+def _focus_slice(text: str, codes) -> str:
+    """Keep only the workbook rows belonging to the target sub-components (+ column headers),
+    so a per-subcomponent call ships a tiny, relevant slice instead of the whole 130k workbook."""
+    codes = set(codes or [])
+    if not codes:
+        return text or ""
+    keep, cur_in = [], False
+    for ln in (text or "").split("\n"):
+        if ln.startswith("COLONNES:") or ln.startswith("=== FEUILLE"):
+            keep.append(ln); continue
+        m = re.search(r"[Cc]omposantes?[^:]*:\s*(\d+\.\d+)", ln)
+        if m:
+            cur_in = m.group(1) in codes
+        if cur_in:
+            keep.append(ln)
+    sliced = "\n".join(keep).strip()
+    return sliced if sliced else (text or "")[:20000]
+
+
 def _documents_block(documents: list[UploadedDocument], budget_chars: int = 45000,
-                     priority_first: bool = True, key_cap: int = 130000) -> str:
+                     priority_first: bool = True, key_cap: int = 130000, focus_codes=None) -> str:
     if not documents:
         return "(Aucun document fourni / No documents provided.)"
     docs = list(documents)
@@ -263,7 +283,11 @@ def _documents_block(documents: list[UploadedDocument], budget_chars: int = 4500
     blocks, spent = [], 0
 
     def _emit(d, cap, key_doc=False):
-        body = _key_slice(d.text, cap) if key_doc else (d.text or "").strip()[:cap]
+        if key_doc:
+            src = _focus_slice(d.text, focus_codes) if focus_codes else (d.text or "")
+            body = _key_slice(src, cap)
+        else:
+            body = (d.text or "").strip()[:cap]
         blocks.append(
             f"### DOCUMENT: {d.name} (type={d.file_type}, pages/slides={d.n_pages}, "
             f"catégorie={d.doc_category})\n{d.tables_summary}\n{body}")
@@ -346,7 +370,7 @@ SOUS-COMPOSANTES À COUVRIR (codes : {codes}) :
 {sub_lines}
 
 DOCUMENTS SOURCES & DIRECTIVES (ta source prioritaire — constats pays, guides OMS/IA2030, normes) :
-{_documents_block(documents, doc_budget)}{ew}
+{_documents_block(documents, doc_budget, focus_codes=[s.code for s in subs])}{ew}
 
 TÂCHE — ANALYSE FFOM COMPLÈTE :
 Pour CHACUNE des sous-composantes ci-dessus (un item par sous-composante, subcomponent_code = code exact),
