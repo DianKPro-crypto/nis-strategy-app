@@ -711,25 +711,37 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
 
 def _parallel_calls(tasks, progress=None) -> list:
     """Run (label, thunk) tasks CONCURRENTLY; each thunk returns a list of items -> flattened.
-    Progress is reported from the caller (main) thread, so it is Streamlit-safe."""
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    Progress is reported from the caller (main) thread, so it is Streamlit-safe.
+    A global deadline guarantees the step returns partial results instead of hanging forever
+    if a single call stalls (client already has per-request timeout+retries)."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as _FTimeout
     if not tasks:
         return []
     workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), len(tasks)))
     out, done, n = [], 0, len(tasks)
-    with ThreadPoolExecutor(max_workers=workers) as ex:
+    # Generous ceiling so a stalled call can't freeze the whole step (e.g. the 11/26 hang).
+    deadline = max(600, 150 * ((n + workers - 1) // workers))
+    ex = ThreadPoolExecutor(max_workers=workers)
+    try:
         futs = {ex.submit(thunk): label for label, thunk in tasks}
-        for fut in as_completed(futs):
-            label = futs[fut]
-            try:
-                r = fut.result()
-                if r:
-                    out.extend(r)
-            except Exception:
-                pass
-            if progress:
-                progress(done, n, label)
-                done += 1
+        try:
+            for fut in as_completed(futs, timeout=deadline):
+                label = futs[fut]
+                try:
+                    r = fut.result()
+                    if r:
+                        out.extend(r)
+                except Exception:
+                    pass
+                if progress:
+                    progress(done, n, label)
+                    done += 1
+        except _FTimeout:
+            pass   # deadline hit -> return whatever completed; remaining calls are abandoned
+    finally:
+        # Do NOT wait: cancel queued calls and let any still-running one finish in the background,
+        # so a single stalled request can never freeze the whole step.
+        ex.shutdown(wait=False, cancel_futures=True)
     return out
 
 

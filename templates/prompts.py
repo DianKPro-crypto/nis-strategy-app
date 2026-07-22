@@ -234,26 +234,43 @@ def _is_key_workbook(d: UploadedDocument) -> bool:
     return hits >= 2
 
 
+def _key_slice(text: str, cap: int) -> str:
+    """Bound a key workbook's text to `cap` chars WITHOUT losing the Section 7 tail
+    (interventions / key activities), which sits at the end of the file. Keeps head + Section 7."""
+    txt = (text or "").strip()
+    if len(txt) <= cap:
+        return txt
+    head = txt[:cap]
+    for marker in ("=== FEUILLE: Section 7", "SECTION 7", "Section 7_Activ"):
+        m = txt.find(marker)
+        if m >= cap:                       # Section 7 is beyond the head -> append its slice
+            return head + "\n… (extrait) …\n" + txt[m:m + 15000]
+    return head
+
+
 def _documents_block(documents: list[UploadedDocument], budget_chars: int = 45000,
-                     priority_first: bool = True) -> str:
+                     priority_first: bool = True, key_cap: int = 130000) -> str:
     if not documents:
         return "(Aucun document fourni / No documents provided.)"
     docs = list(documents)
     # Give the completed workbook(s) a large dedicated slice FIRST so their filled analysis
     # (POURQUOI, problème principal) actually reaches the model; the rest share what remains.
+    # `key_cap` bounds that slice: use the full workbook for low-fan-out steps (causes: 7 calls),
+    # and a SMALLER slice for high-fan-out per-objective steps (interventions/activities: ~26 calls)
+    # so each of the many calls stays fast instead of shipping 130k chars every time.
     key = [d for d in docs if priority_first and _is_key_workbook(d)]
     rest = [d for d in docs if d not in key]
     blocks, spent = [], 0
 
-    def _emit(d, cap):
-        body = (d.text or "").strip()[:cap]
+    def _emit(d, cap, key_doc=False):
+        body = _key_slice(d.text, cap) if key_doc else (d.text or "").strip()[:cap]
         blocks.append(
             f"### DOCUMENT: {d.name} (type={d.file_type}, pages/slides={d.n_pages}, "
             f"catégorie={d.doc_category})\n{d.tables_summary}\n{body}")
         return len(body)
 
     for d in key:
-        spent += _emit(d, min(130000, len(d.text or "")))      # near-full for the key workbook(s)
+        spent += _emit(d, min(key_cap, len(d.text or "")), key_doc=True)
     remaining = max(0, budget_chars - spent)
     per = max(1500, remaining // max(1, len(rest))) if rest else 0
     for d in rest:
@@ -467,7 +484,7 @@ OBJECTIFS STRATÉGIQUES PRIORITAIRES (pour CHACUN, proposer 3 à 5 interventions
 {olist}
 
 DOCUMENTS SOURCES (ta SEULE source de vérité — consulte-les pour étayer chaque champ) :
-{_documents_block(documents, doc_budget)}
+{_documents_block(documents, doc_budget, key_cap=30000)}
 
 ⚠️ PRIORITÉ — RÉUTILISER LES INTERVENTIONS DU PAYS :
 Si un document source contient déjà une colonne « Interventions principales » renseignée (classeur OMS de
@@ -516,7 +533,7 @@ INTERVENTIONS PRINCIPALES À DÉCLINER EN ACTIVITÉS :
 {ilist}
 
 DOCUMENTS SOURCES & DIRECTIVES (constats pays, guides OMS/IA2030, Gavi 6.0) :
-{_documents_block(documents, doc_budget)}
+{_documents_block(documents, doc_budget, key_cap=30000)}
 
 ⚠️ PRIORITÉ — RÉUTILISER LES ACTIVITÉS DU PAYS :
 Si le classeur OMS contient une feuille « Section 7_Activités » avec une colonne « Activités clés »
