@@ -567,7 +567,42 @@ def _generate_root_causes_from_weaknesses(profile, documents, language, strategy
                     first.setdefault("whys", []).append(w)
             if not first.get("main_problem") and it.get("main_problem"):
                 first["main_problem"] = it["main_problem"]
+
+    # ⭐ FIDELITY OVERRIDE: if the uploaded WHO workbook has the country's own columns K
+    # (Dernier POURQUOI) and L (Problème principal), impose them VERBATIM — never paraphrased.
+    seq = _who_sequence(documents)
+    if seq:
+        for code, v in seq.items():
+            rec = by_sub.get(code)
+            if rec is None:      # sub-component absent from the AI output -> add it from the workbook
+                comp = _comp_for_sub(code)
+                rec = {"component_code": comp, "subcomponent_code": code, "weakness": "",
+                       "whys": [], "final_why": "", "main_problem": ""}
+                by_sub[code] = rec
+            if v.get("probleme_principal"):
+                rec["main_problem"] = v["probleme_principal"]          # col L, verbatim
+            if v.get("dernier_pourquoi"):
+                rec["final_why"] = v["dernier_pourquoi"]               # col K, verbatim
+            if v.get("weaknesses") and not rec.get("weakness"):
+                rec["weakness"] = " ; ".join(v["weaknesses"][:5])
     return {"items": list(by_sub.values())}
+
+
+def _who_sequence(documents) -> dict:
+    """Merge the parsed WHO 'sequence' analysis (cols K/L) from every uploaded workbook."""
+    out: dict = {}
+    for d in (documents or []):
+        seq = (getattr(d, "metadata", None) or {}).get("who_sequence") or {}
+        for code, v in seq.items():
+            if code not in out or (not out[code].get("probleme_principal") and v.get("probleme_principal")):
+                out[code] = v
+    return out
+
+
+def _comp_for_sub(sub_code: str) -> str:
+    from core.epi_components import find_subcomponent
+    hit = find_subcomponent(sub_code)
+    return hit[0].code if hit else (sub_code.split(".")[0] if "." in sub_code else "")
 
 
 def _weak_by_sub(strategy) -> dict:

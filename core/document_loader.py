@@ -8,6 +8,7 @@ UploadedDocument with an error note rather than crashing the app.
 from __future__ import annotations
 import csv
 import io
+import re
 from pathlib import Path
 
 from config.settings import ALLOWED_EXTENSIONS, MAX_TEXT_CHARS_PER_DOC
@@ -110,6 +111,80 @@ def _xlsx(b: bytes, doc: UploadedDocument) -> None:
     doc.text = "\n".join(parts)
     doc.tables_summary = f"[Excel: feuilles = {', '.join(sheets)}]"
     doc.metadata["sheets"] = sheets
+    # Structured parse of a completed WHO "sequence of events" sheet so columns K/L
+    # (Dernier POURQUOI / Problème principal) are reused VERBATIM, not paraphrased by the AI.
+    try:
+        seq = _parse_who_sequence(wb)
+        if seq:
+            doc.metadata["who_sequence"] = seq
+    except Exception:
+        pass
+
+
+_SUBCODE_RE = re.compile(r"^\s*(\d+\.\d+)\b")
+
+
+def _parse_who_sequence(wb) -> dict:
+    """Map each sub-component code -> its country-filled analysis from the WHO 'Séquence' sheet:
+    {'1.1': {'probleme_principal': str, 'dernier_pourquoi': str, 'weaknesses': [str,...]}}."""
+    def _norm(x):
+        return (str(x).strip() if x is not None else "")
+
+    for ws in wb.worksheets:
+        rows = [[ _norm(c) for c in r] for r in ws.iter_rows(values_only=True)]
+        # locate the header row that carries the WHO columns
+        h_idx = -1
+        for i, r in enumerate(rows[:8]):
+            joined = " | ".join(r)
+            if "POURQUOI" in joined and ("Problème principal" in joined or "Problème/Obstacle" in joined):
+                h_idx = i; break
+        if h_idx < 0:
+            continue
+        hdr = rows[h_idx]
+
+        def _find(*needles):
+            for ci, h in enumerate(hdr):
+                if any(n.lower() in h.lower() for n in needles):
+                    return ci
+            return None
+        c_sub = _find("composantes et sous", "sous-composante") or 0
+        c_last = _find("Dernier POURQUOI")
+        c_prob = _find("Problème principal", "Problème/Obstacle")
+        c_weak = _find("Faiblesse")
+        if c_prob is None and c_last is None:
+            continue
+
+        out: dict = {}
+        cur = None
+        for r in rows[h_idx + 1:]:
+            cell0 = r[c_sub] if c_sub < len(r) else ""
+            m = _SUBCODE_RE.match(cell0)
+            if m:
+                cur = m.group(1)
+                out.setdefault(cur, {"probleme_principal": "", "dernier_pourquoi": [], "weaknesses": []})
+            if cur is None:
+                continue
+            def _cell(idx):
+                return r[idx] if (idx is not None and idx < len(r)) else ""
+            prob = _cell(c_prob)
+            if prob and prob not in ("0",) and not out[cur]["probleme_principal"]:
+                out[cur]["probleme_principal"] = prob
+            last = _cell(c_last)
+            if last and last not in ("0",):
+                out[cur]["dernier_pourquoi"].append(last)
+            weak = _cell(c_weak)
+            if weak and weak not in ("0",):
+                out[cur]["weaknesses"].append(weak)
+        # keep only sub-components that actually carry country content
+        clean = {}
+        for code, v in out.items():
+            if v["probleme_principal"] or v["dernier_pourquoi"]:
+                clean[code] = {"probleme_principal": v["probleme_principal"],
+                               "dernier_pourquoi": " ; ".join(v["dernier_pourquoi"]),
+                               "weaknesses": v["weaknesses"]}
+        if clean:
+            return clean
+    return {}
 
 
 def _pptx(b: bytes, doc: UploadedDocument) -> None:
