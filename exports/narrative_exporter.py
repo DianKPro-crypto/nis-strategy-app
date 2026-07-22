@@ -323,14 +323,44 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                        "Opportunités", "Menaces"], rows)
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
-    _H(doc, "Annexe B — Chronogramme des activités" if fr else "Annex B — Activity timeline", 2)
+    _H(doc, "Annexe B — Activités par intervention" if fr else "Annex B — Activities by intervention", 2)
     if s.activities:
-        _titled_table(doc, "Chronogramme des activités" if fr else "Activity timeline",
-                      ["Activité" if fr else "Activity", "Niveau" if fr else "Level",
-                       "Responsable" if fr else "Lead", "Années" if fr else "Years"],
-                      [[a.activity, a.implementation_level, a.lead,
-                        ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
-                       for a in s.activities])
+        doc.add_paragraph(
+            "Chaque activité est rattachée à l’intervention qu’elle met en œuvre (une intervention "
+            "comporte généralement plusieurs activités)." if fr else
+            "Each activity is linked to the intervention it implements (one intervention usually has "
+            "several activities).").runs[0].italic = True
+        hdr = ["Activité" if fr else "Activity", "Niveau" if fr else "Level",
+               "Responsable" if fr else "Lead", "Années" if fr else "Years"]
+        iv_ids = {iv.intervention_id for iv in s.interventions}
+        acts_by_iv: dict = {}
+        for a in s.activities:
+            acts_by_iv.setdefault(a.intervention_id or "", []).append(a)
+
+        def _act_rows(acts):
+            return [[a.activity, a.implementation_level, a.lead,
+                     ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
+                    for a in acts]
+
+        for iv in s.interventions:
+            acts = acts_by_iv.get(iv.intervention_id, [])
+            if not acts:
+                continue
+            p = doc.add_paragraph()
+            r = p.add_run(f"{iv.intervention_id} — {iv.title}")
+            r.bold = True; r.font.color.rgb = _PRIMARY; r.font.size = Pt(10.5)
+            if iv.objective_id:
+                sub = p.add_run(f"   (objectif {iv.objective_id})" if fr else f"   (objective {iv.objective_id})")
+                sub.italic = True; sub.font.size = Pt(9)
+            _mini_table(doc, hdr, _act_rows(acts))
+        # Activities not attached to any known intervention.
+        orphans = [a for a in s.activities if (a.intervention_id or "") not in iv_ids]
+        if orphans:
+            p = doc.add_paragraph()
+            r = p.add_run("Activités non rattachées à une intervention" if fr
+                          else "Activities not linked to an intervention")
+            r.bold = True; r.font.color.rgb = _RED; r.font.size = Pt(10.5)
+            _mini_table(doc, hdr, _act_rows(orphans))
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
     _H(doc, "Annexe C — Cadre de S&E détaillé" if fr else "Annex C — Detailed M&E framework", 2)
@@ -586,13 +616,44 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
         table(["Sous-comp." if fr else "Subcomp.", "Forces", "Faiblesses", "Opport.", "Menaces"],
               rows, [3.2 * cm, (W - 3.2 * cm) / 4] * 1 + [(W - 3.2 * cm) / 4] * 4)
     if s.activities:
-        story.append(Paragraph("Annexe B — Chronogramme des activités" if fr
-                               else "Annex B — Activity timeline", h2))
-        table(["Activité" if fr else "Activity", "Niveau" if fr else "Level", "Resp.",
-               "Années" if fr else "Years"],
-              [[a.activity, a.implementation_level, a.lead,
-                ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
-               for a in s.activities], [W - 8.5 * cm, 3 * cm, 2.5 * cm, 3 * cm])
+        story.append(Paragraph("Annexe B — Activités par intervention" if fr
+                               else "Annex B — Activities by intervention", h2))
+        story.append(Paragraph(
+            ("<i>Chaque activité est rattachée à l’intervention qu’elle met en œuvre "
+             "(une intervention comporte généralement plusieurs activités).</i>" if fr else
+             "<i>Each activity is linked to the intervention it implements (one intervention usually "
+             "has several activities).</i>"), body))
+        act_hdr = ["Activité" if fr else "Activity", "Niveau" if fr else "Level", "Resp.",
+                   "Années" if fr else "Years"]
+        act_w = [W - 8.5 * cm, 3 * cm, 2.5 * cm, 3 * cm]
+        iv_ids = {iv.intervention_id for iv in s.interventions}
+        acts_by_iv: dict = {}
+        for a in s.activities:
+            acts_by_iv.setdefault(a.intervention_id or "", []).append(a)
+
+        def _act_rows(acts):
+            return [[a.activity, a.implementation_level, a.lead,
+                     ", ".join(str(years[k]) for k in range(len(years)) if a.years.get(f"Y{k+1}"))]
+                    for a in acts]
+
+        iv_head = ParagraphStyle("ivh", parent=body, textColor=PRIM, fontSize=10,
+                                 spaceBefore=8, spaceAfter=2, fontName="Helvetica-Bold")
+        for iv in s.interventions:
+            acts = acts_by_iv.get(iv.intervention_id, [])
+            if not acts:
+                continue
+            obj = (f"   (objectif {iv.objective_id})" if fr else f"   (objective {iv.objective_id})") \
+                if iv.objective_id else ""
+            story.append(Paragraph(f"{esc(iv.intervention_id)} — {esc(iv.title)}<font size=8>{esc(obj)}</font>",
+                                   iv_head))
+            table(act_hdr, _act_rows(acts), act_w)
+        orphans = [a for a in s.activities if (a.intervention_id or "") not in iv_ids]
+        if orphans:
+            story.append(Paragraph(('<font color="#C00000"><b>Activités non rattachées à une intervention'
+                                    '</b></font>' if fr else
+                                    '<font color="#C00000"><b>Activities not linked to an intervention'
+                                    '</b></font>'), iv_head))
+            table(act_hdr, _act_rows(orphans), act_w)
     if s.root_causes:
         story.append(Paragraph("Annexe C — Analyse des causes profondes" if fr
                                else "Annex C — Root-cause analysis", h2))

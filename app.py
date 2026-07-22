@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v28 (PDF chapitres numerotes + donnees manquantes en rouge Word/PDF)"
+APP_VERSION = "2026-07-05 · v29 (rapport : activites regroupees sous leur intervention)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
