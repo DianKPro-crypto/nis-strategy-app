@@ -50,7 +50,9 @@ SUPABASE_KEY = _secret("SUPABASE_KEY", "")
 # ---- Uploads ----
 ALLOWED_EXTENSIONS = {"docx", "xlsx", "pptx", "pdf", "csv", "txt"}
 MAX_FILE_MB = int(os.getenv("MAX_FILE_MB", "25"))
-MAX_TEXT_CHARS_PER_DOC = int(os.getenv("MAX_TEXT_CHARS_PER_DOC", "60000"))
+# 130k so a full completed WHO workbook (7 components × FFOM/POURQUOI/problème principal) is
+# not truncated mid-analysis (the sequence sheet spans all 7 EPI components).
+MAX_TEXT_CHARS_PER_DOC = int(os.getenv("MAX_TEXT_CHARS_PER_DOC", "130000"))
 
 # ---- Branding ----
 INSTITUTION_PRIMARY = "#0093D5"   # WHO blue

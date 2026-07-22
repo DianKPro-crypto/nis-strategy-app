@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v25 (causes profondes : 26 obstacles max + probleme principal + import docs)"
+APP_VERSION = "2026-07-05 · v26 (l IA lit vraiment le classeur Excel rempli : extraction par colonnes + priorite)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR

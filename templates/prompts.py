@@ -209,17 +209,38 @@ def _components_block(lang: str, focus=None) -> str:
     return "\n".join(lines)
 
 
-def _documents_block(documents: list[UploadedDocument], budget_chars: int = 45000) -> str:
+def _is_key_workbook(d: UploadedDocument) -> bool:
+    """A source that already contains a completed WHO analysis (FFOM → POURQUOI → problème
+    principal). Such a workbook must be passed to the AI almost in full, not diluted."""
+    t = (d.text or "").lower()
+    hits = sum(k in t for k in ("pourquoi", "problème principal", "faiblesse", "sous-composante"))
+    return hits >= 2
+
+
+def _documents_block(documents: list[UploadedDocument], budget_chars: int = 45000,
+                     priority_first: bool = True) -> str:
     if not documents:
         return "(Aucun document fourni / No documents provided.)"
-    per = max(1500, budget_chars // max(1, len(documents)))
-    blocks = []
-    for d in documents:
-        body = (d.text or "").strip()[:per]
+    docs = list(documents)
+    # Give the completed workbook(s) a large dedicated slice FIRST so their filled analysis
+    # (POURQUOI, problème principal) actually reaches the model; the rest share what remains.
+    key = [d for d in docs if priority_first and _is_key_workbook(d)]
+    rest = [d for d in docs if d not in key]
+    blocks, spent = [], 0
+
+    def _emit(d, cap):
+        body = (d.text or "").strip()[:cap]
         blocks.append(
             f"### DOCUMENT: {d.name} (type={d.file_type}, pages/slides={d.n_pages}, "
-            f"catégorie={d.doc_category})\n{d.tables_summary}\n{body}"
-        )
+            f"catégorie={d.doc_category})\n{d.tables_summary}\n{body}")
+        return len(body)
+
+    for d in key:
+        spent += _emit(d, min(130000, len(d.text or "")))      # near-full for the key workbook(s)
+    remaining = max(0, budget_chars - spent)
+    per = max(1500, remaining // max(1, len(rest))) if rest else 0
+    for d in rest:
+        _emit(d, per)
     return "\n\n".join(blocks)
 
 
@@ -337,7 +358,14 @@ FAIBLESSES DOCUMENTÉES, REGROUPÉES PAR SOUS-COMPOSANTE (issues de l'analyse FF
 {wlist}
 
 DOCUMENTS SOURCES & DIRECTIVES (consulte-les pour éclairer ton raisonnement : constats pays, guides OMS, normes) :
-{_documents_block(documents)}
+{_documents_block(documents, budget_chars=90000)}
+
+⚠️ PRIORITÉ ABSOLUE — RÉUTILISER L'ANALYSE DÉJÀ REMPLIE :
+Si un document source contient DÉJÀ une analyse renseignée (colonnes « Faiblesse », « POURQUOI-1/2/3 »,
+« Dernier POURQUOI », « Problème principal » — typiquement le classeur OMS rempli lors de l'atelier pays),
+tu DOIS EXTRAIRE et RÉUTILISER ce contenu tel quel comme base PRINCIPALE, sous-composante par sous-composante.
+NE RÉINVENTE PAS une analyse parallèle : recopie fidèlement les POURQUOI et le problème principal du pays,
+et complète UNIQUEMENT les cases vides avec ton raisonnement. Le contenu du pays PRIME sur le tien.
 
 TÂCHE — ANALYSE DES CAUSES PROFONDES (méthode OMS « SWOT to Activities », Sections 2 et 3) :
 Tu produis EXACTEMENT UN enregistrement PAR SOUS-COMPOSANTE listée ci-dessus (au plus {n_sub} pour cette

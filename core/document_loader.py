@@ -75,13 +75,38 @@ def _xlsx(b: bytes, doc: UploadedDocument) -> None:
     for ws in wb.worksheets:
         sheets.append(ws.title)
         parts.append(f"=== FEUILLE: {ws.title} ===")
-        for i, row in enumerate(ws.iter_rows(values_only=True)):
-            if i > 200:
+        rows = list(ws.iter_rows(values_only=True))
+        # Detect a header row = the row (in the first 8) with the most distinct text cells.
+        # This lets us LABEL each value with its column (e.g. "POURQUOI-1", "Problème principal"),
+        # so the structure of a WHO workbook survives extraction instead of being flattened.
+        def _score(r):
+            return sum(1 for c in r if isinstance(c, str) and c.strip())
+        header, h_idx = None, -1
+        for i, r in enumerate(rows[:8]):
+            if _score(r) >= 3 and _score(r) > (_score(header) if header else 0):
+                header, h_idx = r, i
+        hdr = [str(c).strip() if c is not None else "" for c in header] if header else []
+        for i, row in enumerate(rows):
+            if i > 300:
                 parts.append("... (tronqué)")
                 break
-            cells = [str(c) for c in row if c is not None]
-            if cells:
-                parts.append("\t".join(cells))
+            vals = [("" if c is None else str(c).strip()) for c in row]
+            if not any(vals):
+                continue
+            if i == h_idx:
+                parts.append("COLONNES: " + " | ".join(v for v in hdr if v))
+                continue
+            if hdr:
+                # Pair each non-empty value with its column header -> "Colonne: valeur".
+                pairs = []
+                for ci, v in enumerate(vals):
+                    if not v:
+                        continue
+                    col = hdr[ci] if ci < len(hdr) and hdr[ci] else f"col{ci+1}"
+                    pairs.append(f"{col}: {v[:600]}")
+                parts.append(" | ".join(pairs))
+            else:
+                parts.append("\t".join(v for v in vals if v))
     doc.text = "\n".join(parts)
     doc.tables_summary = f"[Excel: feuilles = {', '.join(sheets)}]"
     doc.metadata["sheets"] = sheets
