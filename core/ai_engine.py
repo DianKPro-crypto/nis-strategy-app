@@ -62,25 +62,81 @@ def _fix_pct(text: str) -> str:
     return re.sub(r"(\d)[\s  ]+%", r"\1%", text or "")
 
 
-def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE) -> str:
+_WEB_LOCK = __import__("threading").Lock()
+
+
+def _web_tool(enable: bool = True) -> list:
+    """Anthropic web_search server tool, restricted to credible official domains — or []
+    if disabled. Lets the AI supplement uploaded documents with official data (WHO, Gavi,
+    UNICEF, UNFPA, World Bank, IMF, UN…)."""
+    if not (enable and getattr(settings, "AI_WEB_SEARCH", False)):
+        return []
+    tool = {"type": settings.WEB_SEARCH_TOOL_TYPE, "name": "web_search",
+            "max_uses": settings.WEB_SEARCH_MAX_USES}
+    if settings.WEB_SEARCH_DOMAINS:
+        tool["allowed_domains"] = settings.WEB_SEARCH_DOMAINS
+    return [tool]
+
+
+def _collect_web_sources(msg, sink) -> None:
+    """Append {title, url} of every official page the AI actually consulted (thread-safe)."""
+    if sink is None:
+        return
+    found = []
+    for b in (getattr(msg, "content", None) or []):
+        if getattr(b, "type", "") == "web_search_tool_result":
+            for r in (getattr(b, "content", None) or []):
+                url = getattr(r, "url", None)
+                if url:
+                    found.append({"title": getattr(r, "title", None) or url, "url": url})
+        for c in (getattr(b, "citations", None) or []):
+            url = getattr(c, "url", None)
+            if url:
+                found.append({"title": getattr(c, "title", None) or url, "url": url})
+    if found:
+        with _WEB_LOCK:
+            have = {s.get("url") for s in sink}
+            for f in found:
+                if f["url"] not in have:
+                    sink.append(f); have.add(f["url"])
+
+
+def _call_claude_text(prompt: str, system: str = SYSTEM_PROMPT_NARRATIVE,
+                      web: bool = False, sources_sink=None) -> str:
     """Prose call (no JSON parsing) — for narrative writing and financial reports.
     STREAMS the response (keeps the connection alive for large max_tokens — avoids the
-    non-streaming hang on Streamlit Cloud) and uses a lower effort ('medium') for speed;
-    falls back gracefully if the model/SDK doesn't accept the effort parameter."""
+    non-streaming hang on Streamlit Cloud) and uses a lower effort for speed.
+    Optionally enables official-site web search; degrades gracefully (effort → tools → plain)
+    if the model/SDK rejects a parameter, so generation never breaks."""
     client = _client()
     kw = dict(model=settings.ANTHROPIC_MODEL, max_tokens=settings.AI_MAX_TOKENS,
               system=system, messages=[{"role": "user", "content": prompt}])
     effort = (settings.AI_EFFORT or "").strip().lower()
+    tools = _web_tool(web)
+    eff_extra = {"extra_body": {"output_config": {"effort": effort}}} if effort in (
+        "low", "medium", "high") else {}
 
     def _stream(**extra):
         with client.messages.stream(**kw, **extra) as st:
             return st.get_final_message()
 
-    try:
-        msg = _stream(extra_body={"output_config": {"effort": effort}}) if effort in (
-            "low", "medium", "high") else _stream()
-    except Exception:
-        msg = _stream()   # effort not supported -> plain streamed call
+    # Ordered fallbacks: (tools+effort) → (tools) → (effort) → (plain). First that works wins.
+    attempts = []
+    if tools:
+        attempts.append({**eff_extra, "tools": tools})
+        attempts.append({"tools": tools})
+    if eff_extra:
+        attempts.append(eff_extra)
+    attempts.append({})
+    msg, last_err = None, None
+    for a in attempts:
+        try:
+            msg = _stream(**a); break
+        except Exception as e:
+            last_err = e
+    if msg is None:
+        raise AIError(f"appel IA échoué : {last_err}")
+    _collect_web_sources(msg, sources_sink)
     return _fix_pct("".join(getattr(b, "text", "") for b in msg.content).strip())
 
 
@@ -246,10 +302,15 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
                       "pour CHACUNE des 7 composantes du PEV, approfondie et chiffrée.)")
         return _narrative_context(key, strategy, language)
 
+    # Chapters that benefit from official external data (macro-economy, coverage, targets).
+    WEB_SECTIONS = {"positioning", "situation", "financing", "special", "me"}
+    web_sink: list = []
+
     def _run(key, title):   # runs in a worker thread — no Streamlit access here
         docs = all_docs if key in DOC_SECTIONS else None
         return _call_claude_text(build_narrative_prompt(
-            strategy.profile, language, title, _ctx_for(key), draft=draft, documents=docs))
+            strategy.profile, language, title, _ctx_for(key), draft=draft, documents=docs),
+            web=(key in WEB_SECTIONS), sources_sink=web_sink)
 
     tasks = [(key, (fr if language == "fr" else en)) for (key, fr, en) in NARRATIVE_SECTIONS]
     out: dict[str, str] = {}
@@ -277,6 +338,9 @@ def generate_narrative(strategy, language: str, progress=None) -> dict:
     if retry:
         _run_pool(retry)
     strategy.narrative = {key: out.get(key, "") for key, _, _ in NARRATIVE_SECTIONS}
+    # Store the official web sources the AI actually consulted -> bibliography annex.
+    if web_sink:
+        strategy.web_sources = web_sink
     return strategy.narrative
 
 
@@ -284,8 +348,35 @@ def generate_financial(profile, language: str, niscost_text: str) -> str:
     return _call_claude_text(build_financial_prompt(profile, language, niscost_text))
 
 
-def generate_qa(profile, language: str, document_text: str) -> dict:
-    return _call_claude(build_qa_prompt(profile, language, document_text))
+def evidence_coverage(strategy) -> dict:
+    """Per-section share of items backed by a documentary source (evidence[] with a document name).
+    Returns {section: {'total': n, 'sourced': m, 'pct': p}} plus a global entry."""
+    sections = {
+        "root_causes": getattr(strategy, "root_causes", []) or [],
+        "objectives": getattr(strategy, "objectives", []) or [],
+        "interventions": getattr(strategy, "interventions", []) or [],
+        "indicators": getattr(strategy, "indicators", []) or [],
+        "activities": getattr(strategy, "activities", []) or [],
+    }
+    out, g_tot, g_src = {}, 0, 0
+    for name, items in sections.items():
+        tot = len(items)
+        src = 0
+        for it in items:
+            evs = getattr(it, "evidence", None) or []
+            if any((getattr(e, "document_name", "") or "").strip() for e in evs):
+                src += 1
+        out[name] = {"total": tot, "sourced": src, "pct": round(100 * src / tot) if tot else 0}
+        g_tot += tot; g_src += src
+    out["_global"] = {"total": g_tot, "sourced": g_src,
+                      "pct": round(100 * g_src / g_tot) if g_tot else 0}
+    return out
+
+
+def generate_qa(profile, language: str, document_text: str, documents=None) -> dict:
+    """AI quality assurance. Cross-checks the produced document against the SOURCE DOCUMENTS
+    (flags figures/claims not supported by them) and may verify against official web data."""
+    return _call_claude(build_qa_prompt(profile, language, document_text, documents=documents))
 
 
 def _call_claude(prompt: str) -> dict:

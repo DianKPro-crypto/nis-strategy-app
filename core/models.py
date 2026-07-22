@@ -283,6 +283,8 @@ class NISStrategy(_Model):
     financial_report: str = ""                                # from NIS.COST
     niscost_text: str = ""                                    # extracted NIS.COST source
     snv_draft_text: str = ""                                  # uploaded draft NIS the AI builds upon
+    # Official web sources the AI cited during the write-up (title + url) — feeds the bibliography.
+    web_sources: list[dict] = Field(default_factory=list)
 
     # ---- serialization helpers (v1/v2 compatible) ----
     def to_dict(self) -> dict:

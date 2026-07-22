@@ -146,11 +146,13 @@ CONSIGNE — RÉDACTION DE HAUT NIVEAU (document de soumission MoH/OMS/Gavi) :
   Utilise le tableau d'ancrage ci-dessus. Intègre aussi les priorités Gavi 6.0 (zéro dose, équité, RSS/SSP,
   durabilité et cofinancement, nouveaux vaccins, résilience).
 - Développe : contexte, constats, justification, implications, orientations stratégiques et résultats attendus.
-- STATISTIQUES : enrichis l'analyse (surtout l'analyse de situation) avec des données chiffrées pertinentes
-  (couverture vaccinale DTC3/RR, taux de zéro dose, démographie, financement) issues de SOURCES FIABLES ET
-  PUBLIQUES que tu connais (OMS/WUENIC, UNICEF, Banque mondiale, DHS/EDS, rapports nationaux). Pour CHAQUE
-  chiffre externe, CITE la source et l'année entre parenthèses (ex. « (WUENIC 2023) ») et signale-le comme
-  « à vérifier par l'équipe pays ». Ne fabrique jamais un chiffre sans source.
+- STATISTIQUES & RECHERCHE WEB : enrichis l'analyse (surtout situation, financement, S&E) avec des données
+  chiffrées récentes (couverture DTC3/RR, zéro dose, démographie, PIB, dépenses de santé, financement PEV).
+  Si l'outil de RECHERCHE WEB est disponible, CONSULTE en priorité les sites officiels — OMS (who.int,
+  immunizationdata.who.int, GHO), UNICEF (data.unicef.org), Banque mondiale (data.worldbank.org), FMI,
+  UNFPA, ONU, Gavi — et cite la source ET l'année entre parenthèses (ex. « (WUENIC 2023) », « (Banque
+  mondiale 2024) »). Signale chaque chiffre externe comme « à vérifier par l'équipe pays ».
+  Ne fabrique JAMAIS un chiffre sans source vérifiable.
 - FORMAT : colle toujours le symbole % au chiffre, sans espace (ex. 80%, pas 80 %).
 - Style narratif riche, précis, argumenté. Réponds UNIQUEMENT par le texte rédigé de la section (pas de
   titre, pas de JSON)."""
@@ -176,21 +178,36 @@ Base tous les montants UNIQUEMENT sur les données fournies ; n'invente aucun ch
 si absent). Aligne l'analyse sur la trajectoire de cofinancement Gavi 6.0. Réponds par le texte du rapport."""
 
 
-def build_qa_prompt(profile: CountryProfile, language: str, document_text: str) -> str:
+def build_qa_prompt(profile: CountryProfile, language: str, document_text: str,
+                    documents: list[UploadedDocument] | None = None) -> str:
     lang_name = "français" if language == "fr" else "English"
     schema = {"score": "0-100", "overall": "str",
               "findings": [{"section": "str", "severity": "critique|majeur|mineur",
-                            "issue": "str", "recommendation": "str"}]}
+                            "issue": "str", "recommendation": "str",
+                            "fact_check": "conforme|non_source|contredit|na"}]}
+    sources_block = ""
+    if documents:
+        sources_block = f"""
+
+DOCUMENTS SOURCES (vérité de référence — c'est CONTRE eux que tu dois recouper les faits/chiffres) :
+{_documents_block(documents, budget_chars=80000)}"""
     return f"""LANGUE DE SORTIE : {lang_name}
 Tu es évaluateur qualité senior d'une Stratégie Nationale de Vaccination (normes OMS/IA2030/Gavi 6.0).
 
 DOCUMENT À ÉVALUER (intégralité) :
-{document_text[:200000]}
+{document_text[:200000]}{sources_block}
 
 TÂCHE : Évalue la QUALITÉ, la COHÉRENCE et la COMPLÉTUDE du document selon les normes OMS/IA2030/Gavi 6.0.
 IMPORTANT : le document ci-dessus est COMPLET (résumé → conclusion + annexes). Ne signale une section comme
 « manquante » que si elle est RÉELLEMENT absente du texte fourni — parcours tout le document avant de juger.
-Identifie ce qui MANQUE ou doit être AMÉLIORÉ. Pour chaque point : section concernée, sévérité
+
+🔎 RECOUPEMENT FACTUEL (obligatoire si des DOCUMENTS SOURCES sont fournis ci-dessus) : pour chaque
+FAIT ou CHIFFRE important du document (couvertures, taux, budgets, populations, dates), vérifie s'il est
+ÉTAYÉ par les documents sources. Renseigne 'fact_check' : « conforme » (retrouvé dans les sources),
+« non_source » (aucune source ne l'étaye — À SIGNALER), « contredit » (les sources disent autre chose —
+CRITIQUE), ou « na » (jugement de forme, sans fait à vérifier). Cite la section concernée.
+
+Identifie aussi ce qui MANQUE ou doit être AMÉLIORÉ. Pour chaque point : section, sévérité
 (critique|majeur|mineur), problème, recommandation concrète. Donne un score global /100 et une synthèse.
 Vérifie notamment : structure EMR complète, objectifs SMART, cohérence FFOM→causes→objectifs→interventions→S&E,
 cibles progressives, alignement Gavi 6.0/IA2030, sources/preuves.

@@ -12,7 +12,7 @@ import json
 from datetime import date
 import streamlit as st
 
-APP_VERSION = "2026-07-05 · v26 (l IA lit vraiment le classeur Excel rempli : extraction par colonnes + priorite)"
+APP_VERSION = "2026-07-05 · v27 (QA recoupe les faits + couverture preuves + recherche web sites officiels + bibliographie)"
 
 from config import settings
 from config.countries import get_countries, DOCUMENT_CATEGORIES_FR
@@ -962,13 +962,35 @@ def page_qa():
     st.caption("L’IA relit la stratégie, vérifie cohérence/complétude/normes (OMS, IA2030, Gavi 6.0) et "
                "surligne en rouge ce qui doit être ajouté ou amélioré." if lg == "fr" else
                "The AI reviews the strategy for coherence/completeness/standards and flags in red what to improve.")
+    # --- Coverage indicator: % of items backed by a documentary source ---
+    cov = ai_engine.evidence_coverage(s)
+    if cov["_global"]["total"]:
+        g = cov["_global"]
+        st.markdown("#### " + ("Couverture par les preuves documentaires" if lg == "fr"
+                               else "Documentary-evidence coverage"))
+        st.progress(g["pct"] / 100,
+                    text=f"{g['pct']}% des éléments sont adossés à une source documentaire "
+                         f"({g['sourced']}/{g['total']})")
+        labels = {"root_causes": "Causes profondes", "objectives": "Objectifs",
+                  "interventions": "Interventions", "indicators": "Indicateurs", "activities": "Activités"}
+        cols = st.columns(5)
+        for col, key in zip(cols, ["root_causes", "objectives", "interventions", "indicators", "activities"]):
+            d = cov[key]
+            col.metric(labels[key], f"{d['pct']}%", f"{d['sourced']}/{d['total']}", delta_color="off")
+        if g["pct"] < 60:
+            st.warning("⚠️ Peu d’éléments citent une preuve documentaire. Importez davantage de documents "
+                       "sources, puis régénérez, pour ancrer la stratégie sur vos données." if lg == "fr"
+                       else "⚠️ Few items cite documentary evidence — add more source documents and regenerate.")
+        st.divider()
+
     if st.button("🔎 " + ("Analyser la qualité (IA)" if lg == "fr" else "Analyze quality (AI)"), key="gen_qa"):
         if not settings.ai_available():
             st.warning(t("no_api", lg))
         else:
             try:
-                with st.spinner("Analyse qualité en cours…"):
-                    st.session_state["_qa"] = ai_engine.generate_qa(s.profile, lg, _qa_document_text(s))
+                with st.spinner("Analyse qualité en cours… (recoupement des faits avec vos documents)"):
+                    st.session_state["_qa"] = ai_engine.generate_qa(
+                        s.profile, lg, _qa_document_text(s), documents=s.documents)
             except Exception as e:
                 st.error(f"Erreur IA : {e}")
     qa = st.session_state.get("_qa")
@@ -976,12 +998,23 @@ def page_qa():
         c1, c2 = st.columns([1, 3])
         c1.metric("Score", f"{qa.get('score', '—')}/100")
         c2.info(qa.get("overall", ""))
+        # Highlight fact-check problems (figures not supported by / contradicting the sources).
+        fc_bad = [f for f in (qa.get("findings", []) or [])
+                  if str(f.get("fact_check", "")).lower() in ("non_source", "contredit")]
+        if fc_bad:
+            st.error(("🔎 **Faits non étayés par vos documents** : " if lg == "fr"
+                      else "🔎 **Facts not supported by your documents**: ") + str(len(fc_bad))
+                     + (" élément(s) à vérifier (voir ci-dessous)." if lg == "fr" else " item(s) to verify below."))
         st.markdown("#### " + ("Points à ajouter / améliorer" if lg == "fr" else "Items to add / improve"))
         order = {"critique": 0, "critical": 0, "majeur": 1, "major": 1, "mineur": 2, "minor": 2}
         for f in sorted(qa.get("findings", []) or [], key=lambda x: order.get(str(x.get("severity", "")).lower(), 3)):
             sev = str(f.get("severity", "")).lower()
-            msg = f"**[{f.get('severity','')}] {f.get('section','')}** — {f.get('issue','')}\n\n→ {f.get('recommendation','')}"
-            (st.error if sev in ("critique", "critical", "majeur", "major") else st.warning)(msg)
+            fc = str(f.get("fact_check", "")).lower()
+            tag = {"non_source": " · ⚠️ non sourcé", "contredit": " · ⛔ contredit les sources"}.get(fc, "")
+            msg = (f"**[{f.get('severity','')}] {f.get('section','')}{tag}** — {f.get('issue','')}"
+                   f"\n\n→ {f.get('recommendation','')}")
+            (st.error if sev in ("critique", "critical", "majeur", "major") or fc == "contredit"
+             else st.warning)(msg)
         base = (s.profile.country_name or "SNV").replace(" ", "_")
         st.download_button("⬇️ " + ("Rapport d’assurance qualité (.docx)" if lg == "fr" else "QA report (.docx)"),
                            build_qa_word(s, qa), f"QA_SNV_{base}.docx",

@@ -41,6 +41,19 @@ AI_EFFORT = _secret("AI_EFFORT", "low")
 # How many narrative sections to write concurrently (parallel API calls).
 AI_CONCURRENCY = int(_secret("AI_CONCURRENCY", "4"))
 
+# ---- Web search (official institutions) ----
+# Lets the AI supplement the uploaded documents with data from credible official sites.
+AI_WEB_SEARCH = _secret("AI_WEB_SEARCH", "1") not in ("0", "false", "False", "")
+WEB_SEARCH_MAX_USES = int(_secret("WEB_SEARCH_MAX_USES", "6"))
+# Anthropic web_search tool version. Falls back to no-search automatically if the model rejects it.
+WEB_SEARCH_TOOL_TYPE = _secret("WEB_SEARCH_TOOL_TYPE", "web_search_20250305")
+# Credible institutions & data sources the AI may cite (WHO/EMRO, Gavi, UNICEF, UNFPA, World Bank, IMF, UN…).
+WEB_SEARCH_DOMAINS = [d.strip() for d in _secret(
+    "WEB_SEARCH_DOMAINS",
+    "who.int,emro.who.int,gavi.org,unicef.org,data.unicef.org,unfpa.org,worldbank.org,"
+    "data.worldbank.org,imf.org,un.org,data.un.org,dhsprogram.com,immunizationdata.who.int,"
+    "gho.who.int,humdata.org").split(",") if d.strip()]
+
 # ---- Storage ----
 DB_PATH = os.getenv("NIS_DB_PATH", str(DATA_DIR / "nis.db"))
 # Durable cloud storage (optional) — Supabase

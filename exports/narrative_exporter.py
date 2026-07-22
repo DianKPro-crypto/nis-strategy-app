@@ -315,11 +315,22 @@ def build_narrative_word(s: NISStrategy) -> bytes:
                         rc.main_problem] for rc in s.root_causes[:40]])
     else:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
-    _H(doc, "Annexe E — Sources et références" if fr else "Annex E — Sources and references", 2)
+    _H(doc, "Annexe E — Bibliographie et références" if fr else "Annex E — Bibliography and references", 2)
+    doc.add_paragraph(("Documents sources fournis par le pays :" if fr
+                       else "Source documents provided by the country:")).runs[0].bold = True
     for d in s.documents:
-        doc.add_paragraph(f"{d.name} ({d.doc_category})", style="List Bullet")
+        cat = f" — {d.doc_category}" if d.doc_category else ""
+        pg = f", {d.n_pages} p." if getattr(d, "n_pages", 0) else ""
+        doc.add_paragraph(f"{d.name}{cat}{pg}", style="List Bullet")
     if not s.documents:
         doc.add_paragraph("À compléter." if fr else "To be completed.")
+    web = getattr(s, "web_sources", None) or []
+    if web:
+        p = doc.add_paragraph(); p.add_run(
+            "Sources officielles consultées en ligne (OMS, UNICEF, Banque mondiale, Gavi…) :" if fr
+            else "Official online sources consulted (WHO, UNICEF, World Bank, Gavi…):").bold = True
+        for w in web[:60]:
+            doc.add_paragraph(f"{w.get('title') or w.get('url')} — {w.get('url','')}", style="List Bullet")
 
     _update_fields(doc)
     buf = BytesIO(); doc.save(buf); return buf.getvalue()
@@ -541,10 +552,23 @@ def build_narrative_pdf(s: NISStrategy) -> bytes:
               [[rc.subcomponent_code, rc.weakness, " → ".join(rc.whys),
                 rc.main_problem or rc.final_why] for rc in s.root_causes[:40]],
               [2.2 * cm, (W - 6.6 * cm) / 2, (W - 6.6 * cm) / 2, 4.4 * cm])
-    if s.documents:
-        story.append(Paragraph("Annexe D — Sources et références" if fr else "Annex D — Sources", h2))
-        for d in s.documents:
-            story.append(Paragraph(f"•&nbsp; {esc(d.name)} ({esc(d.doc_category)})", body))
+    web = getattr(s, "web_sources", None) or []
+    if s.documents or web:
+        story.append(Paragraph("Annexe D — Bibliographie et références" if fr
+                               else "Annex D — Bibliography and references", h2))
+        if s.documents:
+            story.append(Paragraph(("<b>Documents sources fournis par le pays :</b>" if fr
+                                    else "<b>Source documents provided by the country:</b>"), body))
+            for d in s.documents:
+                cat = f" ({esc(d.doc_category)})" if d.doc_category else ""
+                story.append(Paragraph(f"•&nbsp; {esc(d.name)}{cat}", body))
+        if web:
+            story.append(Paragraph(("<b>Sources officielles consultées en ligne "
+                                    "(OMS, UNICEF, Banque mondiale, Gavi…) :</b>" if fr
+                                    else "<b>Official online sources consulted:</b>"), body))
+            for w in web[:60]:
+                story.append(Paragraph(f"•&nbsp; {esc(w.get('title') or w.get('url'))} — "
+                                       f"{esc(w.get('url',''))}", body))
 
     doc.multiBuild(story)   # multiple passes -> correct TOC page numbers
     return buf.getvalue()
