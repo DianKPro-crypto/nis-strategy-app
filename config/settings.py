@@ -40,6 +40,19 @@ AI_MAX_RETRIES = int(os.getenv("AI_MAX_RETRIES", "2"))
 AI_EFFORT = _secret("AI_EFFORT", "low")
 # How many narrative sections to write concurrently (parallel API calls).
 AI_CONCURRENCY = int(_secret("AI_CONCURRENCY", "4"))
+# ---- Garde-fous des étapes à fort parallélisme (FFOM, interventions, activités) ----
+# Durée maximale (secondes) d'une étape à appels parallèles. Au-delà, l'étape rend les
+# résultats partiels et le dit, au lieu de laisser tourner le spinner indéfiniment.
+# 600 s reste largement sous le seuil de coupure du websocket Streamlit Community Cloud.
+# Les résultats partiels sont conservés et l'étape est reprenable : un délai atteint n'est
+# pas une perte de travail. Augmenter AI_CONCURRENCY (secrets Streamlit) réduit le temps total.
+AI_STEP_DEADLINE = int(_secret("AI_STEP_DEADLINE", "600"))
+# Plafond d'appels IA pour UNE étape — empêche l'explosion combinatoire de la passe de
+# rattrapage (26 objectifs × 3-5 interventions = jusqu'à 130 appels avant plafonnement).
+AI_MAX_CALLS_PER_STEP = int(_secret("AI_MAX_CALLS_PER_STEP", "60"))
+# Nombre d'interventions traitées par appel à l'étape « Activités opérationnelles ».
+# Petit = réponses courtes, jamais tronquées ; trop petit = trop d'appels.
+AI_ACTIVITY_BATCH_SIZE = int(_secret("AI_ACTIVITY_BATCH_SIZE", "4"))
 
 # ---- Web search (official institutions) ----
 # Lets the AI supplement the uploaded documents with data from credible official sites.
