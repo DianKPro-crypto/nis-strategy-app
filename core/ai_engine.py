@@ -467,37 +467,93 @@ def generate_section(section: str, profile: CountryProfile,
         act = _generate_activities_from_interventions(profile, documents, language, strategy, progress)
         if act["items"]:
             return act
+        # Interventions exist but nothing came back: do NOT fall back to the single monolithic
+        # call — with 80-130 interventions it can only be truncated. Report the real cause.
+        raise AIError("aucune activité générée — " + (" · ".join(act.get("_errors") or [])
+                                                      or "réponse vide de l'IA ; réessayez."))
     prompt = build_generation_prompt(profile, documents, language, section)
     return _call_claude(prompt)
 
 
 def _generate_activities_from_interventions(profile, documents, language, strategy, progress=None) -> dict:
-    """Break each main intervention into fully-completed key activities (grouped per component)."""
+    """Break each main intervention into fully-completed key activities (grouped per objective).
+
+    BOUNDED BY DESIGN. With grouping option 1 (26 sub-components) a country file carries ~26
+    objectives and 80-130 interventions. The previous coverage pass issued ONE call per uncovered
+    intervention, with no progress feedback and a deadline that grew linearly with the number of
+    calls (up to ~80 minutes) — which is what made step 8 appear frozen. Both passes are now:
+      * batched   — several interventions per call (never one call per intervention),
+      * budgeted  — a hard ceiling on the number of AI calls for the whole step,
+      * observable — progress is reported during the retry pass too,
+      * deadlined — settings.AI_STEP_DEADLINE caps the WHOLE step, not each pass.
+    The step always RETURNS (partial results + the list of what is missing) instead of hanging."""
     from core.epi_components import EPI_COMPONENTS
     ivs_all = [iv for iv in strategy.interventions if (iv.title or "").strip()]
+    if not ivs_all:
+        return {"items": []}
+
+    import time as _time
+    batch = max(1, int(getattr(settings, "AI_ACTIVITY_BATCH_SIZE", 4)))
+    budget = max(4, int(getattr(settings, "AI_MAX_CALLS_PER_STEP", 60)))
+    # Deadline for the WHOLE step (both passes), not per pass — so the user's wait is bounded
+    # by AI_STEP_DEADLINE whatever happens.
+    step_deadline = max(60, int(getattr(settings, "AI_STEP_DEADLINE", 600)))
+    t_start = _time.monotonic()
+
+    def _left():
+        return max(5, step_deadline - int(_time.monotonic() - t_start))
+
+    errors: list[str] = []
 
     def _label(iv):
         comp = next((c for c in EPI_COMPONENTS if c.code == (iv.component_code or "")), None)
         return comp.label(language) if comp else "Interventions"
 
-    # Group by OBJECTIVE (fewer interventions per call -> the AI covers every one).
-    groups: dict[str, list] = {}
-    for iv in ivs_all:
-        groups.setdefault(iv.objective_id or iv.component_code or "?", []).append(iv)
-    tasks = [(_label(ivs[0]), (lambda v=ivs: _items(_call_claude(
-              build_activity_prompt(profile, documents, language, _label(v[0]), v)))))
-             for ivs in groups.values()]
-    items = _parallel_calls(tasks, progress)
+    def _chunks(seq, size):
+        return [seq[i:i + size] for i in range(0, len(seq), size)]
 
-    # Coverage guarantee: any intervention with NO activity is retried (one call per missing intervention).
-    covered = {str(a.get("intervention_id") or "") for a in items if a.get("intervention_id")}
-    missing = [iv for iv in ivs_all if iv.intervention_id and iv.intervention_id not in covered]
-    if missing:
-        retry = [(_label(iv), (lambda v=iv: _items(_call_claude(
-                  build_activity_prompt(profile, documents, language, _label(v), [v])))))
-                 for iv in missing]
-        items += _parallel_calls(retry)
-    return {"items": items}
+    def _task(ivs):
+        """(label, thunk) generating the activities of one small batch of interventions."""
+        lbl = f"{_label(ivs[0])} ({len(ivs)} intervention(s))"
+        return (lbl, lambda v=list(ivs): _items(_call_claude(
+            build_activity_prompt(profile, documents, language, _label(v[0]), v))))
+
+    # --- Incremental mode: only work on interventions that have NO activity yet --------------
+    # Makes "Générer" a catch-up button: after a partial run the user relaunches and only the
+    # missing interventions are called (a few calls instead of the full 26+ fan-out).
+    done_ids = {str(a.intervention_id or "") for a in (getattr(strategy, "activities", []) or [])
+                if (a.activity or "").strip() and a.intervention_id}
+    todo = [iv for iv in ivs_all if str(iv.intervention_id or "") not in done_ids] if done_ids else ivs_all
+    if not todo:                       # everything already covered -> nothing to call
+        return {"items": [], "_errors": [], "_covered": len(ivs_all), "_expected": len(ivs_all),
+                "_missing": []}
+
+    # --- Pass 1: group by OBJECTIVE, then split any oversized group into batches -------------
+    groups: dict[str, list] = {}
+    for iv in todo:
+        groups.setdefault(iv.objective_id or iv.component_code or "?", []).append(iv)
+    tasks = [_task(c) for ivs in groups.values() for c in _chunks(ivs, batch)]
+    if len(tasks) > budget:
+        errors.append(f"{len(tasks) - budget} lot(s) non traité(s) — plafond de {budget} appels IA atteint")
+        tasks = tasks[:budget]
+    items = _parallel_calls(tasks, progress, errors=errors, deadline=_left())
+    spent = len(tasks)
+
+    # --- Pass 2: coverage catch-up, BATCHED and budgeted (never one call per intervention) ----
+    def _uncovered():
+        got = done_ids | {str(a.get("intervention_id") or "") for a in items if a.get("intervention_id")}
+        return [iv for iv in ivs_all if iv.intervention_id and str(iv.intervention_id) not in got]
+
+    missing = _uncovered()
+    if missing and spent < budget:
+        retry = [_task(c) for c in _chunks(missing, batch)][:budget - spent]
+        # `progress` is passed here too: the UI keeps moving during the catch-up pass.
+        items += _parallel_calls(retry, progress, errors=errors, deadline=_left())
+        missing = _uncovered()
+
+    return {"items": items, "_errors": errors,
+            "_covered": len(ivs_all) - len(missing), "_expected": len(ivs_all),
+            "_missing": [f"{iv.intervention_id} — {iv.title[:70]}" for iv in missing[:20]]}
 
 
 def _generate_indicators_from_objectives(profile, documents, language, strategy, progress=None) -> dict:
@@ -709,18 +765,26 @@ def _generate_swot_chunked(profile, documents, language, progress=None, strategy
     return {"items": items, "_errors": errors, "_covered": len(by_code), "_expected": total}
 
 
-def _parallel_calls(tasks, progress=None) -> list:
+def _parallel_calls(tasks, progress=None, errors=None, deadline=None) -> list:
     """Run (label, thunk) tasks CONCURRENTLY; each thunk returns a list of items -> flattened.
     Progress is reported from the caller (main) thread, so it is Streamlit-safe.
     A global deadline guarantees the step returns partial results instead of hanging forever
-    if a single call stalls (client already has per-request timeout+retries)."""
+    if a single call stalls (client already has per-request timeout+retries).
+
+    `errors` (optional list) collects "label: message" for every failed call — failures are no
+    longer swallowed silently, so the UI can tell the user what was not generated.
+    `deadline` (optional seconds) overrides the computed one; it is ALWAYS capped by
+    settings.AI_STEP_DEADLINE so a step can never outlive the user's patience (or the
+    Streamlit Cloud websocket)."""
     from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as _FTimeout
     if not tasks:
         return []
     workers = max(1, min(int(getattr(settings, "AI_CONCURRENCY", 4)), len(tasks)))
     out, done, n = [], 0, len(tasks)
-    # Generous ceiling so a stalled call can't freeze the whole step (e.g. the 11/26 hang).
-    deadline = max(600, 150 * ((n + workers - 1) // workers))
+    # Ceiling so a stalled call can't freeze the whole step (e.g. the 11/26 hang).
+    computed = deadline if deadline else max(300, 150 * ((n + workers - 1) // workers))
+    hard_cap = max(30, int(getattr(settings, "AI_STEP_DEADLINE", 600)))
+    deadline = max(5, min(computed, hard_cap))
     ex = ThreadPoolExecutor(max_workers=workers)
     try:
         futs = {ex.submit(thunk): label for label, thunk in tasks}
@@ -731,13 +795,16 @@ def _parallel_calls(tasks, progress=None) -> list:
                     r = fut.result()
                     if r:
                         out.extend(r)
-                except Exception:
-                    pass
+                except Exception as e:
+                    if errors is not None:
+                        errors.append(f"{label}: {e}")
                 if progress:
                     progress(done, n, label)
                     done += 1
         except _FTimeout:
-            pass   # deadline hit -> return whatever completed; remaining calls are abandoned
+            # Deadline hit -> return whatever completed; remaining calls are abandoned.
+            if errors is not None:
+                errors.append(f"délai de {deadline}s atteint — {n - done} appel(s) non terminé(s)")
     finally:
         # Do NOT wait: cancel queued calls and let any still-running one finish in the background,
         # so a single stalled request can never freeze the whole step.
@@ -869,8 +936,27 @@ def apply_section(strategy: NISStrategy, section: str, data: dict) -> None:
             _carry_forward_targets(ind, years)
         strategy.indicators = inds
     elif section == "activities":
-        strategy.activities = [_fix_codes(Activity(**_clean(x, Activity)))
-                               for x in _items(data)]
+        # MERGE (not replace): step 8 runs incrementally — a second "Générer" only fills the
+        # interventions left uncovered, so already-produced AND hand-edited activities survive.
+        new = [_fix_codes(Activity(**_clean(x, Activity))) for x in _items(data)]
+        _merge_activities(strategy, new)
+
+
+def _merge_activities(strategy, new_items) -> None:
+    """Append newly generated activities, deduplicated on (intervention_id, activity text).
+    Existing rows — generated earlier or edited by hand — are never overwritten."""
+    cur = list(getattr(strategy, "activities", []) or [])
+
+    def _key(a):
+        return (str(getattr(a, "intervention_id", "") or "").strip(),
+                (getattr(a, "activity", "") or "").strip().lower())
+
+    seen = {_key(a) for a in cur}
+    for a in new_items:
+        k = _key(a)
+        if k[1] and k not in seen:      # ignore empty rows and exact duplicates
+            cur.append(a); seen.add(k)
+    strategy.activities = cur
 
 
 def _merge_swot(strategy, new_items) -> None:
