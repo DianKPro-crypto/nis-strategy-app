@@ -20,3 +20,13 @@ requests>=2.31
 
 # Optional (alternative PDF engine)
 # weasyprint>=62
+
+# ---------------------------------------------------------------
+# Correctif incident 05/08/2026 - "Error running app"
+# starlette 1.4.0 a ajoute l'argument obligatoire 'thread_minimum_size'
+# a GZipResponder.__init__ ; le middleware gzip de streamlit 1.61.0
+# ne le passe pas -> TypeError a chaque requete, app HS.
+# On epingle la derniere version compatible.
+# ---------------------------------------------------------------
+streamlit==1.61.0
+starlette==1.3.1
