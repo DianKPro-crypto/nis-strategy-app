@@ -80,6 +80,10 @@ def _gen_or_warn(section: str):
             ai_engine.apply_section(s, section, data)
             if section == "swot" and isinstance(data, dict) and data.get("_errors"):
                 st.session_state["_swot_errors"] = data["_errors"]
+            if section == "activities" and isinstance(data, dict) and data.get("_expected"):
+                st.session_state["_act_coverage"] = {
+                    "covered": data.get("_covered", 0), "expected": data.get("_expected", 0),
+                    "missing": data.get("_missing") or [], "errors": data.get("_errors") or []}
         status.empty()
         # Clear stale widget state so the regenerated values display on the next run.
         prefixes = SECTION_WIDGET_PREFIXES.get(section, ())
@@ -669,8 +673,37 @@ def page_me():
 
 def page_act():
     s = S(); lg = lang()
-    if st.button("✨ " + t("generate", lg), key="gen_act"):
+    gcol, rcol = st.columns([3, 2])
+    if gcol.button("✨ " + t("generate", lg), key="gen_act",
+                   help="Génère les activités des interventions qui n'en ont pas encore. "
+                        "Relancez autant de fois que nécessaire : rien n'est écrasé."):
         _gen_or_warn("activities")
+    if s.activities and rcol.button("🔄 Repartir de zéro", key="reset_act",
+                                    help="Supprime toutes les activités et relance une génération complète."):
+        s.activities = []
+        for k in [k for k in list(st.session_state.keys()) if k.startswith("a_")]:
+            del st.session_state[k]
+        _gen_or_warn("activities")
+    # Couverture de la dernière génération : dire explicitement ce qui n'a PAS été couvert
+    # plutôt que de laisser l'utilisateur le découvrir en comptant les activités.
+    cov = st.session_state.pop("_act_coverage", None)
+    if cov:
+        covered, expected = cov["covered"], cov["expected"]
+        if covered >= expected:
+            st.success(f"✅ Couverture complète : {covered}/{expected} interventions déclinées "
+                       f"en {len(s.activities)} activités.")
+        else:
+            st.warning(f"⚠️ Couverture partielle : {covered}/{expected} interventions déclinées. "
+                       f"Relancez « Générer » pour compléter les manquantes (les activités "
+                       f"déjà produites ne sont pas perdues).")
+            if cov["missing"]:
+                with st.expander(f"Interventions sans activité ({len(cov['missing'])} premières)"):
+                    for m in cov["missing"]:
+                        st.write(f"• {m}")
+        if cov["errors"]:
+            with st.expander("Détail technique des appels en échec"):
+                for e in cov["errors"][:10]:
+                    st.caption(e)
     iv_ids = [iv.intervention_id for iv in s.interventions] or [""]
     levels = ["National", "Région/Gouvernorat", "District", "Formation sanitaire", "Communauté",
               "Tous les niveaux", "Autre"]
