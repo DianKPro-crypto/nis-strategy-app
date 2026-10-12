@@ -7,8 +7,9 @@ Film de sensibilisation au dépistage du cancer du sein (58,4 s, 1080 × 1920), 
 
 | Fichier | Usage | Spécifications |
 |---|---|---|
-| `OctobreRose_Djibouti_2026_9x16_WhatsApp.mp4` | Statut WhatsApp, partage mobile | H.264 High, 30 i/s, ≤ 16 Mo, AAC 128 kb/s |
+| `OctobreRose_Djibouti_2026_9x16_WhatsApp.mp4` | Statut WhatsApp, partage mobile | H.264 High, 30 i/s, ≈ 15,3 Mo, AAC 128 kb/s |
 | `OctobreRose_Djibouti_2026_9x16_master60.mp4` | Reels, Shorts, TikTok, projection verticale | H.264 High, 60 i/s, CRF 18, AAC 192 kb/s |
+| `…_sans-logos.mp4` (×2) | Mêmes usages, **sans logos OMS ni Ministère** (diffusion possible avant autorisation) | Identiques |
 
 ## Découpage final (calé sur les paroles chantées)
 
@@ -34,7 +35,7 @@ node render.mjs --from 29.2 --to 58.4 --out out/segB.mp4
 ./finalize.sh                               # assemble + encode les deux livrables
 ```
 
-Ajouter `--partners 0` pour une version **sans logos institutionnels** (à re-rendre uniquement pour le segment 46–51 s).
+Version sans logos : `node render.mjs --from 46.8 --to 50.6 --partners 0 --out out/segNoLogo.mp4` avant `./finalize.sh`, qui l'insère automatiquement.
 
 Rendu déterministe (Three.js r169, Chromium sans affichage, rendu logiciel) : chaque image est une fonction pure du temps.
 
