@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Dian K. Pro — film 3D (scène de rendu)</title>
+<style>
+@font-face{font-family:"Inter";font-weight:400;src:url(../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;src:url(../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;src:url(../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:500;src:url(../node_modules/@fontsource/playfair-display/files/playfair-display-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:600;src:url(../node_modules/@fontsource/playfair-display/files/playfair-display-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Playfair";font-weight:500;font-style:italic;src:url(../node_modules/@fontsource/playfair-display/files/playfair-display-latin-500-italic.woff2) format("woff2")}
+:root{--black:#0A0A0A;--gold:#D4A44C;--champagne:#ECBA5B;--deep:#A87C33;--ivory:#F7F3EA;--sand:#E6DCC8}
+html,body{margin:0;background:#000;overflow:hidden}
+#stage{position:relative;overflow:hidden;background:var(--black)}
+#stage canvas{position:absolute;inset:0}
+#txt{position:absolute;inset:0;pointer-events:none;font-family:Inter,sans-serif;color:var(--ivory)}
+.t{position:absolute;opacity:0;will-change:opacity,transform}
+.kick{font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--champagne)}
+.disp{font-family:Playfair,Georgia,serif;font-weight:600;line-height:1.06;color:var(--ivory)}
+.gold{color:var(--champagne)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.shadow{text-shadow:0 2px 18px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="gl"></canvas><canvas id="fx"></canvas><div id="txt"></div></div>
+<script src="../node_modules/topojson-client/dist/topojson-client.min.js"></script>
+<script type="importmap">{"imports":{"three":"../node_modules/three/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ---------- Paramètres ---------- */
+const Q = new URLSearchParams(location.search);
+const LANG = Q.get('lang') === 'en' ? 'en' : 'fr';
+const VERT = Q.get('fmt') === 'v';
+const W = VERT ? 1080 : 1920, H = VERT ? 1920 : 1080;
+const S = Math.min(W, H) / 1080;           // échelle typographique (1 = 1080 px de côté court)
+const stage = document.getElementById('stage');
+stage.style.width = W + 'px'; stage.style.height = H + 'px';
+
+/* Repères temporels, calés sur les mesures de la kora (≈ 3,08 s) */
+const T = { cover: 0, s1: 1.46, s2a: 13.56, s2b: 19.9, s3: 26.05, s4: 32.21, end: 45 };
+
+/* ---------- Outils ---------- */
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const sm = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const lerp = (a, b, t) => a + (b - a) * t;
+const win = (t, a, b, fi = .5, fo = .5) => sm(a, a + fi, t) * (1 - sm(b - fo, b, t));
+function rnd(seed) { let s = seed % 2147483647; if (s <= 0) s += 2147483646; return () => (s = s * 16807 % 2147483647) / 2147483647; }
+
+/* ---------- Textes FR / EN ---------- */
+const L = {
+  fr: {
+    coverTitle: 'Designed for Those Who <span class="gold">Cannot Fail</span>',
+    name: 'Dr Dian Sidibé', role: 'Public Health &amp; Digital Strategist',
+    s1b: 'Médecin de santé publique · Stratège digital',
+    s1c: 'De la donnée complexe<br>à la <span class="gold">décision</span>',
+    years: 'ans', countries: 'pays', partners: 'ONU · Gavi · Ministères de la Santé', continents: '4 continents',
+    p: [
+      ['Stratégie nationale de vaccination', 'dji-snv-27-30.netlify.app'],
+      ['Modélisation budgétaire Gavi 6.0', 'budget-vax-gavi-6.0.diankpro.com'],
+      ['Stratégie &amp; leadership en santé publique', 'diankpro.com'],
+      ['Plateformes numériques &amp; IA responsable', 'diankprodigital.com'],
+    ],
+    kw: ['Suivi-évaluation', 'Data science', 'Intelligence artificielle', 'Plaidoyer visuel'],
+    cta: 'Faites appel à mon expertise', sites: 'diankpro.com · diankprodigital.com',
+    illus: 'Exemple de simulation',
+  },
+  en: {
+    coverTitle: 'Designed for Those Who <span class="gold">Cannot Fail</span>',
+    name: 'Dr Dian Sidibé', role: 'Public Health &amp; Digital Strategist',
+    s1b: 'Public health physician · Digital strategist',
+    s1c: 'From complex data<br>to <span class="gold">decisive action</span>',
+    years: 'years', countries: 'countries', partners: 'UN · Gavi · Ministries of Health', continents: '4 continents',
+    p: [
+      ['National Immunization Strategy', 'dji-snv-27-30.netlify.app'],
+      ['Gavi 6.0 budget modeling', 'budget-vax-gavi-6.0.diankpro.com'],
+      ['Public health strategy &amp; leadership', 'diankpro.com'],
+      ['Digital platforms &amp; responsible AI', 'diankprodigital.com'],
+    ],
+    kw: ['Precision M&amp;E', 'Health data science', 'Artificial intelligence', 'Visual advocacy'],
+    cta: 'Partner with me today', sites: 'diankpro.com · diankprodigital.com',
+    illus: 'Sample simulation',
+  }
+}[LANG];
+
+/* ---------- Calque texte ---------- */
+const txt = document.getElementById('txt');
+function el(html, css) { const d = document.createElement('div'); d.className = 't'; d.innerHTML = html; Object.assign(d.style, css); txt.appendChild(d); return d; }
+const px = v => Math.round(v * S) + 'px';
+const E = {};
+if (!VERT) {
+  E.coverKick = el(L.name, { left: '52%', top: '30%', fontSize: px(30), width: '42%' }); E.coverKick.classList.add('kick');
+  E.coverTitle = el(L.coverTitle, { left: '52%', top: '37%', fontSize: px(76), width: '40%' }); E.coverTitle.classList.add('disp');
+  E.coverRole = el(L.role, { left: '52%', top: '66%', fontSize: px(32), width: '42%', color: 'var(--sand)' });
+  E.name = el(L.name, { left: '6%', bottom: '17%', fontSize: px(84) }); E.name.classList.add('disp', 'shadow');
+  E.role = el(L.role, { left: '6.2%', bottom: '11.5%', fontSize: px(30) }); E.role.classList.add('kick', 'shadow');
+  E.s1b = el(L.s1b, { right: '6%', top: '57%', fontSize: px(34), fontWeight: 500, textAlign: 'right' }); E.s1b.classList.add('shadow');
+  E.s1c = el(L.s1c, { right: '6%', top: '36%', fontSize: px(72), textAlign: 'right' }); E.s1c.classList.add('disp', 'shadow');
+  E.years = el(`20 <span style="font-size:.42em">${L.years}</span>`, { right: '7%', top: '17%', fontSize: px(150), textAlign: 'right' }); E.years.classList.add('disp', 'gold');
+  E.count = el('', { right: '7%', top: '39%', fontSize: px(150), textAlign: 'right' }); E.count.classList.add('disp', 'gold');
+  E.partners = el(L.partners, { right: '7%', top: '64%', fontSize: px(36), fontWeight: 500, textAlign: 'right' });
+  E.continents = el(L.continents, { right: '7%', top: '71%', fontSize: px(30), textAlign: 'right' }); E.continents.classList.add('kick');
+  E.pTitle = el('', { left: 0, right: 0, bottom: '9%', fontSize: px(44), textAlign: 'center' }); E.pTitle.classList.add('disp', 'shadow');
+  E.pUrl = el('', { left: 0, right: 0, bottom: '4.5%', fontSize: px(30), textAlign: 'center', color: 'var(--champagne)', fontWeight: 500, letterSpacing: '.04em' }); E.pUrl.classList.add('shadow');
+  E.kw = L.kw.map((k, i) => { const d = el(k, { left: 0, right: 0, bottom: '7%', fontSize: px(64), textAlign: 'center' }); d.classList.add('disp', 'shadow'); return d; });
+  E.cta = el(L.cta, { left: 0, right: 0, bottom: '8.5%', fontSize: px(40), textAlign: 'center', fontWeight: 600 }); E.cta.classList.add('shadow');
+  E.sites = el(L.sites, { left: 0, right: 0, bottom: '3.5%', fontSize: px(32), textAlign: 'center', color: 'var(--champagne)', fontWeight: 600, letterSpacing: '.05em' });
+} else {
+  // 9:16 — texte dans la zone sûre y 260–1600
+  E.coverKick = el(L.name, { left: 0, right: 0, top: '58%', fontSize: px(32), textAlign: 'center' }); E.coverKick.classList.add('kick');
+  E.coverTitle = el(L.coverTitle, { left: '8%', right: '8%', top: '62.5%', fontSize: px(84), textAlign: 'center' }); E.coverTitle.classList.add('disp');
+  E.coverRole = el(L.role, { left: 0, right: 0, top: '78%', fontSize: px(32), textAlign: 'center', color: 'var(--sand)' });
+  E.name = el(L.name, { left: 0, right: 0, top: '70%', fontSize: px(88), textAlign: 'center' }); E.name.classList.add('disp', 'shadow');
+  E.role = el(L.role, { left: 0, right: 0, top: '76%', fontSize: px(32), textAlign: 'center' }); E.role.classList.add('kick', 'shadow');
+  E.s1b = el(L.s1b, { left: '6%', right: '6%', top: '79%', fontSize: px(36), textAlign: 'center', fontWeight: 500 }); E.s1b.classList.add('shadow');
+  E.s1c = el(L.s1c, { left: 0, right: 0, top: '67%', fontSize: px(80), textAlign: 'center' }); E.s1c.classList.add('disp', 'shadow');
+  E.years = el(`20 <span style="font-size:.42em">${L.years}</span>`, { left: 0, right: 0, top: '59%', fontSize: px(150), textAlign: 'center' }); E.years.classList.add('disp', 'gold');
+  E.count = el('', { left: 0, right: 0, top: '67.5%', fontSize: px(150), textAlign: 'center' }); E.count.classList.add('disp', 'gold');
+  E.partners = el(L.partners, { left: 0, right: 0, top: '77.5%', fontSize: px(38), textAlign: 'center', fontWeight: 500 });
+  E.continents = el(L.continents, { left: 0, right: 0, top: '81%', fontSize: px(32), textAlign: 'center' }); E.continents.classList.add('kick');
+  E.pTitle = el('', { left: '6%', right: '6%', top: '72%', fontSize: px(52), textAlign: 'center' }); E.pTitle.classList.add('disp', 'shadow');
+  E.pUrl = el('', { left: 0, right: 0, top: '79.5%', fontSize: px(32), textAlign: 'center', color: 'var(--champagne)', fontWeight: 500 }); E.pUrl.classList.add('shadow');
+  E.kw = L.kw.map(k => { const d = el(k, { left: '6%', right: '6%', top: '74%', fontSize: px(72), textAlign: 'center' }); d.classList.add('disp', 'shadow'); return d; });
+  E.cta = el(L.cta, { left: 0, right: 0, top: '75%', fontSize: px(44), textAlign: 'center', fontWeight: 600 }); E.cta.classList.add('shadow');
+  E.sites = el(L.sites.replace(' · ', '<br>'), { left: 0, right: 0, top: '79%', fontSize: px(36), textAlign: 'center', color: 'var(--champagne)', fontWeight: 600, lineHeight: 1.4 });
+}
+function show(e, o, dy = 0) { e.style.opacity = o.toFixed(3); e.style.transform = `translateY(${(dy * (1 - o) * S).toFixed(1)}px)`; }
+
+/* ---------- Three.js ---------- */
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gl'), antialias: true, preserveDrawingBuffer: true, alpha: false });
+renderer.setPixelRatio(1); renderer.setSize(W, H, false);
+renderer.setClearColor(0x0a0a0a, 1);
+const scene = new THREE.Scene();
+const FOV = 35, D = 10;
+const camera = new THREE.PerspectiveCamera(FOV, W / H, 0.05, 100);
+const visH = 2 * D * Math.tan(FOV * Math.PI / 360), visW = visH * W / H;
+const fx = document.getElementById('fx'); fx.width = W; fx.height = H; const g2 = fx.getContext('2d');
+
+const loader = new THREE.TextureLoader();
+const loadTex = u => new Promise(r => loader.load(u, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; r(t); }));
+
+/* Logo : plan texturé, relief tiré de la luminance, éclairage spéculaire or */
+const logoVS = `varying vec2 vUv; varying vec3 vW; void main(){ vUv=uv; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`;
+const logoFS = `
+uniform sampler2D map; uniform vec4 crop; uniform vec3 lightPos; uniform float sweep, opacity, full, glow;
+uniform vec4 rev; uniform float revTag; uniform vec2 texel; varying vec2 vUv; varying vec3 vW;
+float lum(vec2 p){ return dot(texture2D(map,p).rgb, vec3(.3,.59,.11)); }
+void main(){
+  vec2 uv = mix(crop.xy, crop.zw, vUv);
+  vec3 c = texture2D(map, uv).rgb;
+  float h = lum(uv);
+  float hx = lum(uv+vec2(texel.x,0.)) - lum(uv-vec2(texel.x,0.));
+  float hy = lum(uv+vec2(0.,texel.y)) - lum(uv-vec2(0.,texel.y));
+  vec3 n = normalize(vec3(-hx*5., -hy*5., 1.));
+  vec3 Ld = normalize(lightPos - vW); vec3 V = normalize(cameraPosition - vW);
+  float diff = max(dot(n, Ld), 0.);
+  float spec = pow(max(dot(n, normalize(Ld+V)), 0.), 38.);
+  float metal = smoothstep(.16, .5, h);
+  vec3 col = c*(.62 + .55*diff) + metal*spec*vec3(1.,.87,.62)*1.25;
+  float band = exp(-pow((vUv.x*.8 + (1.-vUv.y)*.5 - sweep)*6., 2.));
+  col += metal*band*vec3(1.,.9,.7)*.6 + metal*glow*vec3(.9,.7,.35)*.35;
+  float a = opacity;
+  float y = 1. - uv.y, x = uv.x;
+  if (full > .5) {
+    float m = 0.;
+    m += (1.-step(.588, y)) * rev.x;
+    m += step(.588,y)*(1.-step(.712,y)) * (1.-smoothstep(rev.y*1.15-.08, rev.y*1.15, x));
+    m += step(.712,y)*(1.-step(.757,y)) * (1.-smoothstep(rev.z*1.15-.08, rev.z*1.15, x));
+    m += step(.757,y)*(1.-step(.828,y)) * (1.-smoothstep(rev.w*.55-.04, rev.w*.55, abs(x-.5)));
+    float tg = step(.828,y) * (1.-smoothstep(revTag*1.15-.08, revTag*1.15, x));
+    m += tg;
+    float edge = metal * step(.828,y) * (1.-step(.893,y)) * exp(-pow((x - (revTag*1.15-.05))*30., 2.)) * step(.01, revTag) * (1.-step(.999, revTag));
+    col += edge*vec3(1.,.92,.75)*.9;
+    // fond hors lettres : visible avec le monogramme
+    float bgVis = rev.x;
+    a *= mix(bgVis*.85, 1., clamp(m,0.,1.)) ;
+    col *= mix(.25 + .75*bgVis, 1., clamp(m*metal*2.,0.,1.));
+  }
+  float e = smoothstep(0.,.10,vUv.x)*smoothstep(1.,.90,vUv.x)*smoothstep(0.,.10,vUv.y)*smoothstep(1.,.90,vUv.y);
+  gl_FragColor = vec4(col, a*e);
+  #include <colorspace_fragment>
+}`;
+let logoTex, logo;
+function makeLogo() {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { map: { value: logoTex }, crop: { value: new THREE.Vector4() }, lightPos: { value: new THREE.Vector3(0, 3, 4) },
+      sweep: { value: -1 }, opacity: { value: 1 }, full: { value: 0 }, glow: { value: 0 }, rev: { value: new THREE.Vector4(1, 1, 1, 1) }, revTag: { value: 1 },
+      texel: { value: new THREE.Vector2(1.5 / 1254, 1.5 / 1254) } },
+    vertexShader: logoVS, fragmentShader: logoFS, transparent: true, depthWrite: false });
+  logo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+  scene.add(logo);
+}
+const CROP_MONO = [0.27, 0.40, 0.74, 0.83];     // x0,y0,x1,y1 (uv, origine en bas)
+const CROP_FULL = [0.05, 0.10, 0.95, 0.86];
+function setCrop(c, heightWorld) {
+  logo.material.uniforms.crop.value.set(c[0], c[1], c[2], c[3]);
+  const asp = (c[2] - c[0]) / (c[3] - c[1]);
+  logo.scale.set(heightWorld * asp, heightWorld, 1);
+}
+
+/* Globe */
+const R = VERT ? 0.42 * visW : 0.37 * visH;
+const globeOuter = new THREE.Group(), globeSpin = new THREE.Group();
+globeOuter.add(globeSpin); scene.add(globeOuter);
+const gc = document.createElement('canvas'); gc.width = 2048; gc.height = 1024; const gx = gc.getContext('2d');
+const base = document.createElement('canvas'); base.width = 2048; base.height = 1024;
+let globeTex, globeMat, countries = [], arcs = [], markers = [];
+const HUB = { lat: 12.64, lon: -8.0 }; // Bamako
+const LIST = ['Mali','Morocco','Senegal','Cabo Verde','Gambia','Mauritania','Sierra Leone','Guinea','Guinea-Bissau','Ghana',"Côte d'Ivoire",'Togo','Benin','Nigeria','Niger','Chad','Central African Rep.','Cameroon','Eq. Guinea','Gabon','Congo','South Africa','eSwatini','Burundi','Zimbabwe','Comoros','Madagascar','Kenya','Djibouti','Ukraine','Belgium','France','United States of America','Ethiopia','Turkey','Qatar','Jordan','Germany','Italy','Rwanda'];
+function ll2v(lat, lon, r) {
+  const phi = (lon + 180) / 360 * Math.PI * 2, th = (90 - lat) * Math.PI / 180;
+  return new THREE.Vector3(-Math.cos(phi) * Math.sin(th) * r, Math.cos(th) * r, Math.sin(phi) * Math.sin(th) * r);
+}
+const ex = lon => (lon + 180) / 360 * 2048, ey = lat => (90 - lat) / 180 * 1024;
+function pathPoly(ctx, rings, sx = 1) {
+  for (const ring of rings) { let px0 = null;
+    ring.forEach(([lo, la], i) => { const x = ex(lo) * sx, y = ey(la) * sx;
+      if (i === 0 || Math.abs(x - px0) > 1000 * sx) ctx.moveTo(x, y); else ctx.lineTo(x, y); px0 = x; }); }
+}
+function polys(geom) { return geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : []; }
+function ringArea(r) { let a = 0; for (let i = 0; i < r.length - 1; i++) a += r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1]; return Math.abs(a / 2); }
+function centroid(geom) {
+  let best = null, ba = -1; for (const p of polys(geom)) { const a = ringArea(p[0]); if (a > ba) { ba = a; best = p[0]; } }
+  let x = 0, y = 0; best.forEach(([lo, la]) => { x += lo; y += la; }); return { lon: x / best.length, lat: y / best.length };
+}
+async function makeGlobe() {
+  const topo = await (await fetch('../node_modules/world-atlas/countries-50m.json')).json();
+  const fc = topojson.feature(topo, topo.objects.countries);
+  // masque des terres → points
+  const m = document.createElement('canvas'); m.width = 1024; m.height = 512; const mx = m.getContext('2d');
+  mx.fillStyle = '#fff'; mx.beginPath(); fc.features.forEach(f => polys(f.geometry).forEach(p => pathPoly(mx, p, .5))); mx.fill('evenodd');
+  const md = mx.getImageData(0, 0, 1024, 512).data;
+  const b = base.getContext('2d'); b.fillStyle = '#0d0c0a'; b.fillRect(0, 0, 2048, 1024);
+  for (let y = 2; y < 512; y += 4) for (let x = 2; x < 1024; x += 4) {
+    if (md[(y * 1024 + x) * 4] > 128) { b.fillStyle = 'rgba(212,164,76,.36)'; b.beginPath(); b.arc(x * 2, y * 2, 2.4, 0, 7); b.fill(); }
+  }
+  const byName = new Map(fc.features.map(f => [f.properties.name, f]));
+  countries = LIST.map((n, i) => { const f = byName.get(n); return { name: n, f, c: centroid(f.geometry) }; });
+  // ordre d'allumage : d'ouest en est, en suivant la rotation
+  countries.sort((a, b) => a.c.lon - b.c.lon).forEach((c, i) => c.k = i);
+  globeTex = new THREE.CanvasTexture(gc); globeTex.colorSpace = THREE.SRGBColorSpace; globeTex.anisotropy = 8;
+  globeMat = new THREE.ShaderMaterial({
+    uniforms: { map: { value: globeTex }, opacity: { value: 1 }, lightDir: { value: new THREE.Vector3(-.5, .5, .7).normalize() } },
+    vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv=uv; vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
+    fragmentShader: `uniform sampler2D map; uniform float opacity; uniform vec3 lightDir; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+      void main(){ vec3 t=texture2D(map,vUv).rgb; float d=max(dot(vN,lightDir),0.); float rim=pow(1.-max(dot(vN,vV),0.),2.6);
+      float rim2=pow(1.-max(dot(vN,vV),0.),4.5); vec3 col=t*(.40+.70*d) + rim2*vec3(.85,.62,.28)*.85; gl_FragColor=vec4(col,opacity);
+      #include <colorspace_fragment>
+      }`, transparent: true });
+  globeSpin.add(new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), globeMat));
+  const hubV = ll2v(HUB.lat, HUB.lon, R * 1.002);
+  const arcMat = new THREE.MeshBasicMaterial({ color: 0xECBA5B, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false });
+  countries.forEach(c => {
+    const v = ll2v(c.c.lat, c.c.lon, R * 1.002); c.v = v;
+    if (c.name === 'Mali') return;
+    const dist = hubV.distanceTo(v);
+    const mid = hubV.clone().add(v).multiplyScalar(.5).normalize().multiplyScalar(R * (1.04 + dist / R * .28));
+    const geo = new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(hubV, mid, v), 64, R * .0045, 6, false);
+    const mesh = new THREE.Mesh(geo, arcMat.clone()); geo.setDrawRange(0, 0); globeSpin.add(mesh); c.arc = mesh;
+  });
+}
+function drawGlobeTex(lit) {
+  gx.drawImage(base, 0, 0);
+  countries.forEach(c => { const a = lit(c); if (a <= 0) return;
+    gx.beginPath(); polys(c.f.geometry).forEach(p => pathPoly(gx, p));
+    gx.fillStyle = `rgba(236,186,91,${(.88 * a).toFixed(3)})`; gx.fill('evenodd');
+    gx.lineWidth = 2; gx.strokeStyle = `rgba(255,232,170,${a.toFixed(3)})`; gx.stroke();
+    // petits pays : halo garanti
+    const x = ex(c.c.lon), y = ey(c.c.lat); const gr = gx.createRadialGradient(x, y, 0, x, y, 16);
+    gr.addColorStop(0, `rgba(255,236,190,${a})`); gr.addColorStop(1, 'rgba(255,236,190,0)'); gx.fillStyle = gr; gx.fillRect(x - 16, y - 16, 32, 32);
+  });
+  globeTex.needsUpdate = true;
+}
+
+/* Écrans des plateformes */
+const panels = new THREE.Group(); scene.add(panels);
+const PANEL_SRC = ['snv', 'screen_vaxbudget.jpg', 'screen_diankpro.jpg', 'screen_digital_hero.jpg'];
+const PW = VERT ? visW * .84 : visW * .50, PH = PW / 1.862, GAP = VERT ? PH * 1.6 : PW * 1.3;
+function snvCard() {
+  const c = document.createElement('canvas'); c.width = 1907; c.height = 1024; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 1907, 1024); g.addColorStop(0, '#151412'); g.addColorStop(1, '#0b0b0b'); x.fillStyle = g; x.fillRect(0, 0, 1907, 1024);
+  x.strokeStyle = '#A87C33'; x.lineWidth = 3; x.strokeRect(40, 40, 1827, 944);
+  x.fillStyle = '#ECBA5B'; x.font = '600 44px Inter'; x.fillText(LANG === 'fr' ? 'TABLEAU DE BORD SUIVI-ÉVALUATION' : 'M&E DASHBOARD', 120, 220);
+  x.fillStyle = '#F7F3EA'; x.font = '600 120px Playfair'; x.fillText(LANG === 'fr' ? 'SNV Djibouti' : 'Djibouti NIS', 120, 400); x.fillText('2027–2030', 120, 540);
+  x.fillStyle = '#E6DCC8'; x.font = '400 46px Inter'; x.fillText('dji-snv-27-30.netlify.app', 120, 660);
+  x.fillStyle = '#ECBA5B'; x.font = '600 40px Inter'; x.fillText(LANG === 'fr' ? 'CAPTURE DU TABLEAU DE BORD À INSÉRER' : 'DASHBOARD CAPTURE TO BE INSERTED', 120, 880);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+async function makePanels() {
+  for (let i = 0; i < 4; i++) {
+    const tex = PANEL_SRC[i] === 'snv' ? snvCard() : await loadTex('../assets/' + PANEL_SRC[i]);
+    const grp = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.PlaneGeometry(PW * 1.025, PH * 1.045), new THREE.MeshBasicMaterial({ color: 0xA87C33, transparent: true }));
+    frame.position.z = -0.01;
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    grp.add(frame, scr);
+    if (VERT) grp.position.set(0, -i * GAP, 0); else grp.position.set(i * GAP, 0, -Math.abs(i - 1.5) * .0);
+    grp.userData = { frame, scr };
+    panels.add(grp);
+  }
+}
+
+/* ---------- Particules (calque 2D) ---------- */
+const PR = rnd(42); const PART = Array.from({ length: 260 }, () => ({ x: PR(), y: PR(), s: .4 + PR(), ph: PR() * 6.28, sp: .3 + PR() * .9, a: PR() }));
+function glowDot(x, y, r, a, col = '255,226,160') {
+  const g = g2.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
+  g2.fillStyle = g; g2.fillRect(x - r, y - r, 2 * r, 2 * r);
+}
+function rays(t, a) {
+  if (a <= 0) return;
+  const cx = W * (VERT ? .5 : .3), gr = g2.createRadialGradient(cx, -H * .1, 0, cx, -H * .1, H * 1.1);
+  gr.addColorStop(0, `rgba(236,186,91,${.16 * a})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, W, H);
+  g2.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 6; i++) { const x = cx + (i - 2.5) * W * .06 + Math.sin(t * .4 + i) * W * .01;
+    g2.beginPath(); g2.moveTo(x, -10); g2.lineTo(x + W * .09 + i * 8, H); g2.lineTo(x + W * .13 + i * 8, H); g2.lineTo(x + W * .02, -10);
+    g2.fillStyle = `rgba(236,186,91,${(.028 + .012 * Math.sin(t * .6 + i)) * a})`; g2.fill(); }
+  g2.globalCompositeOperation = 'source-over';
+}
+
+/* Scène 3 : fiole → flux → réseau → barres (2D) */
+function scene3(t, a) {
+  if (a <= 0) return;
+  const lt = t - T.s3; g2.save(); g2.globalAlpha = a;
+  const pan = lerp(W * .03, -W * .03, sm(0, 6.2, lt));
+  const u = VERT ? H / 100 : W / 100;
+  let vial, layers, bars;
+  if (!VERT) {
+    vial = { x: 14 * u + pan, y: H * .24, w: 7 * u, h: H * .40 };
+    layers = [[34, [.25, .40, .55, .70]], [50, [.18, .33, .48, .63, .78]], [64, [.30, .48, .66]]].map(([x, ys]) => ys.map(y => [x * u + pan, H * y * .92]));
+    bars = { x: 74 * u + pan, base: H * .72, w: 2.6 * u, gap: 4 * u, hmax: H * .46 };
+  } else {
+    vial = { x: W * .5 - 4 * u + pan, y: H * .12, w: 8 * u, h: H * .17 };
+    layers = [[.34, [.2, .4, .6, .8]], [.42, [.12, .31, .5, .69, .88]], [.50, [.25, .5, .75]]].map(([y, xs]) => xs.map(x => [W * x + pan, H * y]));
+    bars = { x: W * .2 + pan, base: H * .70, w: W * .09, gap: W * .13, hmax: H * .2 };
+  }
+  // fiole
+  const dissolve = sm(.6, 2.6, lt);
+  g2.save(); g2.globalAlpha = a * (1 - dissolve * .55);
+  const vg = g2.createLinearGradient(vial.x, 0, vial.x + vial.w, 0); vg.addColorStop(0, '#6e5020'); vg.addColorStop(.45, '#f3cf74'); vg.addColorStop(1, '#7a5a24');
+  g2.fillStyle = '#A87C33'; g2.fillRect(vial.x + vial.w * .18, vial.y - vial.h * .2, vial.w * .64, vial.h * .09);
+  g2.fillStyle = vg; g2.fillRect(vial.x + vial.w * .3, vial.y - vial.h * .11, vial.w * .4, vial.h * .11);
+  g2.beginPath(); g2.roundRect(vial.x, vial.y, vial.w, vial.h, u * .9); g2.fill();
+  g2.fillStyle = 'rgba(10,10,10,.55)'; g2.fillRect(vial.x + vial.w * .14, vial.y + vial.h * .36, vial.w * .72, vial.h * .26);
+  g2.restore();
+  const src = [vial.x + vial.w / 2, vial.y + vial.h / 2];
+  // liaisons
+  g2.lineWidth = 1.2 * S;
+  for (let k = 0; k < layers.length - 1; k++) layers[k].forEach(p => layers[k + 1].forEach(q => { g2.strokeStyle = `rgba(212,164,76,${.10 + .2 * sm(1, 3, lt)})`; g2.beginPath(); g2.moveTo(...p); g2.lineTo(...q); g2.stroke(); }));
+  layers[0].forEach(p => { g2.strokeStyle = `rgba(212,164,76,${.18 * dissolve})`; g2.beginPath(); g2.moveTo(...src); g2.lineTo(...p); g2.stroke(); });
+  const last = layers[layers.length - 1];
+  const barTops = [.52, .64, .73, .84, .93].map((v, k) => [bars.x + k * bars.gap + bars.w / 2, bars.base - v * bars.hmax * sm(2.6 + k * .25, 4.2 + k * .25, lt)]);
+  // particules du flux
+  g2.globalCompositeOperation = 'lighter';
+  const r2 = rnd(11);
+  for (let i = 0; i < 120; i++) {
+    const off = r2(), sp = .22 + r2() * .12, s = ((lt - .5) * sp + off) % 1; if (lt < .5 + (1 - off) * 0 || s < 0) continue;
+    const seg = Math.floor(s * 4), f = s * 4 - seg; let A, B;
+    if (seg === 0) { A = src; B = layers[0][i % layers[0].length]; }
+    else if (seg === 1) { A = layers[0][i % layers[0].length]; B = layers[1][i % layers[1].length]; }
+    else if (seg === 2) { A = layers[1][i % layers[1].length]; B = last[i % last.length]; }
+    else { A = last[i % last.length]; B = barTops[i % 5]; }
+    const vis = seg === 3 ? sm(2.4, 3.2, lt) : sm(.5, 1.5, lt);
+    glowDot(A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, 7 * S, .9 * vis);
+  }
+  layers.flat().forEach((p, i) => glowDot(p[0], p[1], 26 * S, .55 + .35 * Math.sin(lt * 3 + i), '255,230,170'));
+  g2.globalCompositeOperation = 'source-over';
+  // barres
+  g2.strokeStyle = 'rgba(230,220,200,.35)'; g2.lineWidth = 2 * S; g2.beginPath(); g2.moveTo(bars.x - u, bars.base); g2.lineTo(bars.x + 4 * bars.gap + bars.w + u, bars.base); g2.stroke();
+  barTops.forEach(([cx, top], k) => { const bh = bars.base - top; if (bh <= 0) return;
+    const bg = g2.createLinearGradient(0, top, 0, bars.base); bg.addColorStop(0, '#ECBA5B'); bg.addColorStop(1, '#A87C33');
+    g2.fillStyle = bg; g2.fillRect(cx - bars.w / 2, top, bars.w, bh); });
+  // convergence finale vers le centre
+  const conv = sm(5.4, 6.16, lt);
+  if (conv > 0) { g2.globalCompositeOperation = 'lighter'; glowDot(W / 2, H / 2, (60 + 500 * conv) * S, .9 * conv); g2.globalCompositeOperation = 'source-over'; }
+  g2.restore();
+}
+
+/* ---------- Rendu d'une image ---------- */
+const tmpV = new THREE.Vector3();
+function project(v) { tmpV.copy(v).project(camera); return [(tmpV.x + 1) / 2 * W, (1 - tmpV.y) / 2 * H, tmpV.z]; }
+
+window.renderAt = function (t) {
+  g2.clearRect(0, 0, W, H);
+  const lu = logo.material.uniforms;
+  logo.visible = false; globeOuter.visible = false; panels.visible = false;
+  camera.position.set(0, 0, D); camera.lookAt(0, 0, 0);
+
+  /* --- 0 et 1 : monogramme --- */
+  if (t < T.s2a) {
+    logo.visible = true; lu.full.value = 0;
+    const hMono = VERT ? visW * .80 : visH * .80;
+    setCrop(CROP_MONO, hMono);
+    const coverX = VERT ? 0 : -visW * .22, coverY = VERT ? visH * .17 : 0;
+    const push = ease(sm(1.0, 2.6, t));             // passage garde → gros plan
+    const back = ease(sm(T.s1, 12.6, t));           // recul lent
+    const focus = new THREE.Vector3(-hMono * 1.093 * .21, hMono * .02, 0); // zone des circuits
+    logo.position.set(lerp(coverX, 0, push) + (VERT ? 0 : -visW * .17 * back), lerp(coverY, 0, push) + (VERT ? visH * .1 * back : 0), 0);
+    logo.rotation.y = lerp(0, .5, push) * (1 - back) + .08 * Math.sin(t * .3) * back;
+    const camZ = lerp(D, lerp(2.4, 7.2, back), push);
+    const look = focus.clone().multiplyScalar(push * (1 - back)).add(new THREE.Vector3(0, 0, 0));
+    camera.position.set(look.x + lerp(0, -.6, push) * (1 - back), look.y, camZ);
+    camera.lookAt(look);
+    lu.lightPos.value.set(Math.sin(t * .7) * 3, 2.5 + Math.cos(t * .5), 4);
+    lu.sweep.value = ((t - .2) * .32) % 1.8 - .3;
+    lu.glow.value = .35 + .25 * Math.sin(t * 2.2) * push;
+    lu.opacity.value = 1 - sm(12.7, 13.5, t);
+    rays(t, 1 - push * .6);
+    { const gA = sm(2.8, 3.6, t) * (1 - sm(12.6, 13.3, t));
+      if (gA > 0) { const gr = VERT ? g2.createLinearGradient(0, H * .55, 0, H) : g2.createLinearGradient(W * .45, 0, W, 0);
+        gr.addColorStop(0, 'rgba(10,10,10,0)'); gr.addColorStop(.45, `rgba(10,10,10,${.82 * gA})`); gr.addColorStop(1, `rgba(10,10,10,${.9 * gA})`);
+        g2.fillStyle = gr; if (VERT) g2.fillRect(0, H * .55, W, H * .45); else g2.fillRect(W * .45, 0, W * .55, H);
+        if (!VERT) { const gb = g2.createLinearGradient(0, H * .6, 0, H); gb.addColorStop(0, 'rgba(10,10,10,0)'); gb.addColorStop(1, `rgba(10,10,10,${.8 * gA * (1 - sm(7.6, 8.2, t))})`); g2.fillStyle = gb; g2.fillRect(0, H * .6, W * .6, H * .4); } } }
+    // particules émises par les circuits
+    const em = sm(2.0, 3.5, t) * (1 - sm(13.3, 13.9, t)); const conv = ease(sm(12.4, 13.7, t));
+    if (em > 0) { g2.globalCompositeOperation = 'lighter';
+      const gC = VERT ? [W / 2, H * .36] : [W * .36, H * .5], gR = (VERT ? .42 * W : .37 * H) * .95;
+      PART.forEach((p, i) => { const y0 = ((p.y - (t - 2) * .05 * p.sp) % 1 + 1) % 1;
+        let x = (p.x * .9 + .05) * W + Math.sin(t * p.s + p.ph) * 14 * S, y = y0 * H;
+        const ang = i / PART.length * Math.PI * 2 * 7.3, rr = gR * Math.sqrt((i % 37) / 37);
+        const tx = gC[0] + Math.cos(ang) * rr, ty = gC[1] + Math.sin(ang) * rr;
+        x = lerp(x, tx, conv); y = lerp(y, ty, conv);
+        glowDot(x, y, (3 + 6 * p.s) * S, (.25 + .6 * p.a) * em * (.6 + .4 * Math.sin(t * 2 + p.ph))); });
+      g2.globalCompositeOperation = 'source-over'; }
+    // textes
+    const cv = 1 - sm(.95, 1.4, t);
+    show(E.coverKick, cv); show(E.coverTitle, cv); show(E.coverRole, cv);
+    show(E.name, win(t, 3.2, 8.0, .7, .5), 24); show(E.role, win(t, 3.6, 7.9, .7, .5), 24);
+    show(E.s1b, win(t, 8.1, 12.6, .6, .5), 24); show(E.s1c, win(t, 9.4, 12.7, .7, .5), 24);
+  } else { [E.coverKick, E.coverTitle, E.coverRole, E.name, E.role, E.s1b, E.s1c].forEach(e => show(e, 0)); }
+
+  /* --- 2a : globe --- */
+  if (t > 12.9 && t < T.s2b + .7) {
+    globeOuter.visible = true;
+    const inA = ease(sm(12.9, 14.1, t)), out = sm(T.s2b - .3, T.s2b + .6, t);
+    const gx0 = VERT ? 0 : -visW * .14, gy0 = VERT ? visH * .14 : 0;
+    globeOuter.position.set(lerp(gx0, VERT ? 0 : -visW * .6, ease(out)), lerp(gy0, VERT ? visH * .7 : gy0, ease(out) * (VERT ? 1 : 0)), 0);
+    globeOuter.scale.setScalar(lerp(.25, 1, inA));
+    globeMat.uniforms.opacity.value = inA * (1 - out);
+    const lon = lerp(-55, 28, ease(sm(13.2, 19.9, t)));
+    const v = ll2v(10, lon, 1); globeSpin.rotation.y = Math.atan2(-v.x, v.z);
+    globeOuter.rotation.x = 12 * Math.PI / 180;
+    const t0 = 14.2, step = .105;
+    const litA = c => sm(t0 + c.k * step, t0 + c.k * step + .35, t);
+    drawGlobeTex(c => litA(c) * (1 - out));
+    countries.forEach(c => { if (!c.arc) return; const p = sm(t0 + c.k * step - .3, t0 + c.k * step + .1, t);
+      c.arc.geometry.setDrawRange(0, Math.floor(p * 64) * 36); c.arc.material.opacity = .9 * (1 - out); });
+    // halo
+    const [cx, cy] = project(globeOuter.position);
+    const rad = (VERT ? .42 * W : .37 * H) * globeOuter.scale.x;
+    const hg = g2.createRadialGradient(cx, cy, rad * .9, cx, cy, rad * 1.5); hg.addColorStop(0, `rgba(212,164,76,${.12 * inA * (1 - out)})`); hg.addColorStop(1, 'rgba(0,0,0,0)');
+    g2.fillStyle = hg; g2.fillRect(0, 0, W, H);
+    const n = countries.filter(c => litA(c) > .5).length;
+    E.count.innerHTML = `${n} <span style="font-size:.42em">${L.countries}</span>`;
+    show(E.years, win(t, 14.0, T.s2b + .1, .6, .4), 30); show(E.count, win(t, 14.3, T.s2b + .1, .6, .4), 30);
+    show(E.partners, win(t, 15.6, T.s2b + .1, .6, .4), 20); show(E.continents, win(t, 16.4, T.s2b + .1, .6, .4), 20);
+  } else { [E.years, E.count, E.partners, E.continents].forEach(e => show(e, 0)); }
+
+  /* --- 2b : écrans --- */
+  if (t > T.s2b - .5 && t < T.s3 + .5) {
+    panels.visible = true;
+    const cues = [T.s2b, 21.45, 23.0, 24.5, T.s3];
+    let idx = 0; for (let i = 0; i < 4; i++) if (t >= cues[i]) idx = i;
+    const f = ease(sm(cues[idx] - .45, cues[idx] + .35, t));
+    const prev = Math.max(0, idx - 1);
+    const pos = i => VERT ? new THREE.Vector3(0, -i * GAP, 0) : new THREE.Vector3(i * GAP, 0, 0);
+    const target = pos(prev).lerp(pos(idx), idx === 0 ? 1 : f);
+    const inB = ease(sm(T.s2b - .5, T.s2b + .4, t)), outB = sm(T.s3 - .45, T.s3 + .25, t);
+    const dist = (VERT ? 6.6 : 7.4) - .5 * Math.sin(sm(cues[idx], cues[idx + 1], t) * Math.PI);
+    camera.position.set(target.x + (VERT ? 0 : -.9 + 1.8 * sm(cues[idx], cues[idx + 1], t)), target.y + (VERT ? .25 : .15), lerp(14, dist, inB));
+    camera.lookAt(target.x, target.y, 0);
+    panels.children.forEach((g, i) => {
+      const foc = 1 - Math.min(1, Math.abs(i - (prev + (idx === 0 ? 0 : f) * (idx - prev))));
+      g.rotation.y = VERT ? 0 : clamp((i - idx), -1, 1) * -.12;
+      const o = (1 - outB) * inB;
+      g.userData.scr.material.opacity = o * (.35 + .65 * foc);
+      g.userData.frame.material.opacity = o * (.25 + .55 * foc);
+    });
+    const ti = win(t, cues[idx] + .15, cues[idx + 1] - .05, .35, .3) * (1 - outB);
+    E.pTitle.innerHTML = L.p[idx][0]; E.pUrl.innerHTML = L.p[idx][1];
+    show(E.pTitle, ti, 16); show(E.pUrl, ti, 16);
+    // poussière dorée
+    g2.globalCompositeOperation = 'lighter';
+    PART.slice(0, 120).forEach(p => glowDot(((p.x + t * .01 * p.sp) % 1) * W, p.y * H, 3 * S, .25 * p.a * inB * (1 - outB)));
+    g2.globalCompositeOperation = 'source-over';
+  } else { show(E.pTitle, 0); show(E.pUrl, 0); }
+
+  /* --- 3 : data science et IA --- */
+  const a3 = sm(T.s3 - .3, T.s3 + .4, t) * (1 - sm(T.s4 - .1, T.s4 + .3, t));
+  scene3(t, a3);
+  const kwT = [26.3, 27.85, 29.4, 30.95, 32.1];
+  E.kw.forEach((e, i) => show(e, win(t, kwT[i], kwT[i + 1] + .05, .3, .3) * (t < T.s4 + .2 ? 1 : 0), 26));
+
+  /* --- 4 : logo complet --- */
+  if (t >= T.s4 - .2) {
+    logo.visible = true; lu.full.value = 1;
+    const hFull = VERT ? visW * .95 / 1.184 : visH * .78;
+    setCrop(CROP_FULL, hFull);
+    const k = t - T.s4;
+    logo.position.set(0, VERT ? visH * .06 : visH * .07, 0);
+    const arc = ease(sm(0, 4.8, k));
+    logo.rotation.y = lerp(.42, 0, arc) + .025 * Math.sin(k * .5) * arc;
+    camera.position.set(lerp(1.2, 0, arc), lerp(-.2, 0, arc), lerp(8.4, D, arc)); camera.lookAt(0, logo.position.y * (1 - arc), 0);
+    lu.rev.value.set(ease(sm(0, 1.1, k)), sm(.8, 1.9, k), sm(1.6, 2.4, k), sm(2.2, 3.0, k));
+    lu.revTag.value = sm(2.8, 4.3, k);
+    lu.opacity.value = sm(-.2, .5, k);
+    lu.lightPos.value.set(lerp(-4, 2, sm(0, 8, k)), 3, 4);
+    lu.sweep.value = k < 6 ? -.3 + (k - 4.4) * .9 : -.3 + ((k - 6.6) % 4.2) * .8;
+    lu.glow.value = .25 + .2 * Math.sin(k * 1.4);
+    rays(t, sm(0, 2, k) * .9);
+    // étincelles
+    g2.globalCompositeOperation = 'lighter';
+    const r5 = rnd(5);
+    for (let i = 0; i < 40; i++) { const x = r5() * W, y = r5() * H, ph = r5() * 6.3, s = (1 + r5() * 2) * S * 3, aa = Math.max(0, Math.sin(k * 1.3 + ph));
+      if (aa > .25) glowDot(x, y, s * 3 * aa, .55 * aa * sm(1, 3, k)); }
+    const flash = Math.exp(-Math.pow((k - .05) * 3.2, 2)); if (k > -.2) glowDot(W / 2, H * .42, Math.max(W, H) * .6, .55 * flash);
+    g2.globalCompositeOperation = 'source-over';
+    show(E.cta, sm(5.0, 5.8, k), 20); show(E.sites, sm(5.5, 6.3, k), 20);
+  } else { show(E.cta, 0); show(E.sites, 0); }
+
+  renderer.render(scene, camera);
+  return true;
+};
+
+/* ---------- Chargement ---------- */
+window.ready = (async () => {
+  await document.fonts.load('600 40px Playfair'); await document.fonts.load('600 40px Inter'); await document.fonts.load('500 40px Inter'); await document.fonts.load('400 40px Inter');
+  await document.fonts.ready;
+  logoTex = await loadTex('../assets/logo_dk.png'); makeLogo();
+  await makeGlobe(); await makePanels();
+  window.renderAt(0);
+  return true;
+})();
+</script>
+</body>
+</html>

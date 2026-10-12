@@ -1,0 +1,15 @@
+{
+  "name": "dian-k-pro-promo",
+  "private": true,
+  "description": "Film promotionnel 3D Dian K. Pro : rendu image par image (Three.js + Playwright + ffmpeg)",
+  "scripts": {
+    "render": "node render/render.js"
+  },
+  "dependencies": {
+    "three": "0.170.0",
+    "world-atlas": "2.0.2",
+    "topojson-client": "3.1.0",
+    "@fontsource/playfair-display": "5.1.0",
+    "@fontsource/inter": "5.1.0"
+  }
+}
