@@ -1,0 +1,4 @@
+# Fichiers audio et rendus lourds : conservés hors du dépôt
+*.wav
+*.mp3
+*.mp4
