@@ -35,6 +35,8 @@ node render.mjs --from 29.2 --to 58.4 --out out/segB.mp4
 ./finalize.sh                               # assemble + encode les deux livrables
 ```
 
+Correction ciblée sans tout re-rendre : re-rendre le passage concerné puis `./patch.sh out/video_60.mp4 out/v2.mp4 out/passage.mp4:<début_s>`.
+
 Version sans logos : `node render.mjs --from 46.8 --to 50.6 --partners 0 --out out/segNoLogo.mp4` avant `./finalize.sh`, qui l'insère automatiquement.
 
 Rendu déterministe (Three.js r169, Chromium sans affichage, rendu logiciel) : chaque image est une fonction pure du temps.
