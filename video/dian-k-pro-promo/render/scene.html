@@ -102,13 +102,13 @@ function el(html, css) { const d = document.createElement('div'); d.className = 
 const px = v => Math.round(v * S) + 'px';
 const E = {};
 if (!VERT) {
-  E.coverKick = el(L.name, { left: '52%', top: '30%', fontSize: px(30), width: '42%' }); E.coverKick.classList.add('kick');
-  E.coverTitle = el(L.coverTitle, { left: '52%', top: '37%', fontSize: px(76), width: '40%' }); E.coverTitle.classList.add('disp');
-  E.coverRole = el(L.role, { left: '52%', top: '66%', fontSize: px(32), width: '42%', color: 'var(--sand)' });
+  E.coverKick = el(L.name, { left: '69%', top: '27%', fontSize: px(30), width: '28%' }); E.coverKick.classList.add('kick');
+  E.coverTitle = el(L.coverTitle, { left: '69%', top: '33%', fontSize: px(62), width: '28%' }); E.coverTitle.classList.add('disp');
+  E.coverRole = el(L.role, { left: '69%', top: '67%', fontSize: px(30), width: '28%', color: 'var(--sand)' });
   E.name = el(L.name, { left: '6%', bottom: '17%', fontSize: px(84) }); E.name.classList.add('disp', 'shadow');
   E.role = el(L.role, { left: '6.2%', bottom: '11.5%', fontSize: px(30) }); E.role.classList.add('kick', 'shadow');
-  E.s1b = el(L.s1b, { right: '6%', top: '57%', fontSize: px(34), fontWeight: 500, textAlign: 'right' }); E.s1b.classList.add('shadow');
-  E.s1c = el(L.s1c, { right: '6%', top: '36%', fontSize: px(72), textAlign: 'right' }); E.s1c.classList.add('disp', 'shadow');
+  E.s1b = el(L.s1b, { left: '69%', top: '62%', fontSize: px(30), fontWeight: 500, width: '28%' }); E.s1b.classList.add('shadow');
+  E.s1c = el(L.s1c, { left: '69%', top: '34%', fontSize: px(58), width: '28%' }); E.s1c.classList.add('disp', 'shadow');
   E.years = el(`20 <span style="font-size:.42em">${L.years}</span>`, { right: '7%', top: '17%', fontSize: px(150), textAlign: 'right' }); E.years.classList.add('disp', 'gold');
   E.count = el('', { right: '7%', top: '39%', fontSize: px(150), textAlign: 'right' }); E.count.classList.add('disp', 'gold');
   E.partners = el(L.partners, { right: '7%', top: '64%', fontSize: px(36), fontWeight: 500, textAlign: 'right' });
@@ -153,10 +153,14 @@ const loader = new THREE.TextureLoader();
 const loadTex = u => new Promise(r => loader.load(u, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; r(t); }));
 
 /* Logo : plan texturé, relief tiré de la luminance, éclairage spéculaire or */
-const logoVS = `varying vec2 vUv; varying vec3 vW; void main(){ vUv=uv; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`;
+const logoVS = `varying vec2 vUv; varying vec3 vW, vNw, vTw, vBw; void main(){ vUv=uv; vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz;
+  mat3 m=mat3(modelMatrix); vNw=normalize(m*vec3(0.,0.,1.)); vTw=normalize(m*vec3(1.,0.,0.)); vBw=normalize(m*vec3(0.,1.,0.));
+  gl_Position=projectionMatrix*viewMatrix*w; }`;
 const logoFS = `
 uniform sampler2D map; uniform vec4 crop; uniform vec3 lightPos; uniform float sweep, opacity, full, glow;
-uniform vec4 rev; uniform float revTag; uniform vec2 texel; varying vec2 vUv; varying vec3 vW;
+uniform vec4 rev; uniform float revTag; uniform vec2 texel; varying vec2 vUv; varying vec3 vW, vNw, vTw, vBw;
+uniform sampler2D envMap; uniform float envRot;
+vec3 envLook(vec3 d){ float u = atan(d.z, d.x) / 6.2831853 + .5 + envRot; float v = asin(clamp(d.y, -1., 1.)) / 3.1415927 + .5; return texture2D(envMap, vec2(fract(u), v)).rgb; }
 float lum(vec2 p){ return dot(texture2D(map,p).rgb, vec3(.3,.59,.11)); }
 void main(){
   vec2 uv = mix(crop.xy, crop.zw, vUv);
@@ -164,12 +168,18 @@ void main(){
   float h = lum(uv);
   float hx = lum(uv+vec2(texel.x,0.)) - lum(uv-vec2(texel.x,0.));
   float hy = lum(uv+vec2(0.,texel.y)) - lum(uv-vec2(0.,texel.y));
-  vec3 n = normalize(vec3(-hx*5., -hy*5., 1.));
+  vec3 n = normalize(vec3(-hx*3.6, -hy*3.6, 1.));
   vec3 Ld = normalize(lightPos - vW); vec3 V = normalize(cameraPosition - vW);
   float diff = max(dot(n, Ld), 0.);
   float spec = pow(max(dot(n, normalize(Ld+V)), 0.), 38.);
   float metal = smoothstep(.16, .5, h);
-  vec3 col = c*(.62 + .55*diff) + metal*spec*vec3(1.,.87,.62)*1.25;
+  // reflets HDRI studio : normale de relief → monde → réflexion
+  vec3 Nw = normalize(n.x*vTw + n.y*vBw + n.z*vNw);
+  vec3 env = envLook(reflect(-V, Nw));
+  float el = dot(env, vec3(.3,.59,.11));
+  vec3 gold = mix(vec3(.831,.643,.298), vec3(.925,.729,.357), clamp(el*1.4,0.,1.));   // #D4A44C → #ECBA5B
+  vec3 col = c*(.48 + .42*diff) + metal*(env*gold*1.55 + spec*vec3(1.,.87,.62)*.9);
+  col = mix(vec3(.003), col, smoothstep(.035, .15, h));                               // fond noir mat #0A0A0A (linéaire)
   float band = exp(-pow((vUv.x*.8 + (1.-vUv.y)*.5 - sweep)*6., 2.));
   col += metal*band*vec3(1.,.9,.7)*.6 + metal*glow*vec3(.9,.7,.35)*.35;
   float a = opacity;
@@ -194,12 +204,30 @@ void main(){
   gl_FragColor = vec4(col, a*e);
   #include <colorspace_fragment>
 }`;
+/* Carte HDRI « studio » générée : fond sombre, softbox principale, bande latérale, plafonnier, contre-jour */
+function makeStudioHDRI() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d');
+  x.fillStyle = '#040404'; x.fillRect(0, 0, 1024, 512);
+  const g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, 'rgba(60,56,50,.5)'); g.addColorStop(.5, 'rgba(20,19,17,.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 1024, 512);
+  x.filter = 'blur(6px)';
+  const box = (u0, u1, v0, v1, col) => { x.fillStyle = col; x.fillRect(u0 * 1024, (1 - v1) * 512, (u1 - u0) * 1024, (v1 - v0) * 512); };
+  box(.66, .745, .55, .80, '#ffffff');        // softbox principale
+  box(.80, .825, .42, .86, '#fff4e0');        // bande latérale
+  box(.50, .98, .90, .985, '#f2efe8');        // plafonnier
+  box(.22, .26, .48, .72, '#ffe2b0');         // contre-jour chaud
+  box(.69, .72, .30, .42, '#8a8070');         // réflecteur bas
+  x.filter = 'none';
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.mapping = THREE.EquirectangularReflectionMapping;
+  return t;
+}
+const hdri = makeStudioHDRI();
 let logoTex, logo;
 function makeLogo() {
   const mat = new THREE.ShaderMaterial({
     uniforms: { map: { value: logoTex }, crop: { value: new THREE.Vector4() }, lightPos: { value: new THREE.Vector3(0, 3, 4) },
       sweep: { value: -1 }, opacity: { value: 1 }, full: { value: 0 }, glow: { value: 0 }, rev: { value: new THREE.Vector4(1, 1, 1, 1) }, revTag: { value: 1 },
-      texel: { value: new THREE.Vector2(1.5 / 1254, 1.5 / 1254) } },
+      texel: { value: new THREE.Vector2(1.5 / 1254, 1.5 / 1254) }, envMap: { value: hdri }, envRot: { value: 0 } },
     vertexShader: logoVS, fragmentShader: logoFS, transparent: true, depthWrite: false });
   logo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
   scene.add(logo);
@@ -210,6 +238,40 @@ function setCrop(c, heightWorld) {
   logo.material.uniforms.crop.value.set(c[0], c[1], c[2], c[3]);
   const asp = (c[2] - c[0]) / (c[3] - c[1]);
   logo.scale.set(heightWorld * asp, heightWorld, 1);
+}
+
+/* Carte portrait 3D : verre fumé, cadre or (HDRI), halo doré */
+let card, cardParts = {};
+function radialTex(r, g, b) {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  const gr = x.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.35, `rgba(${r},${g},${b},.35)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  x.fillStyle = gr; x.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+async function makeCard() {
+  const tex = await loadTex('../assets/portrait_dian_sidibe.jpg');
+  tex.repeat.set(.75, 1); tex.offset.set(.125, 0);
+  const CH = VERT ? visW * .46 : visH * .50, CW = CH * .75;
+  card = new THREE.Group();
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: radialTex(236, 186, 91), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: .55 }));
+  halo.scale.set(CW * 2.4, CH * 1.9, 1); halo.position.z = -.12;
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xD4A44C, metalness: 1, roughness: .2, emissive: 0x2a1c08, transparent: true });
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(CW * 1.06, CH * 1.045, .06), frameMat); frame.position.z = -.04;
+  const photo = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+  const glassMat = new THREE.ShaderMaterial({
+    uniforms: { opacity: { value: 1 }, sweep: { value: 0 } }, transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv=uv; vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
+    fragmentShader: `uniform float opacity, sweep; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+      void main(){ float fr = pow(1.-abs(dot(vN,vV)), 3.);
+        float d = min(min(vUv.x,1.-vUv.x), min(vUv.y,1.-vUv.y)); float edge = 1.-smoothstep(0., .03, d);
+        float band = exp(-pow((vUv.x*.7 + vUv.y*.55 - sweep)*5., 2.));
+        vec3 col = vec3(.035,.03,.026) + vec3(1.,.86,.58)*(band*.55 + edge*.7);
+        float a = .14 + fr*.35 + band*.18 + edge*.55;
+        gl_FragColor = vec4(col, a*opacity);
+        #include <colorspace_fragment>
+      }` });
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(CW * 1.02, CH * 1.015), glassMat); glass.position.z = .035;
+  card.add(halo, frame, photo, glass); scene.add(card);
+  cardParts = { halo, frameMat, photo: photo.material, glassMat };
 }
 
 /* Globe */
@@ -288,6 +350,7 @@ function drawGlobeTex(lit) {
 
 /* Écrans des plateformes */
 const panels = new THREE.Group(); scene.add(panels);
+let stack = null; const STACK_SRC = ['screen_snv_accueil.jpg', 'screen_vaxbudget.jpg', 'screen_diankpro.jpg'], STACK_P = [0, 2, 3];
 const PANEL_SRC = ['screen_snv_accueil.jpg', 'screen_snv_mediatheque.jpg', 'screen_vaxbudget.jpg', 'screen_diankpro.jpg', 'screen_digital_hero.jpg', 'screen_digital_ia.jpg'];
 const NP = PANEL_SRC.length, STEP = Math.PI * 2 / NP;
 const PW = VERT ? visW * .80 : visW * .46, PH = PW / 1.88, RING = PW * .5 / Math.tan(STEP / 2) * 1.06;
@@ -301,13 +364,29 @@ function snvCard() { // conservé pour mémoire, plus utilisé
   x.fillStyle = '#ECBA5B'; x.font = '600 40px Inter'; x.fillText(LANG === 'fr' ? 'CAPTURE DU TABLEAU DE BORD À INSÉRER' : 'DASHBOARD CAPTURE TO BE INSERTED', 120, 880);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+async function makeStack() {
+  stack = new THREE.Group(); scene.add(stack);
+  const SW = visW * .74, SH = SW / 1.88, gap = .12;
+  stack.userData = { SW, SH, ys: [0, 1, 2].map(i => .25 + (1 - i) * (SH + gap)) };
+  for (let i = 0; i < 3; i++) {
+    const tex = await loadTex('../assets/' + STACK_SRC[i]);
+    const g = new THREE.Group();
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(SW * 1.025, SH * 1.05, .04), new THREE.MeshStandardMaterial({ color: 0xD4A44C, metalness: 1, roughness: .22, emissive: 0x2a1c08, transparent: true }));
+    frame.position.z = -.03;
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(SW, SH), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    g.add(frame, scr); g.userData = { frame, scr }; stack.add(g);
+  }
+  E.stackL = [0, 1, 2].map(i => el(`<div class="disp" style="font-size:${px(34)}">${L.p[STACK_P[i]][0]}</div><div style="font-size:${px(28)};color:var(--champagne);font-weight:500">${L.p[STACK_P[i]][1]}</div>`,
+      { left: '13%', right: '13%', textAlign: 'center', padding: `${px(26)} 0 ${px(8)}`, background: 'linear-gradient(rgba(10,10,10,0), rgba(10,10,10,.92) 38%)', lineHeight: 1.2 }));
+}
 async function makePanels() {
+  if (VERT) await makeStack();
   panels.position.z = -RING;
   for (let i = 0; i < NP; i++) {
     const tex = await loadTex('../assets/' + PANEL_SRC[i]);
     const grp = new THREE.Group();
-    const frame = new THREE.Mesh(new THREE.PlaneGeometry(PW * 1.025, PH * 1.045), new THREE.MeshBasicMaterial({ color: 0xA87C33, transparent: true }));
-    frame.position.z = -0.01;
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(PW * 1.025, PH * 1.045, .04), new THREE.MeshStandardMaterial({ color: 0xD4A44C, metalness: 1, roughness: .22, emissive: 0x2a1c08, transparent: true }));
+    frame.position.z = -0.03;
     const scr = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
     grp.add(frame, scr);
     grp.position.set(Math.sin(i * STEP) * RING, 0, Math.cos(i * STEP) * RING); grp.rotation.y = i * STEP;
@@ -401,24 +480,36 @@ function project(v) { tmpV.copy(v).project(camera); return [(tmpV.x + 1) / 2 * W
 window.renderAt = function (t) {
   g2.clearRect(0, 0, W, H);
   const lu = logo.material.uniforms;
-  logo.visible = false; globeOuter.visible = false; panels.visible = false;
+  logo.visible = false; globeOuter.visible = false; panels.visible = false; if (card) card.visible = false; if (stack) stack.visible = false;
   camera.position.set(0, 0, D); camera.lookAt(0, 0, 0);
 
   /* --- 0 et 1 : monogramme --- */
   if (t < T.s2a) {
     logo.visible = true; lu.full.value = 0;
-    const hMono = VERT ? visW * .80 : visH * .80;
+    const hMono = VERT ? visW * .50 : visH * .62;
     setCrop(CROP_MONO, hMono);
-    const coverX = VERT ? 0 : -visW * .22, coverY = VERT ? visH * .17 : 0;
-    const push = ease(sm(1.0, 2.6, t));             // passage garde → gros plan
-    const back = ease(sm(T.s1, 12.6 + DA, t));           // recul lent
+    // garde et fin du plan 1 : monogramme + carte portrait côte à côte
+    const coverX = VERT ? -visW * .225 : -visW / 2 + visW * .03 + hMono * 1.093 / 2, coverY = VERT ? visH * .20 : 0;
+    const push = ease(sm(1.0, 2.6, t));             // garde → gros plan sur les circuits
+    const back = ease(sm(T.s1 + 4.5, 11.6 + DA, t)); // retour au cadrage monogramme + portrait
+    const close = push * (1 - back);
     const focus = new THREE.Vector3(-hMono * 1.093 * .21, hMono * .02, 0); // zone des circuits
-    logo.position.set(lerp(coverX, 0, push) + (VERT ? 0 : -visW * .17 * back), lerp(coverY, 0, push) + (VERT ? visH * .1 * back : 0), 0);
-    logo.rotation.y = lerp(0, .5, push) * (1 - back) + .08 * Math.sin(t * .3) * back;
-    const camZ = lerp(D, lerp(2.4, 7.2, back), push);
-    const look = focus.clone().multiplyScalar(push * (1 - back)).add(new THREE.Vector3(0, 0, 0));
-    camera.position.set(look.x + lerp(0, -.6, push) * (1 - back), look.y, camZ);
+    logo.position.set(lerp(coverX, 0, close), lerp(coverY, 0, close), 0);
+    logo.rotation.y = .5 * close + .06 * Math.sin(t * .35) * (1 - close);
+    const closeZ = 2.4 * hMono / (VERT ? visW * .8 : visH * .8);
+    const camZ = lerp(D * .97, closeZ, close) - .25 * Math.sin(t * .4) * (1 - close);
+    const look = focus.clone().multiplyScalar(close);
+    camera.position.set(look.x + (-.6 * close) + .45 * Math.sin(t * .33) * (1 - close), look.y + .12 * Math.cos(t * .27) * (1 - close), camZ);
     camera.lookAt(look);
+    // carte portrait : parallaxe (plan avant, z = 0,6)
+    card.visible = true;
+    card.position.set(VERT ? visW * .225 : visW * .045, VERT ? visH * .20 : visH * .01, .6);
+    card.rotation.set(.04 * Math.sin(t * .3), -.2 + .06 * Math.sin(t * .4), 0);
+    const cOp = clamp(1 - close * 1.6) * (1 - sm(12.7 + DA, 13.5 + DA, t));
+    cardParts.photo.opacity = cOp; cardParts.frameMat.opacity = cOp; cardParts.glassMat.uniforms.opacity.value = cOp;
+    cardParts.halo.material.opacity = .5 * cOp * (.85 + .15 * Math.sin(t * 1.7));
+    cardParts.glassMat.uniforms.sweep.value = ((t + .4) * .28) % 1.7 - .3;
+    lu.envRot.value = .03 * Math.sin(t * .5);
     lu.lightPos.value.set(Math.sin(t * .7) * 3, 2.5 + Math.cos(t * .5), 4);
     lu.sweep.value = ((t - .2) * .32) % 1.8 - .3;
     lu.glow.value = .35 + .25 * Math.sin(t * 2.2) * push;
@@ -427,7 +518,7 @@ window.renderAt = function (t) {
     { const gA = sm(2.8, 3.6, t) * (1 - sm(12.6 + DA, 13.3 + DA, t));
       if (gA > 0) { const gr = VERT ? g2.createLinearGradient(0, H * .55, 0, H) : g2.createLinearGradient(W * .45, 0, W, 0);
         gr.addColorStop(0, 'rgba(10,10,10,0)'); gr.addColorStop(.45, `rgba(10,10,10,${.82 * gA})`); gr.addColorStop(1, `rgba(10,10,10,${.9 * gA})`);
-        g2.fillStyle = gr; if (VERT) g2.fillRect(0, H * .55, W, H * .45); else g2.fillRect(W * .45, 0, W * .55, H);
+        g2.fillStyle = gr; if (VERT) g2.fillRect(0, H * .55, W, H * .45);
         if (!VERT) { const gb = g2.createLinearGradient(0, H * .6, 0, H); gb.addColorStop(0, 'rgba(10,10,10,0)'); gb.addColorStop(1, `rgba(10,10,10,${.8 * gA * (1 - sm(7.6, 8.2, t))})`); g2.fillStyle = gb; g2.fillRect(0, H * .6, W * .6, H * .4); } } }
     // particules émises par les circuits
     const em = sm(2.0, 3.5, t) * (1 - sm(13.3 + DA, 13.9 + DA, t)); const conv = ease(sm(12.4 + DA, 13.7 + DA, t));
@@ -443,8 +534,8 @@ window.renderAt = function (t) {
     // textes
     const cv = 1 - sm(.95, 1.4, t);
     show(E.coverKick, cv); show(E.coverTitle, cv); show(E.coverRole, cv);
-    show(E.name, win(t, 3.2, 8.0, .7, .5), 24); show(E.role, win(t, 3.6, 7.9, .7, .5), 24);
-    show(E.s1b, win(t, 8.1, 12.6 + DA, .6, .5), 24); show(E.s1c, win(t, 9.4, 12.7 + DA, .7, .5), 24);
+    show(E.name, win(t, 3.0, 8.4, .7, .5), 24); show(E.role, win(t, 3.4, 8.3, .7, .5), 24);
+    show(E.s1b, win(t, 10.0 + DA * .5, 12.6 + DA, .6, .5), 24); show(E.s1c, win(t, 9.3 + DA * .5, 12.7 + DA, .7, .5), 24);
   } else { [E.coverKick, E.coverTitle, E.coverRole, E.name, E.role, E.s1b, E.s1c].forEach(e => show(e, 0)); }
 
   /* --- 2a : globe --- */
@@ -474,8 +565,34 @@ window.renderAt = function (t) {
     show(E.partners, win(t, 15.6 + DA, T.s2b + .1, .6, .4), 20); show(E.continents, win(t, 16.4 + DA, T.s2b + .1, .6, .4), 20);
   } else { [E.years, E.count, E.partners, E.continents].forEach(e => show(e, 0)); }
 
-  /* --- 2b : carrousel des plateformes --- */
-  if (t > T.s2b - .6 && t < T.s3 + .5) {
+  /* --- 2b (9:16) : trois écrans empilés verticalement --- */
+  if (VERT && t > T.s2b - .6 && t < T.s3 + .5) {
+    stack.visible = true;
+    const { SH, ys } = stack.userData, cues = [T.pc[0], T.pc[2], T.pc[4]];
+    const outB = sm(T.s3 - .45, T.s3 + .25, t);
+    camera.position.set(.08 * Math.sin(t * .5), .06 * Math.cos(t * .4), D - .3 * sm(T.s2b, T.s3, t)); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
+    let active = 0; cues.forEach((c, i) => { if (t >= c - .1) active = i; });
+    stack.children.forEach((g, i) => {
+      const inn = ease(sm(cues[i] - .75, cues[i] - .05, t));
+      const foc = 1 - Math.min(1, Math.abs(i - active));
+      g.position.set(lerp(visW * 1.1, 0, inn), ys[i], 0);
+      g.rotation.y = lerp(-.7, 0, inn);
+      g.scale.setScalar(1 + .035 * foc * inn);
+      const o = inn * (1 - outB);
+      g.userData.scr.material.opacity = o * (.62 + .38 * foc);
+      g.userData.frame.material.opacity = o * (.45 + .55 * foc);
+      const [, yb] = project(new THREE.Vector3(0, ys[i] - SH / 2 * g.scale.y, 0));
+      const lab = E.stackL[i]; lab.style.top = (yb - lab.offsetHeight - 2 * S) + 'px';
+      show(lab, sm(cues[i] - .2, cues[i] + .25, t) * (1 - outB) * (.7 + .3 * foc), 0);
+    });
+    g2.globalCompositeOperation = 'lighter';
+    PART.slice(0, 90).forEach(p => glowDot(((p.x + t * .01 * p.sp) % 1) * W, p.y * H, 3 * S, .22 * p.a * (1 - outB)));
+    g2.globalCompositeOperation = 'source-over';
+    show(E.pTitle, 0); show(E.pUrl, 0);
+  } else if (VERT && E.stackL) { E.stackL.forEach(l => show(l, 0)); }
+
+  /* --- 2b (16:9) : carrousel des plateformes --- */
+  if (!VERT && t > T.s2b - .6 && t < T.s3 + .5) {
     panels.visible = true;
     const inB = ease(sm(T.s2b - .6, T.s2b + .5, t)), outB = sm(T.s3 - .45, T.s3 + .25, t);
     let f = -(1 - inB) * 1.3;
@@ -496,7 +613,7 @@ window.renderAt = function (t) {
     g2.globalCompositeOperation = 'lighter';
     PART.slice(0, 120).forEach(p => glowDot(((p.x + t * .01 * p.sp) % 1) * W, p.y * H, 3 * S, .25 * p.a * inB * (1 - outB)));
     g2.globalCompositeOperation = 'source-over';
-  } else { show(E.pTitle, 0); show(E.pUrl, 0); }
+  } else if (!VERT) { show(E.pTitle, 0); show(E.pUrl, 0); }
 
   /* --- 3 : data science et IA --- */
   const a3 = sm(T.s3 - .3, T.s3 + .4, t) * (1 - sm(T.s4 - .1, T.s4 + .3, t));
@@ -520,6 +637,7 @@ window.renderAt = function (t) {
     lu.lightPos.value.set(lerp(-4, 2, sm(0, 8, k)), 3, 4);
     lu.sweep.value = k < 6 ? -.3 + (k - 4.4) * .9 : -.3 + ((k - 6.6) % 4.2) * .8;
     lu.glow.value = .25 + .2 * Math.sin(k * 1.4);
+    lu.envRot.value = lerp(-.08, 0, arc) + .035 * Math.sin(k * .45);
     rays(t, sm(0, 2, k) * .9);
     // étincelles
     g2.globalCompositeOperation = 'lighter';
@@ -541,7 +659,9 @@ window.ready = (async () => {
   await document.fonts.ready;
   logoTex = await loadTex('../assets/logo_dk.png'); makeLogo();
   portrait.src = '../assets/portrait_dian_sidibe.jpg'; await portrait.decode();
-  await makeGlobe(); await makePanels();
+  const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromEquirectangular(hdri).texture;
+  scene.add(new THREE.AmbientLight(0xffffff, .15));
+  await makeCard(); await makeGlobe(); await makePanels();
   window.renderAt(0);
   return true;
 })();
