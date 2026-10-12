@@ -45,7 +45,7 @@
 | 2.1 | 8–11 s | Plan large frontal, ruban en fond flou | Le ruban se divise en **3 filaments lumineux** (mères, sœurs, filles) qui montent en parallèle — symbole sans visage | *À nos mères, nos sœurs, nos filles* puis *Votre santé est précieuse* | VO |
 | 2.2 | 11–16 s | Orbite lente 120° autour de l'appareil, vue 3/4, puis légère plongée | **Mammographe holographique** : ~70 000 particules d'or qui convergent pour former l'appareil (colonne, bras en C, plateau de compression) ; ligne de balayage rose qui le parcourt de haut en bas ; grille au sol façon plateau technique | **Centre National de Référence Housseina** / *Mammographie de pointe* (texte 3D en relief, or, ancré sous l'appareil) | VO + texture sonore « scan » discrète |
 | 2.3 | 16–19 s | Montée verticale rapide (crane-up) → vue zénithale inclinée 55° | L'appareil se dissout en particules qui tombent et dessinent la **carte 3D de Djibouti** (verre sombre extrudé, côtes en or, golfe de Tadjourah lumineux) ; zoom vers Djibouti-ville puis Balbala | — | Whoosh |
-| 2.4 | 19–22 s | Zoom final sur Balbala, léger travelling latéral | 2 repères en colonne de lumière : **Housseina (Hadden)** rose pulsant, **Hôpital Cheicko** or ; le ruban trace le lien entre les deux | Étiquettes 3D : *Housseina · Hadden, Balbala* / *Hôpital Cheicko · Balbala* | VO |
+| 2.4 | 19–22 s | Zoom final sur Balbala, léger travelling latéral | 2 repères en colonne de lumière : **Housseina (Hodan)** rose pulsant, **Hôpital Cheicko** or ; le ruban trace le lien entre les deux | Étiquettes 3D : *Housseina · Hodan, Balbala* / *Hôpital Cheicko · Balbala* | VO |
 
 ### Séquence 3 — Message aux hommes (22–32 s)
 
@@ -59,7 +59,7 @@
 
 | Plan | Temps | Caméra 3D | Éléments | Texte | Son |
 |---|---|---|---|---|---|
-| 4.1 | 32–35 s | Plan fixe | Le cercle se contracte en un point de lumière ; **carton récapitulatif** sur verre sombre (essentiel pour une lecture sans le son) | **Dépistage du cancer du sein** · Centre Housseina — Hadden, Balbala · Hôpital Cheicko — Balbala | VO |
+| 4.1 | 32–35 s | Plan fixe | Le cercle se contracte en un point de lumière ; **carton récapitulatif** sur verre sombre (essentiel pour une lecture sans le son) | **Dépistage du cancer du sein** · Centre Housseina — Hodan, Balbala · Hôpital Cheicko — Balbala | VO |
 | 4.2 | 35–38,5 s | Travelling avant très lent | Le point de lumière éclate en particules d'or qui forment le **logo Dian K. Pro 3D** (or métallique, balayage de lumière) | PUBLIC HEALTH & DIGITAL STRATEGIST (Inter 40 px, interlettrage large) · *Un message de prévention du Dr Dian Sidibé* | VO |
 | 4.3 | 38,5–40 s | Image fixe (dernière image propre, réutilisable comme vignette de fin) | Logo stable, ruban rose fin sous le logo | *Designed for those who cannot fail* (Playfair italique 56 px) · *Ensemble, protégeons la vie* | Fin musicale nette à 40,0 s |
 
@@ -71,7 +71,7 @@
 |---|---|
 | **Ruban rose** | Tube sur spline animée ; matériau physique « soie satinée » (sheen + clearcoat, anisotropie simulée) en #E6005C ; âme en verre néon émissif #FF2A7A ; bloom contrôlé |
 | **Mammographe** | Nuage de particules or #D4A44C, modèle générique stylisé (pas une marque identifiable), clairement holographique — jamais présenté comme une photo de l'appareil réel |
-| **Carte de Djibouti** | Tracé issu de données ouvertes (Natural Earth / OpenStreetMap) ; frontières internationales reconnues, sans annotation litigieuse ; Hadden et l'Hôpital de Balbala positionnés sur coordonnées vérifiées |
+| **Carte de Djibouti** | Tracé issu de données ouvertes (Natural Earth / OpenStreetMap) ; frontières internationales reconnues, sans annotation litigieuse ; Hodan et l'Hôpital de Balbala positionnés sur coordonnées vérifiées |
 | **Typographie 3D** | Playfair Display extrudé (biseau 2 px), face or métallique, tranche plus sombre ; Inter en aplat pour les textes informatifs (lisibilité) |
 | **Lumière** | Éclairage studio 3 points + environnement HDR sombre ; contre-jour rose, lumière clé chaude dorée |
 | **Contraste** | #FF2A7A sur #0B0B0C ≈ 5,5:1 (conforme AA) ; #E6005C ≈ 4,2:1 → réservé aux volumes 3D, jamais au texte courant |
