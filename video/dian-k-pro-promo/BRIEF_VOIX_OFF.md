@@ -1,6 +1,6 @@
 # Film promotionnel 3D Dian K. Pro — fiche d'enregistrement des voix off
 
-Version 1.1 · 12 octobre 2026 · Storyboard validé (v1.0)
+Version 1.2 · 12 octobre 2026 · appel à l'action : « l'expertise de Dian K. Pro » · Storyboard validé (v1.0)
 
 ## Décisions validées
 
@@ -35,9 +35,9 @@ Lire uniquement les phrases ci-dessous. Ne pas lire les numéros ni les titres.
 >
 > Suivi-évaluation de précision, data science, intelligence artificielle et plaidoyer visuel : chaque solution allie rigueur scientifique et excellence technologique.
 >
-> Donnez une nouvelle dimension à vos programmes de santé et à vos projets digitaux. Faites appel à mon expertise dès aujourd'hui.
+> Donnez une nouvelle dimension à vos programmes de santé et à vos projets digitaux. Sollicitez l'expertise de Dian K. Pro dès aujourd'hui.
 >
-> Dian K. Pro. Designed for those who cannot fail.
+> Designed for those who cannot fail.
 
 ## Texte à lire — anglais
 
@@ -49,9 +49,9 @@ Lire uniquement les phrases ci-dessous. Ne pas lire les numéros ni les titres.
 >
 > Precision M and E, health data science, artificial intelligence and visual advocacy: every solution combines scientific rigor with technological excellence.
 >
-> Take your health programs and digital projects to the next level. Partner with me today.
+> Take your health programs and digital projects to the next level. Partner with Dian K. Pro today.
 >
-> Dian K. Pro. Designed for those who cannot fail.
+> Designed for those who cannot fail.
 
 ## Spécifications techniques
 
