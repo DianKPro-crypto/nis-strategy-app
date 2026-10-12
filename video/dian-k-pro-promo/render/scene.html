@@ -40,7 +40,12 @@ const stage = document.getElementById('stage');
 stage.style.width = W + 'px'; stage.style.height = H + 'px';
 
 /* Repères temporels, calés sur les mesures de la kora (≈ 3,08 s) */
-const T = { cover: 0, s1: 1.46, s2a: 13.56, s2b: 19.9, s3: 26.05, s4: 32.21, end: 45 };
+/* Minutage par langue, calé sur la voix off (EN : piste Suno après retrait des titres lus) */
+const TM = {
+  fr: { s1: 1.46, s2a: 13.56, s2b: 19.9, s3: 26.05, s4: 32.21, end: 45, kw: [26.3, 27.85, 29.4, 30.95, 32.1], pc: [20.3, 21.3, 22.3, 23.3, 24.3, 25.2], cta: 5.0, tag: 2.8 },
+  en: { s1: 1.4, s2a: 13.3, s2b: 19.8, s3: 25.96, s4: 36.2, end: 47.35, kw: [25.95, 27.4, 28.8, 30.35, 36.0], pc: [20.4, 21.6, 22.7, 23.8, 24.8, 25.6], cta: 4.0, tag: 8.5 },
+};
+const T = Object.assign({ cover: 0 }, TM[Q.get('timing') || LANG]);
 
 /* ---------- Outils ---------- */
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -59,10 +64,12 @@ const L = {
     s1c: 'De la donnée complexe<br>à la <span class="gold">décision</span>',
     years: 'ans', countries: 'pays', partners: 'ONU · Gavi · Ministères de la Santé', continents: '4 continents',
     p: [
-      ['Stratégie nationale de vaccination', 'dji-snv-27-30.netlify.app'],
+      ['Stratégie nationale de vaccination · Djibouti', 'dji-snv-27-30.netlify.app'],
+      ['Médiathèque des ateliers de la SNV', 'dji-snv-27-30.netlify.app'],
       ['Modélisation budgétaire Gavi 6.0', 'budget-vax-gavi-6.0.diankpro.com'],
       ['Stratégie &amp; leadership en santé publique', 'diankpro.com'],
-      ['Plateformes numériques &amp; IA responsable', 'diankprodigital.com'],
+      ['Plateformes numériques premium', 'diankprodigital.com'],
+      ['IA responsable · humain dans la boucle', 'diankprodigital.com'],
     ],
     kw: ['Suivi-évaluation', 'Data science', 'Intelligence artificielle', 'Plaidoyer visuel'],
     cta: 'Faites appel à mon expertise', sites: 'diankpro.com · diankprodigital.com',
@@ -75,10 +82,12 @@ const L = {
     s1c: 'From complex data<br>to <span class="gold">decisive action</span>',
     years: 'years', countries: 'countries', partners: 'UN · Gavi · Ministries of Health', continents: '4 continents',
     p: [
-      ['National Immunization Strategy', 'dji-snv-27-30.netlify.app'],
+      ['National Immunization Strategy · Djibouti', 'dji-snv-27-30.netlify.app'],
+      ['Strategy workshops media library', 'dji-snv-27-30.netlify.app'],
       ['Gavi 6.0 budget modeling', 'budget-vax-gavi-6.0.diankpro.com'],
       ['Public health strategy &amp; leadership', 'diankpro.com'],
-      ['Digital platforms &amp; responsible AI', 'diankprodigital.com'],
+      ['Premium digital platforms', 'diankprodigital.com'],
+      ['Responsible AI · human in the loop', 'diankprodigital.com'],
     ],
     kw: ['Precision M&amp;E', 'Health data science', 'Artificial intelligence', 'Visual advocacy'],
     cta: 'Partner with me today', sites: 'diankpro.com · diankprodigital.com',
@@ -277,9 +286,10 @@ function drawGlobeTex(lit) {
 
 /* Écrans des plateformes */
 const panels = new THREE.Group(); scene.add(panels);
-const PANEL_SRC = ['snv', 'screen_vaxbudget.jpg', 'screen_diankpro.jpg', 'screen_digital_hero.jpg'];
-const PW = VERT ? visW * .84 : visW * .50, PH = PW / 1.862, GAP = VERT ? PH * 1.6 : PW * 1.3;
-function snvCard() {
+const PANEL_SRC = ['screen_snv_accueil.jpg', 'screen_snv_mediatheque.jpg', 'screen_vaxbudget.jpg', 'screen_diankpro.jpg', 'screen_digital_hero.jpg', 'screen_digital_ia.jpg'];
+const NP = PANEL_SRC.length, STEP = Math.PI * 2 / NP;
+const PW = VERT ? visW * .80 : visW * .46, PH = PW / 1.88, RING = PW * .5 / Math.tan(STEP / 2) * 1.06;
+function snvCard() { // conservé pour mémoire, plus utilisé
   const c = document.createElement('canvas'); c.width = 1907; c.height = 1024; const x = c.getContext('2d');
   const g = x.createLinearGradient(0, 0, 1907, 1024); g.addColorStop(0, '#151412'); g.addColorStop(1, '#0b0b0b'); x.fillStyle = g; x.fillRect(0, 0, 1907, 1024);
   x.strokeStyle = '#A87C33'; x.lineWidth = 3; x.strokeRect(40, 40, 1827, 944);
@@ -290,14 +300,15 @@ function snvCard() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 async function makePanels() {
-  for (let i = 0; i < 4; i++) {
-    const tex = PANEL_SRC[i] === 'snv' ? snvCard() : await loadTex('../assets/' + PANEL_SRC[i]);
+  panels.position.z = -RING;
+  for (let i = 0; i < NP; i++) {
+    const tex = await loadTex('../assets/' + PANEL_SRC[i]);
     const grp = new THREE.Group();
     const frame = new THREE.Mesh(new THREE.PlaneGeometry(PW * 1.025, PH * 1.045), new THREE.MeshBasicMaterial({ color: 0xA87C33, transparent: true }));
     frame.position.z = -0.01;
     const scr = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
     grp.add(frame, scr);
-    if (VERT) grp.position.set(0, -i * GAP, 0); else grp.position.set(i * GAP, 0, -Math.abs(i - 1.5) * .0);
+    grp.position.set(Math.sin(i * STEP) * RING, 0, Math.cos(i * STEP) * RING); grp.rotation.y = i * STEP;
     grp.userData = { frame, scr };
     panels.add(grp);
   }
@@ -320,38 +331,41 @@ function rays(t, a) {
   g2.globalCompositeOperation = 'source-over';
 }
 
-/* Scène 3 : fiole → flux → réseau → barres (2D) */
+/* Scène 3 : expert → flux de données → réseau → barres (2D) */
+const portrait = new Image();
 function scene3(t, a) {
   if (a <= 0) return;
-  const lt = t - T.s3; g2.save(); g2.globalAlpha = a;
+  const lt = (t - T.s3) * 6.16 / (T.s4 - T.s3); g2.save(); g2.globalAlpha = a;
   const pan = lerp(W * .03, -W * .03, sm(0, 6.2, lt));
   const u = VERT ? H / 100 : W / 100;
   let vial, layers, bars;
   if (!VERT) {
-    vial = { x: 14 * u + pan, y: H * .24, w: 7 * u, h: H * .40 };
+    vial = { x: 4 * u + pan, y: H * .15, h: H * .58 }; vial.w = vial.h * .75;
     layers = [[34, [.25, .40, .55, .70]], [50, [.18, .33, .48, .63, .78]], [64, [.30, .48, .66]]].map(([x, ys]) => ys.map(y => [x * u + pan, H * y * .92]));
     bars = { x: 74 * u + pan, base: H * .72, w: 2.6 * u, gap: 4 * u, hmax: H * .46 };
   } else {
-    vial = { x: W * .5 - 4 * u + pan, y: H * .12, w: 8 * u, h: H * .17 };
+    vial = { y: H * .065, h: H * .245 }; vial.w = vial.h * .75; vial.x = W / 2 - vial.w / 2 + pan;
     layers = [[.34, [.2, .4, .6, .8]], [.42, [.12, .31, .5, .69, .88]], [.50, [.25, .5, .75]]].map(([y, xs]) => xs.map(x => [W * x + pan, H * y]));
     bars = { x: W * .2 + pan, base: H * .70, w: W * .09, gap: W * .13, hmax: H * .2 };
   }
-  // fiole
+  // portrait du Dr Sidibé (photo réelle, aucun texte sur le visage)
   const dissolve = sm(.6, 2.6, lt);
-  g2.save(); g2.globalAlpha = a * (1 - dissolve * .55);
-  const vg = g2.createLinearGradient(vial.x, 0, vial.x + vial.w, 0); vg.addColorStop(0, '#6e5020'); vg.addColorStop(.45, '#f3cf74'); vg.addColorStop(1, '#7a5a24');
-  g2.fillStyle = '#A87C33'; g2.fillRect(vial.x + vial.w * .18, vial.y - vial.h * .2, vial.w * .64, vial.h * .09);
-  g2.fillStyle = vg; g2.fillRect(vial.x + vial.w * .3, vial.y - vial.h * .11, vial.w * .4, vial.h * .11);
-  g2.beginPath(); g2.roundRect(vial.x, vial.y, vial.w, vial.h, u * .9); g2.fill();
-  g2.fillStyle = 'rgba(10,10,10,.55)'; g2.fillRect(vial.x + vial.w * .14, vial.y + vial.h * .36, vial.w * .72, vial.h * .26);
+  const zoom = 1 + .05 * sm(0, 6.16, lt);
+  g2.save();
+  g2.shadowColor = 'rgba(236,186,91,.55)'; g2.shadowBlur = 40 * S;
+  g2.beginPath(); g2.roundRect(vial.x, vial.y, vial.w, vial.h, 18 * S); g2.fillStyle = '#0d0d0d'; g2.fill();
+  g2.shadowBlur = 0; g2.clip();
+  const sw = 480 / zoom, sh = 640 / zoom;
+  g2.drawImage(portrait, 80 + (480 - sw) / 2, (640 - sh) * .2, sw, sh, vial.x, vial.y, vial.w, vial.h);
   g2.restore();
-  const src = [vial.x + vial.w / 2, vial.y + vial.h / 2];
+  g2.strokeStyle = '#D4A44C'; g2.lineWidth = 3 * S; g2.beginPath(); g2.roundRect(vial.x, vial.y, vial.w, vial.h, 18 * S); g2.stroke();
+  const src = VERT ? [vial.x + vial.w / 2, vial.y + vial.h] : [vial.x + vial.w, vial.y + vial.h * .55];
   // liaisons
   g2.lineWidth = 1.2 * S;
   for (let k = 0; k < layers.length - 1; k++) layers[k].forEach(p => layers[k + 1].forEach(q => { g2.strokeStyle = `rgba(212,164,76,${.10 + .2 * sm(1, 3, lt)})`; g2.beginPath(); g2.moveTo(...p); g2.lineTo(...q); g2.stroke(); }));
   layers[0].forEach(p => { g2.strokeStyle = `rgba(212,164,76,${.18 * dissolve})`; g2.beginPath(); g2.moveTo(...src); g2.lineTo(...p); g2.stroke(); });
   const last = layers[layers.length - 1];
-  const barTops = [.52, .64, .73, .84, .93].map((v, k) => [bars.x + k * bars.gap + bars.w / 2, bars.base - v * bars.hmax * sm(2.6 + k * .25, 4.2 + k * .25, lt)]);
+  const barTops = [.52, .64, .73, .84, .93].map((v, k) => [bars.x + k * bars.gap + bars.w / 2, bars.base - v * bars.hmax * sm(1.9 + k * .2, 3.3 + k * .2, lt)]);
   // particules du flux
   g2.globalCompositeOperation = 'lighter';
   const r2 = rnd(11);
@@ -368,7 +382,7 @@ function scene3(t, a) {
   layers.flat().forEach((p, i) => glowDot(p[0], p[1], 26 * S, .55 + .35 * Math.sin(lt * 3 + i), '255,230,170'));
   g2.globalCompositeOperation = 'source-over';
   // barres
-  g2.strokeStyle = 'rgba(230,220,200,.35)'; g2.lineWidth = 2 * S; g2.beginPath(); g2.moveTo(bars.x - u, bars.base); g2.lineTo(bars.x + 4 * bars.gap + bars.w + u, bars.base); g2.stroke();
+  g2.strokeStyle = `rgba(230,220,200,${.35 * sm(1.7, 2.2, lt)})`; g2.lineWidth = 2 * S; g2.beginPath(); g2.moveTo(bars.x - u, bars.base); g2.lineTo(bars.x + 4 * bars.gap + bars.w + u, bars.base); g2.stroke();
   barTops.forEach(([cx, top], k) => { const bh = bars.base - top; if (bh <= 0) return;
     const bg = g2.createLinearGradient(0, top, 0, bars.base); bg.addColorStop(0, '#ECBA5B'); bg.addColorStop(1, '#A87C33');
     g2.fillStyle = bg; g2.fillRect(cx - bars.w / 2, top, bars.w, bh); });
@@ -458,30 +472,25 @@ window.renderAt = function (t) {
     show(E.partners, win(t, 15.6, T.s2b + .1, .6, .4), 20); show(E.continents, win(t, 16.4, T.s2b + .1, .6, .4), 20);
   } else { [E.years, E.count, E.partners, E.continents].forEach(e => show(e, 0)); }
 
-  /* --- 2b : écrans --- */
-  if (t > T.s2b - .5 && t < T.s3 + .5) {
+  /* --- 2b : carrousel des plateformes --- */
+  if (t > T.s2b - .6 && t < T.s3 + .5) {
     panels.visible = true;
-    const cues = [T.s2b, 21.45, 23.0, 24.5, T.s3];
-    let idx = 0; for (let i = 0; i < 4; i++) if (t >= cues[i]) idx = i;
-    const f = ease(sm(cues[idx] - .45, cues[idx] + .35, t));
-    const prev = Math.max(0, idx - 1);
-    const pos = i => VERT ? new THREE.Vector3(0, -i * GAP, 0) : new THREE.Vector3(i * GAP, 0, 0);
-    const target = pos(prev).lerp(pos(idx), idx === 0 ? 1 : f);
-    const inB = ease(sm(T.s2b - .5, T.s2b + .4, t)), outB = sm(T.s3 - .45, T.s3 + .25, t);
-    const dist = (VERT ? 6.6 : 7.4) - .5 * Math.sin(sm(cues[idx], cues[idx + 1], t) * Math.PI);
-    camera.position.set(target.x + (VERT ? 0 : -.9 + 1.8 * sm(cues[idx], cues[idx + 1], t)), target.y + (VERT ? .25 : .15), lerp(14, dist, inB));
-    camera.lookAt(target.x, target.y, 0);
+    const inB = ease(sm(T.s2b - .6, T.s2b + .5, t)), outB = sm(T.s3 - .45, T.s3 + .25, t);
+    let f = -(1 - inB) * 1.3;
+    for (let i = 1; i < NP; i++) f += ease(sm(T.pc[i] - .55, T.pc[i] - .02, t));
+    panels.rotation.y = -f * STEP;
+    const front = clamp(Math.round(f), 0, NP - 1);
+    camera.position.set(0, VERT ? .15 : .55, lerp(15, VERT ? 7.4 : 8.6, inB) - .25 * Math.sin(t * .9));
+    camera.lookAt(0, 0, 0);
     panels.children.forEach((g, i) => {
-      const foc = 1 - Math.min(1, Math.abs(i - (prev + (idx === 0 ? 0 : f) * (idx - prev))));
-      g.rotation.y = VERT ? 0 : clamp((i - idx), -1, 1) * -.12;
-      const o = (1 - outB) * inB;
-      g.userData.scr.material.opacity = o * (.35 + .65 * foc);
-      g.userData.frame.material.opacity = o * (.25 + .55 * foc);
+      const c = Math.cos((i - f) * STEP);                    // 1 = de face, -1 = à l'arrière
+      const o = (1 - outB) * inB * clamp((c + .35) / 1.35);
+      g.userData.scr.material.opacity = o * (.30 + .70 * Math.pow(clamp(c), 3));
+      g.userData.frame.material.opacity = o * (.2 + .6 * Math.pow(clamp(c), 3));
     });
-    const ti = win(t, cues[idx] + .15, cues[idx + 1] - .05, .35, .3) * (1 - outB);
-    E.pTitle.innerHTML = L.p[idx][0]; E.pUrl.innerHTML = L.p[idx][1];
-    show(E.pTitle, ti, 16); show(E.pUrl, ti, 16);
-    // poussière dorée
+    const ti = clamp(1 - Math.abs(f - front) * 4) * (1 - outB) * sm(T.s2b - .1, T.s2b + .4, t);
+    E.pTitle.innerHTML = L.p[front][0]; E.pUrl.innerHTML = L.p[front][1];
+    show(E.pTitle, ti, 0); show(E.pUrl, ti, 0);
     g2.globalCompositeOperation = 'lighter';
     PART.slice(0, 120).forEach(p => glowDot(((p.x + t * .01 * p.sp) % 1) * W, p.y * H, 3 * S, .25 * p.a * inB * (1 - outB)));
     g2.globalCompositeOperation = 'source-over';
@@ -490,7 +499,7 @@ window.renderAt = function (t) {
   /* --- 3 : data science et IA --- */
   const a3 = sm(T.s3 - .3, T.s3 + .4, t) * (1 - sm(T.s4 - .1, T.s4 + .3, t));
   scene3(t, a3);
-  const kwT = [26.3, 27.85, 29.4, 30.95, 32.1];
+  const kwT = T.kw;
   E.kw.forEach((e, i) => show(e, win(t, kwT[i], kwT[i + 1] + .05, .3, .3) * (t < T.s4 + .2 ? 1 : 0), 26));
 
   /* --- 4 : logo complet --- */
@@ -504,7 +513,7 @@ window.renderAt = function (t) {
     logo.rotation.y = lerp(.42, 0, arc) + .025 * Math.sin(k * .5) * arc;
     camera.position.set(lerp(1.2, 0, arc), lerp(-.2, 0, arc), lerp(8.4, D, arc)); camera.lookAt(0, logo.position.y * (1 - arc), 0);
     lu.rev.value.set(ease(sm(0, 1.1, k)), sm(.8, 1.9, k), sm(1.6, 2.4, k), sm(2.2, 3.0, k));
-    lu.revTag.value = sm(2.8, 4.3, k);
+    lu.revTag.value = sm(T.tag, T.tag + 1.5, k);
     lu.opacity.value = sm(-.2, .5, k);
     lu.lightPos.value.set(lerp(-4, 2, sm(0, 8, k)), 3, 4);
     lu.sweep.value = k < 6 ? -.3 + (k - 4.4) * .9 : -.3 + ((k - 6.6) % 4.2) * .8;
@@ -517,7 +526,7 @@ window.renderAt = function (t) {
       if (aa > .25) glowDot(x, y, s * 3 * aa, .55 * aa * sm(1, 3, k)); }
     const flash = Math.exp(-Math.pow((k - .05) * 3.2, 2)); if (k > -.2) glowDot(W / 2, H * .42, Math.max(W, H) * .6, .55 * flash);
     g2.globalCompositeOperation = 'source-over';
-    show(E.cta, sm(5.0, 5.8, k), 20); show(E.sites, sm(5.5, 6.3, k), 20);
+    show(E.cta, sm(T.cta, T.cta + .8, k), 20); show(E.sites, sm(T.cta + .5, T.cta + 1.3, k), 20);
   } else { show(E.cta, 0); show(E.sites, 0); }
 
   renderer.render(scene, camera);
@@ -529,6 +538,7 @@ window.ready = (async () => {
   await document.fonts.load('600 40px Playfair'); await document.fonts.load('600 40px Inter'); await document.fonts.load('500 40px Inter'); await document.fonts.load('400 40px Inter');
   await document.fonts.ready;
   logoTex = await loadTex('../assets/logo_dk.png'); makeLogo();
+  portrait.src = '../assets/portrait_dian_sidibe.jpg'; await portrait.decode();
   await makeGlobe(); await makePanels();
   window.renderAt(0);
   return true;
