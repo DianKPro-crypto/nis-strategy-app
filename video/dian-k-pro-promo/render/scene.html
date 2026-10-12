@@ -42,10 +42,11 @@ stage.style.width = W + 'px'; stage.style.height = H + 'px';
 /* Repères temporels, calés sur les mesures de la kora (≈ 3,08 s) */
 /* Minutage par langue, calé sur la voix off (EN : piste Suno après retrait des titres lus) */
 const TM = {
-  fr: { s1: 1.46, s2a: 13.56, s2b: 19.9, s3: 26.05, s4: 32.21, end: 45, kw: [26.3, 27.85, 29.4, 30.95, 32.1], pc: [20.3, 21.3, 22.3, 23.3, 24.3, 25.2], cta: 5.0, tag: 2.8 },
-  en: { s1: 1.4, s2a: 13.3, s2b: 19.8, s3: 25.96, s4: 36.2, end: 47.35, kw: [25.95, 27.4, 28.8, 30.35, 36.0], pc: [20.4, 21.6, 22.7, 23.8, 24.8, 25.6], cta: 4.0, tag: 8.5 },
+  fr: { s1: 1.46, s2a: 14.2, s2b: 20.0, s3: 28.1, s4: 39.7, end: 52.8, kw: [28.3, 31.0, 32.4, 33.9, 39.4], pc: [20.4, 21.6, 23.4, 24.7, 25.8, 26.9], cta: 4.6, tag: 10.0 },
+  en: { s1: 1.4, s2a: 12.5, s2b: 18.7, s3: 25.0, s4: 35.8, end: 46.8, kw: [25.15, 26.6, 28.0, 29.8, 35.6], pc: [19.1, 20.2, 21.2, 22.2, 23.3, 24.2], cta: 3.9, tag: 8.1 },
 };
 const T = Object.assign({ cover: 0 }, TM[Q.get('timing') || LANG]);
+const DA = T.s2a - 13.56;   // décalage de la transition plan 1 → globe
 
 /* ---------- Outils ---------- */
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -72,7 +73,7 @@ const L = {
       ['IA responsable · humain dans la boucle', 'diankprodigital.com'],
     ],
     kw: ['Suivi-évaluation', 'Data science', 'Intelligence artificielle', 'Plaidoyer visuel'],
-    cta: 'Faites appel à mon expertise', sites: 'diankpro.com · diankprodigital.com',
+    cta: 'Sollicitez l\'expertise du Dr Dian Sidibé', sites: 'diankpro.com · diankprodigital.com',
     illus: 'Exemple de simulation',
   },
   en: {
@@ -90,7 +91,7 @@ const L = {
       ['Responsible AI · human in the loop', 'diankprodigital.com'],
     ],
     kw: ['Precision M&amp;E', 'Health data science', 'Artificial intelligence', 'Visual advocacy'],
-    cta: 'Partner with me today', sites: 'diankpro.com · diankprodigital.com',
+    cta: 'Partner with Dr Dian Sidibé today', sites: 'diankpro.com · diankprodigital.com',
     illus: 'Sample simulation',
   }
 }[LANG];
@@ -410,7 +411,7 @@ window.renderAt = function (t) {
     setCrop(CROP_MONO, hMono);
     const coverX = VERT ? 0 : -visW * .22, coverY = VERT ? visH * .17 : 0;
     const push = ease(sm(1.0, 2.6, t));             // passage garde → gros plan
-    const back = ease(sm(T.s1, 12.6, t));           // recul lent
+    const back = ease(sm(T.s1, 12.6 + DA, t));           // recul lent
     const focus = new THREE.Vector3(-hMono * 1.093 * .21, hMono * .02, 0); // zone des circuits
     logo.position.set(lerp(coverX, 0, push) + (VERT ? 0 : -visW * .17 * back), lerp(coverY, 0, push) + (VERT ? visH * .1 * back : 0), 0);
     logo.rotation.y = lerp(0, .5, push) * (1 - back) + .08 * Math.sin(t * .3) * back;
@@ -421,15 +422,15 @@ window.renderAt = function (t) {
     lu.lightPos.value.set(Math.sin(t * .7) * 3, 2.5 + Math.cos(t * .5), 4);
     lu.sweep.value = ((t - .2) * .32) % 1.8 - .3;
     lu.glow.value = .35 + .25 * Math.sin(t * 2.2) * push;
-    lu.opacity.value = 1 - sm(12.7, 13.5, t);
+    lu.opacity.value = 1 - sm(12.7 + DA, 13.5 + DA, t);
     rays(t, 1 - push * .6);
-    { const gA = sm(2.8, 3.6, t) * (1 - sm(12.6, 13.3, t));
+    { const gA = sm(2.8, 3.6, t) * (1 - sm(12.6 + DA, 13.3 + DA, t));
       if (gA > 0) { const gr = VERT ? g2.createLinearGradient(0, H * .55, 0, H) : g2.createLinearGradient(W * .45, 0, W, 0);
         gr.addColorStop(0, 'rgba(10,10,10,0)'); gr.addColorStop(.45, `rgba(10,10,10,${.82 * gA})`); gr.addColorStop(1, `rgba(10,10,10,${.9 * gA})`);
         g2.fillStyle = gr; if (VERT) g2.fillRect(0, H * .55, W, H * .45); else g2.fillRect(W * .45, 0, W * .55, H);
         if (!VERT) { const gb = g2.createLinearGradient(0, H * .6, 0, H); gb.addColorStop(0, 'rgba(10,10,10,0)'); gb.addColorStop(1, `rgba(10,10,10,${.8 * gA * (1 - sm(7.6, 8.2, t))})`); g2.fillStyle = gb; g2.fillRect(0, H * .6, W * .6, H * .4); } } }
     // particules émises par les circuits
-    const em = sm(2.0, 3.5, t) * (1 - sm(13.3, 13.9, t)); const conv = ease(sm(12.4, 13.7, t));
+    const em = sm(2.0, 3.5, t) * (1 - sm(13.3 + DA, 13.9 + DA, t)); const conv = ease(sm(12.4 + DA, 13.7 + DA, t));
     if (em > 0) { g2.globalCompositeOperation = 'lighter';
       const gC = VERT ? [W / 2, H * .36] : [W * .36, H * .5], gR = (VERT ? .42 * W : .37 * H) * .95;
       PART.forEach((p, i) => { const y0 = ((p.y - (t - 2) * .05 * p.sp) % 1 + 1) % 1;
@@ -443,21 +444,21 @@ window.renderAt = function (t) {
     const cv = 1 - sm(.95, 1.4, t);
     show(E.coverKick, cv); show(E.coverTitle, cv); show(E.coverRole, cv);
     show(E.name, win(t, 3.2, 8.0, .7, .5), 24); show(E.role, win(t, 3.6, 7.9, .7, .5), 24);
-    show(E.s1b, win(t, 8.1, 12.6, .6, .5), 24); show(E.s1c, win(t, 9.4, 12.7, .7, .5), 24);
+    show(E.s1b, win(t, 8.1, 12.6 + DA, .6, .5), 24); show(E.s1c, win(t, 9.4, 12.7 + DA, .7, .5), 24);
   } else { [E.coverKick, E.coverTitle, E.coverRole, E.name, E.role, E.s1b, E.s1c].forEach(e => show(e, 0)); }
 
   /* --- 2a : globe --- */
-  if (t > 12.9 && t < T.s2b + .7) {
+  if (t > 12.9 + DA && t < T.s2b + .7) {
     globeOuter.visible = true;
-    const inA = ease(sm(12.9, 14.1, t)), out = sm(T.s2b - .3, T.s2b + .6, t);
+    const inA = ease(sm(12.9 + DA, 14.1 + DA, t)), out = sm(T.s2b - .3, T.s2b + .6, t);
     const gx0 = VERT ? 0 : -visW * .14, gy0 = VERT ? visH * .14 : 0;
     globeOuter.position.set(lerp(gx0, VERT ? 0 : -visW * .6, ease(out)), lerp(gy0, VERT ? visH * .7 : gy0, ease(out) * (VERT ? 1 : 0)), 0);
     globeOuter.scale.setScalar(lerp(.25, 1, inA));
     globeMat.uniforms.opacity.value = inA * (1 - out);
-    const lon = lerp(-55, 28, ease(sm(13.2, 19.9, t)));
+    const lon = lerp(-55, 28, ease(sm(13.2 + DA, T.s2b, t)));
     const v = ll2v(10, lon, 1); globeSpin.rotation.y = Math.atan2(-v.x, v.z);
     globeOuter.rotation.x = 12 * Math.PI / 180;
-    const t0 = 14.2, step = .105;
+    const t0 = 14.2 + DA, step = (T.s2b - .9 - t0) / 40;
     const litA = c => sm(t0 + c.k * step, t0 + c.k * step + .35, t);
     drawGlobeTex(c => litA(c) * (1 - out));
     countries.forEach(c => { if (!c.arc) return; const p = sm(t0 + c.k * step - .3, t0 + c.k * step + .1, t);
@@ -469,8 +470,8 @@ window.renderAt = function (t) {
     g2.fillStyle = hg; g2.fillRect(0, 0, W, H);
     const n = countries.filter(c => litA(c) > .5).length;
     E.count.innerHTML = `${n} <span style="font-size:.42em">${L.countries}</span>`;
-    show(E.years, win(t, 14.0, T.s2b + .1, .6, .4), 30); show(E.count, win(t, 14.3, T.s2b + .1, .6, .4), 30);
-    show(E.partners, win(t, 15.6, T.s2b + .1, .6, .4), 20); show(E.continents, win(t, 16.4, T.s2b + .1, .6, .4), 20);
+    show(E.years, win(t, 14.0 + DA, T.s2b + .1, .6, .4), 30); show(E.count, win(t, 14.3 + DA, T.s2b + .1, .6, .4), 30);
+    show(E.partners, win(t, 15.6 + DA, T.s2b + .1, .6, .4), 20); show(E.continents, win(t, 16.4 + DA, T.s2b + .1, .6, .4), 20);
   } else { [E.years, E.count, E.partners, E.continents].forEach(e => show(e, 0)); }
 
   /* --- 2b : carrousel des plateformes --- */
