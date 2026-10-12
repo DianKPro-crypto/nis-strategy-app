@@ -58,13 +58,14 @@ const shot = (page, t) => page.evaluate(t => window.renderAt(t), t)
   }
 
   const total = Math.round(DUR * FPS);
+  const START = Math.round(+(args.from || 0) * FPS);   // --from : ne rendre que la fin du film
   const tmp = path.join(ROOT, 'build', `tmp_${LANG}_${FMT}`);
   fs.mkdirSync(tmp, { recursive: true });
-  const per = Math.ceil(total / WORKERS);
+  const per = Math.ceil((total - START) / WORKERS);
   const t0 = Date.now();
   let done = 0;
   await Promise.all(Array.from({ length: WORKERS }, async (_, w) => {
-    const a = w * per, b = Math.min(total, a + per);
+    const a = START + w * per, b = Math.min(total, a + per);
     if (a >= b) return;
     const page = await openPage(browser, port);
     const seg = path.join(tmp, `seg_${w}.mp4`);
@@ -73,7 +74,7 @@ const shot = (page, t) => page.evaluate(t => window.renderAt(t), t)
     for (let f = a; f < b; f++) {
       const buf = await shot(page, f / FPS);
       if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
-      if (++done % 60 === 0) process.stdout.write(`\r${done}/${total} images · ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+      if (++done % 60 === 0) process.stdout.write(`\r${done}/${total - START} images · ${((Date.now() - t0) / 1000).toFixed(0)} s`);
     }
     ff.stdin.end();
     await new Promise(r => ff.on('close', r));

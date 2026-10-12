@@ -185,7 +185,8 @@ void main(){
     col += edge*vec3(1.,.92,.75)*.9;
     // fond hors lettres : visible avec le monogramme
     float bgVis = rev.x;
-    a *= mix(bgVis*.85, 1., clamp(m,0.,1.)) ;
+    float txt = smoothstep(.07, .24, h);
+    a *= mix(bgVis*.85*(1.-txt*step(.588,y)), 1., clamp(m,0.,1.)) ;
     col *= mix(.25 + .75*bgVis, 1., clamp(m*metal*2.,0.,1.));
   }
   float e = smoothstep(0.,.10,vUv.x)*smoothstep(1.,.90,vUv.x)*smoothstep(0.,.10,vUv.y)*smoothstep(1.,.90,vUv.y);
