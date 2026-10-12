@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Octobre Rose Djibouti</title>
+<style>
+@font-face{font-family:'Playfair Display';font-weight:600;font-style:normal;src:url(/node_modules/@fontsource/playfair-display/files/playfair-display-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Playfair Display';font-weight:700;font-style:normal;src:url(/node_modules/@fontsource/playfair-display/files/playfair-display-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Playfair Display';font-weight:600;font-style:italic;src:url(/node_modules/@fontsource/playfair-display/files/playfair-display-latin-600-italic.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;src:url(/node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;src:url(/node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:700;src:url(/node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2) format('woff2')}
+:root{--ink:#0B0B0C;--pink:#FF2A7A;--pink-soft:#FF6FA0;--gold:#E3B34C;--gold-deep:#D4A44C;--white:#FFFFFF}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--ink)}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+canvas#gl{position:absolute;inset:0;width:1080px;height:1920px}
+.layer{position:absolute;inset:0;pointer-events:none}
+.scrim-top{position:absolute;left:0;right:0;top:0;height:760px;background:linear-gradient(180deg,rgba(11,11,12,.92) 0%,rgba(11,11,12,.55) 55%,rgba(11,11,12,0) 100%)}
+.scrim-bot{position:absolute;left:0;right:0;bottom:0;height:900px;background:linear-gradient(0deg,rgba(11,11,12,.95) 0%,rgba(11,11,12,.7) 50%,rgba(11,11,12,0) 100%)}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse 85% 70% at 50% 48%,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%)}
+.bgphoto{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(26px) brightness(.5) saturate(1.1);opacity:0}
+.card{position:absolute;left:70px;width:940px;border-radius:22px;overflow:hidden;opacity:0;
+  box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 2px rgba(227,179,76,.85),0 0 60px rgba(255,42,122,.25);transform-style:preserve-3d}
+.card img{display:block;width:100%;height:100%;object-fit:cover}
+.card .sheen{position:absolute;inset:0;background:linear-gradient(105deg,rgba(255,255,255,0) 35%,rgba(255,255,255,.28) 50%,rgba(255,255,255,0) 65%);mix-blend-mode:screen}
+.t{position:absolute;left:60px;right:60px;text-align:center;opacity:0;will-change:transform,opacity,filter;white-space:nowrap}
+.pf{font-family:'Playfair Display',serif;font-weight:700;letter-spacing:-.005em;line-height:1.02}
+.pfi{font-family:'Playfair Display',serif;font-weight:600;font-style:italic;line-height:1.05}
+.in{font-family:'Inter',sans-serif;font-weight:600}
+.kicker{font-family:'Inter',sans-serif;font-weight:700;font-size:46px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+.w{color:var(--white)} .g{color:var(--gold)} .p{color:var(--pink)} .ps{color:var(--pink-soft)}
+.shadow{text-shadow:0 4px 28px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6)}
+.goldgrad{color:#F2C35C;text-shadow:0 2px 0 #9A6A1E,0 6px 26px rgba(0,0,0,.85)}
+.pin{display:inline-flex;align-items:center;gap:18px}
+.pin i{display:inline-block;width:30px;height:30px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 8px rgba(255,42,122,.28),0 0 24px rgba(255,42,122,.9)}
+.pin i.gd{background:var(--gold);box-shadow:0 0 0 8px rgba(227,179,76,.28),0 0 24px rgba(227,179,76,.9)}
+.maplabel{position:absolute;opacity:0;font-family:'Inter',sans-serif;font-weight:700;font-size:44px;color:#fff;white-space:nowrap;padding:12px 22px;border-radius:14px;
+  background:rgba(11,11,12,.82);border:2px solid var(--pink);transform:translate(-50%,-100%)}
+.maplabel.gd{border-color:var(--gold)}
+.infocard{position:absolute;left:60px;right:60px;top:1330px;padding:34px 40px;border-radius:26px;opacity:0;
+  background:linear-gradient(180deg,rgba(28,18,22,.92),rgba(14,11,12,.95));border:2px solid rgba(227,179,76,.75);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.infocard .row{display:flex;align-items:center;gap:24px;font-family:'Inter',sans-serif;font-weight:600;font-size:46px;color:#fff;line-height:1.25}
+.infocard .row + .row{margin-top:22px}
+.infocard .row small{display:block;font-weight:500;font-size:44px;color:var(--pink-soft)}
+.infocard .row small.g{color:var(--gold)}
+.partners{position:absolute;left:0;right:0;top:1468px;display:flex;justify-content:center;align-items:center;gap:56px;opacity:0}
+.badge{width:150px;height:150px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--gold),0 10px 30px rgba(0,0,0,.5)}
+.badge img{width:118px;height:auto}
+.oms{height:86px;width:auto}
+.sep{width:2px;height:110px;background:linear-gradient(180deg,rgba(227,179,76,0),rgba(227,179,76,.9),rgba(227,179,76,0))}
+.rule{display:flex;align-items:center;justify-content:center;gap:26px}
+.rule:before,.rule:after{content:'';flex:0 0 90px;height:2px;background:var(--gold)}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;mix-blend-mode:screen}
+</style>
+<script type="importmap">
+{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}
+</script>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" width="1080" height="1920"></canvas>
+  <div class="layer">
+    <div class="bgphoto" id="bgH" style="background-image:url(/assets/photo_housseina.jpg)"></div>
+    <div class="bgphoto" id="bgC" style="background-image:url(/assets/photo_cheiko.jpg)"></div>
+    <div class="vignette"></div>
+    <div class="scrim-top" id="scrimTop"></div>
+    <div class="scrim-bot" id="scrimBot"></div>
+
+    <div class="card" id="cardH" style="top:470px;height:529px"><img id="imgH" src="/assets/photo_housseina.jpg" style="transform-origin:72% 36%"><div class="sheen" id="sheenH"></div></div>
+    <div class="card" id="cardC" style="top:470px;height:528px"><img id="imgC" src="/assets/photo_cheiko.jpg" style="transform-origin:50% 18%"><div class="sheen" id="sheenC"></div></div>
+
+    <!-- A · Cover + hook -->
+    <div class="t kicker shadow" id="a0" style="top:268px">Djibouti · Octobre 2026</div>
+    <div class="t in w shadow" id="a1" style="top:1418px;font-size:54px;line-height:1.25">Cancer du sein :<br><span class="p" style="font-weight:700">le dépistage précoce sauve des vies</span></div>
+    <div class="t pf w shadow" id="h1" style="top:1170px;font-size:78px">Une minute d'attention</div>
+    <div class="t pf w shadow" id="h2" style="top:1282px;font-size:74px">et un dépistage précoce</div>
+    <div class="t pfi p shadow" id="h3" style="top:1400px;font-size:92px">peuvent sauver une vie.</div>
+
+    <!-- B · Mothers sisters daughters -->
+    <div class="t pf w shadow" id="b1" style="top:520px;font-size:132px">Mères,</div>
+    <div class="t pf ps shadow" id="b2" style="top:675px;font-size:132px">sœurs,</div>
+    <div class="t pf p shadow" id="b3" style="top:830px;font-size:132px">filles</div>
+    <div class="t kicker shadow" id="b4" style="top:1010px;font-size:54px">de Djibouti</div>
+    <div class="t pf w shadow" id="b5" style="top:1300px;font-size:104px">Votre santé</div>
+    <div class="t pfi p shadow" id="b6" style="top:1430px;font-size:104px">est précieuse.</div>
+
+    <!-- C · Housseina -->
+    <div class="t kicker shadow" id="c1" style="top:300px">Faites-vous dépister</div>
+    <div class="t pf w shadow" id="c2" style="top:1075px;font-size:82px">Centre National</div>
+    <div class="t pf shadow" id="c3" style="top:1165px;font-size:112px"><span class="goldgrad">« Housseina »</span></div>
+    <div class="t in w shadow" id="c4" style="top:1305px;font-size:44px;font-weight:500">Référence en santé de la reproduction</div>
+    <div class="t in p shadow" id="c5" style="top:1395px;font-size:54px;font-weight:700"><span class="pin"><i></i>Hadden · Balbala</span></div>
+
+    <!-- D · Mammography -->
+    <div class="t kicker shadow" id="d1" style="top:280px;line-height:1.35">Seul centre du pays<br>doté d'une</div>
+    <div class="t pf w shadow" id="d2" style="top:1335px;font-size:116px">Mammographie</div>
+    <div class="t pfi p shadow" id="d3" style="top:1475px;font-size:76px">de dernière génération</div>
+
+    <!-- E · Cheiko -->
+    <div class="t kicker shadow" id="e0" style="top:300px">Faites-vous dépister</div>
+    <div class="t pfi g shadow" id="e1" style="top:1060px;font-size:64px">ou à l'</div>
+    <div class="t pf w shadow" id="e2" style="top:1140px;font-size:92px">Hôpital de Balbala</div>
+    <div class="t pfi shadow" id="e3" style="top:1250px;font-size:108px"><span class="goldgrad">« Cheiko »</span></div>
+    <div class="t in p shadow" id="e4" style="top:1405px;font-size:54px;font-weight:700"><span class="pin"><i class="gd"></i>Balbala</span></div>
+
+    <!-- F · Men -->
+    <div class="t pf shadow" id="f1" style="top:300px;font-size:118px"><span class="goldgrad">Pères,</span></div>
+    <div class="t pf shadow" id="f2" style="top:445px;font-size:118px"><span class="goldgrad">frères,</span></div>
+    <div class="t pf shadow" id="f3" style="top:590px;font-size:118px"><span class="goldgrad">époux</span></div>
+    <div class="t kicker shadow" id="f4" style="top:290px;font-size:50px">Pères · Frères · Époux</div>
+    <div class="t pf w shadow" id="f5" style="top:1310px;font-size:100px">Votre soutien</div>
+    <div class="t pfi p shadow" id="f6" style="top:1440px;font-size:96px">fait la différence.</div>
+    <div class="t pf w shadow" id="f7" style="top:1310px;font-size:100px">Encouragez-les</div>
+    <div class="t pfi p shadow" id="f8" style="top:1440px;font-size:96px">avec bienveillance.</div>
+    <div class="t pf w shadow" id="f9" style="top:1330px;font-size:88px">Protéger leur santé,</div>
+    <div class="t pfi p shadow" id="f10" style="top:1450px;font-size:68px">c'est protéger toute la famille.</div>
+
+    <!-- G · Map -->
+    <div class="t kicker shadow" id="g1" style="top:290px">Où se faire dépister ?</div>
+    <div class="t pf w shadow" id="g2" style="top:362px;font-size:96px">Balbala, Djibouti</div>
+    <div class="maplabel" id="lblH">Centre Housseina</div>
+    <div class="maplabel gd" id="lblC">Hôpital Cheiko</div>
+    <div class="infocard" id="g3">
+      <div class="row"><span class="pin"><i></i></span><div>Centre National Housseina<small>Quartier Hadden · Mammographie</small></div></div>
+      <div class="row"><span class="pin"><i class="gd"></i></span><div>Hôpital de Balbala « Cheiko »<small class="g">Balbala</small></div></div>
+    </div>
+
+    <!-- H · Together -->
+    <div class="t pfi shadow" id="hA" style="top:280px;font-size:104px"><span class="goldgrad">Ensemble,</span></div>
+    <div class="t pf w shadow" id="hB" style="top:405px;font-size:104px">protégeons la vie.</div>
+    <div class="t in w shadow" id="hC" style="top:1378px;font-size:44px;font-weight:500">Un message de prévention du <b style="font-weight:700">Dr Dian Sidibé</b></div>
+    <div class="partners" id="partners">
+      <div class="badge"><img src="/assets/logo_msp.png" alt="Ministère de la Santé"></div>
+      <div class="sep"></div>
+      <img class="oms" src="/assets/logo_oms_white.png" alt="OMS">
+    </div>
+
+    <!-- I · Signature -->
+    <div class="t in g shadow" id="iA" style="top:1150px;font-size:48px;font-weight:600;letter-spacing:.2em;line-height:1.3">PUBLIC HEALTH<br>&amp; DIGITAL STRATEGIST</div>
+    <div class="t pfi w shadow rule" id="iB" style="top:1338px;font-size:62px">Designed for those who cannot fail</div>
+    <div class="t in w shadow" id="iC" style="top:1458px;font-size:44px;font-weight:500">Dr Dian Sidibé · <span class="p" style="font-weight:700">Octobre Rose</span></div>
+
+    <div id="flash"></div>
+  </div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
