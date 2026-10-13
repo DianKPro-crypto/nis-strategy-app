@@ -4,6 +4,10 @@
 > **Méthode :** extraction d'images sur toute la durée (4 i/s, plus 15 i/s autour de chaque transition), détection des changements de plan, échantillonnage colorimétrique au pixel (valeurs médianes), analyse spectrale de l'audio.
 > **Limite :** la piste son a été analysée par le signal (énergie, spectre, attaques), pas à l'écoute. Le tempo et la nature des effets sonores sont donc des estimations.
 
+**Sommaire**
+- Partie I : analyse de la référence et prompts en anglais (sections 1 à 8).
+- Partie II : **version française santé publique**, prompts en 2 × 10 s (sections 9 à 12). **Le prompt recommandé est en section 10.**
+
 ---
 
 ## 1. Synthèse
@@ -350,3 +354,156 @@ FINAL FRAME: Held 9.70–10.00 — black #0B0B0C 1080x1920, no grid; centred gol
 | **Fichier source dans le dépôt** | `data/uploads/` est normalement exclu par `.gitignore`, mais le dépôt web l'a contourné. Retirer la vidéo de la branche avant toute fusion dans `main`. |
 | **Lisibilité** | Dans l'original, la lavande sur violet (2,1:1) et la légende de ≈ 30 px échouent au test de lecture sur téléphone. La version Dian K Pro corrige les deux. |
 | **Rythme** | Si le rendu en 10 s paraît saccadé, générer deux clips de 10 s : les temps 1 à 6 et les temps 7 à 12, aux durées d'origine. |
+
+---
+
+# Partie II : version française, santé publique
+
+## 9. Texte à l'écran
+
+**Arc conservé :** question → preuve → « ce n'est pas un hasard » → solution → bénéfices → recadrage → signature.
+
+**Lecture d'ensemble :** *Pourquoi ? Certains messages restent gravés ? Ce n'est pas un hasard. Le motion design donne de l'émotion à vos campagnes. Un texte animé capte le regard. Métaphores visuelles : rendre les données lisibles. Ce n'est pas du décor. C'est de la santé publique.*
+
+| Temps | Original (EN) | Français, santé publique | Raison du choix | Lecture : besoin / durée en 2 × 10 s |
+|---|---|---|---|---|
+| 1 | EVER WONDERED? | **POURQUOI ?** | Question directe, lisible même en vignette, en 10 caractères | 0,7 s / 1,0 s ✓ |
+| 2 | SOME BRANDS | **CERTAINS / MESSAGES** | On passe des marques commerciales aux messages de santé. Objets iconiques : flacon de vaccin, moustiquaire, savon, carnet de vaccination | 1,1 s / 1,2 s ✓ |
+| 3 | stick in / your mind? | **restent / gravés ?** | Fait écho au cerveau « gravé » du temps 1. Tournure orale assumée ; la forme soutenue serait « restent-ils gravés ? » | 1,1 s / 1,3 s ✓ |
+| 4 | it's no / Accident | **ce n'est pas un / Hasard.** | Idiome français. **L'illustration devient deux dés** : le personnage qui glisse illustrait « accident », pas « hasard » | 1,5 s / 1,6 s ✓ |
+| 5 | Motion / Design | **Motion / Design** | Terme d'usage en français. Variante possible : « Design / animé » | 0,9 s / 1,3 s ✓ |
+| 6 | Motion / bring | **donne de l' / Émotion** | Jeu de mots É-MOTION, avec le « É » en couleur d'accent. Les masques de théâtre incarnent l'émotion | 1,2 s / 1,3 s ✓ |
+| 7 | Feelings / to your / Story | **à vos / Campagnes** | Ancrage santé publique (vaccination, prévention) qui évite de répéter « messages ». Extraits à l'écran du téléviseur : sans personnes | 1,0 s / 2,3 s ✓ |
+| 8 | Animated / text / Captures / Eyes / instantly | **Un texte / animé / capte le / Regard** | « instantly » est supprimé pour tenir le temps de lecture | 2,0 s / 2,4 s ✓ |
+| 9 | Visual / metaphors + make complicated concepts clear | **Métaphores / visuelles** + **rendre les données lisibles** | Relie le graphique à la décision fondée sur les données. **Aucun chiffre à l'écran**, donc pas de mention « Données illustratives » à prévoir | 3,2 s / 3,2 s ✓ |
+| 10 | this isn't / Decoration | **ce n'est pas du / Décor.** | Plus court et plus percutant que « de la décoration » | 1,4 s / 1,4 s ✓ |
+| 11 | it's / Strategic / Movement. | **c'est de la / Santé / publique.** | Recadrage final : la communication est une intervention de santé publique à part entière. *C'est un jugement d'expert, cohérent avec l'approche « changement social et comportemental » promue par l'UNICEF et l'OMS.* | 1,8 s / 1,8 s ✓ |
+| 12 | Web Rank Studio | **Signature Dian K Pro** | Les lignes du logo restent en anglais, comme sur le logo officiel | 1,2 s |
+
+**Pourquoi 2 × 10 s et non 10 s :** le texte français demande 15,9 s de lecture, au rythme de 15 caractères/s (norme de sous-titrage adulte). En un seul clip de 10 s, **10 scènes sur 11 sont trop courtes pour être lues**. En deux clips de 10 s, soit 20 s au total, toutes passent. Les 20 s restent bien sous la limite de 90 s du Statut WhatsApp.
+
+**Choix d'écriture :**
+- Les mots-clés gardent une majuscule d'affichage (*Hasard*, *Décor*, *Santé*), comme dans le modèle d'origine. On peut les passer en minuscules sans rien changer d'autre.
+- Les apostrophes sont typographiques (’), avec une espace fine avant « ? ».
+
+**Contraintes éthiques intégrées aux prompts :**
+- aucune personne ni aucun visage généré, et donc aucun enfant ;
+- uniquement des objets, illustrés en 3D studio ;
+- aucun logo d'institution ni de marque ;
+- aucun chiffre.
+
+---
+
+## 10. Prompt Omni Flash FR : charte Dian K Pro, 2 × 10 s (recommandé)
+
+*Les deux clips se raccordent sur un plan or plein : la dernière image de la partie 1 est la première de la partie 2. Au montage, coupez bord à bord sur cette image.*
+
+### Partie 1 / 2 : temps 1 à 7
+
+```text
+STYLE: Luxury editorial motion-design collage for a French public-health campaign, in a strict black-and-gold palette — deep black #0B0B0C scenes alternating with full-bleed warm gold #E3B34C scenes, crisp low-key studio light with soft gold rim highlights and soft contact shadows, photoreal cut-out 3D objects over a faint dashed blueprint grid, giant near-black ghost typography bleeding off frame, locked-off 2D camera with snappy zoom, push and iris-wipe transitions, every word entering with a blur-to-sharp focus pull, refined boardroom-grade finish, no film grain.
+
+SPECS: 1080x1920 vertical 9:16, 30 fps, exactly 10.0 s, part 1 of 2 (ends on a full gold frame that is the exact first frame of part 2), 7 beats. All on-screen text in French, spelled exactly as written with every accent (É, é) and typographic apostrophe (’), with a thin space before "?". All text inside the safe zone y 260–1600 px, minimum 44 px. No voiceover, no music, no subtitles, no people, no faces, no real brand or institutional logos, no numbers, no watermark, no extra words.
+
+TIMELINE:
+0.00–1.00 | Black #0B0B0C. Frame 1 is the cover and holds still for 0.30 s: a gold #E3B34C banner (78% frame width, centred at 38% height) with black Inter ExtraBold all-caps "POURQUOI ?" (cap height at least 130 px). A halftone-engraved human brain in gold-on-black duotone (side view, 60% width) overlaps the banner's lower edge, a 40%-opacity gold disc on its upper-right lobe. At 0.30 two concentric thin ivory #F5F1E8 dashed orbit rings carrying four solid gold dots zoom in from 250% to 100% and spin clockwise; at 0.80 the brain morphs into a solid gold circle and everything dissolves to black.
+1.00–2.20 | Extreme close-up snaps out to a 2x2 grid of rounded gold #E3B34C tiles (33 px corner radius, 70% width, top at 24% height) holding photoreal studio cut-outs of unbranded public-health objects with no text on them: a small glass vaccine vial with a blank white label, a neatly folded sky-blue mosquito net, a bar of white soap with water droplets, a blank yellow vaccination booklet. Below, gold Inter ExtraBold caps stacked on two lines "CERTAINS" / "MESSAGES" rise 60 px and de-blur. Dissolve to black.
+2.20–3.50 | Black with a faint dashed charcoal #2A2A2C grid (90 px cells) and giant ghost italic serif letters "gravés" in #1C1C1E bleeding off the right edge. Two-line title with its top at 22% height, lines touching: "restent" (gold Playfair Display Bold Italic) over "gravés ?" (ivory #F5F1E8 Playfair Display Black Italic). A realistic polished brushed-gold 3D brain (55% width) pops in front of the title with a blur-to-sharp focus pull. Whip-push upward with motion blur.
+3.50–5.10 | One ivory flash frame, then full-bleed gold #E3B34C with a black jagged four-point starburst in the top-right corner (35% width). Left-aligned at 30–42% height: "ce n’est pas un" (black Playfair Display Italic) above a huge "Hasard." (black Playfair Display Bold Italic, 80% width). Below, a flat vector illustration in black, ivory and deep bronze #8A6A1F of two large dice tumbling mid-air with short motion lines above a pale ground ellipse. Hard push left.
+5.10–6.40 | Hard cut to black with the charcoal grid. A giant photoreal 3D eyeball with an amber-gold iris and a soft gold rim light is cropped by the right edge (70% width, centre at 85% x / 62% y); a small eyeball peeks from the top-left corner. Ghost "Motion Design" in #1C1C1E italic serif fills the lower left. "Motion" (gold Playfair Display Black Italic) blurs in; "Design" (ivory Playfair Display Italic) wipes on left to right; a solid gold mouse-pointer arrow fades in under "Design" and clicks at 5.95 with a small gold ripple dot. The whole layout eases upward by 15%.
+6.40–7.70 | Fast horizontal push to the black grid: two columns of italic serif text rotated 90 degrees counter-clockwise, reading bottom to top — at left a narrow column "donne de l’" in gold (about 90 px), to its right a giant "Émotion" spanning y 300–1580 px with the "É" in gold and "motion" in ivory. Glossy black-lacquer and gold-leaf 3D theatre masks (comedy and tragedy) fill the free corners, cropped by the frame, never covering text. Push up and out.
+7.70–10.00 | Deep black with a warm gold spotlight pool. A 1960s black-lacquer tube TV with brass dials on splayed walnut legs, centred, 70% width, soft floor shadow. Title at 16–26% height: "à vos" (small ivory Playfair Display Italic) over "Campagnes" (gold Playfair Display Bold Italic, de-blurs). The TV screen cycles through four abstract clips with no people, 0.30 s each: soap bubbles drifting, sunrise over village rooftops, clean water pouring into a cup, a green sprout unfurling. At 9.70 a gold #E3B34C circle bursts from the screen centre and iris-wipes to fill the whole frame.
+
+TYPOGRAPHY (LOCKED): Playfair Display Italic 400 for lead-ins ("ce n’est pas un", "Design", "donne de l’", "à vos") and Bold/Black Italic 700–900 for keywords ("restent", "gravés ?", "Hasard.", "Motion", "Émotion", "Campagnes"); Inter ExtraBold 800 all caps for "POURQUOI ?" and "CERTAINS" / "MESSAGES"; keywords at least 150 px, lead-ins at least 64 px, nothing under 44 px, negative leading so paired lines touch; text colours limited to gold #E3B34C, ivory #F5F1E8 and black #0B0B0C (contrast at least 10:1), ghost type #1C1C1E decorative only; every word enters with a 0.15 s blur-to-sharp focus pull; accents and apostrophes rendered exactly; no outlines, no text shadows.
+
+SOUND: Sound effects only, no music bed and no vocals; airy whoosh at 0.05; orbit swish at 0.30; soft sub pulse on the morph at 0.80; deep sub boom on the grid zoom-out at 1.10; soft swish on the dissolve at 2.10; tight snap as the brain sharpens at 2.45; whip swish at 3.40; hit at 3.55; wooden dice clatter 3.80–4.30; full silence 4.85–5.10 then a heavy sub hit at 5.10; mouse click at 5.95; swish at 6.40; low accent at 6.80; TV channel-zap blips at 8.20, 8.50, 8.80 and 9.10; rising whoosh into the iris wipe 9.60–10.00.
+
+FINAL FRAME: Held 9.90–10.00 — full-bleed gold #E3B34C 1080x1920 with a faint darker-gold #C99A35 dashed grid (90 px cells), no text, no objects, no starbursts.
+```
+
+### Partie 2 / 2 : temps 8 à 12
+
+```text
+STYLE: Luxury editorial motion-design collage for a French public-health campaign, in a strict black-and-gold palette — deep black #0B0B0C scenes alternating with full-bleed warm gold #E3B34C scenes, crisp low-key studio light with soft gold rim highlights and soft contact shadows, photoreal cut-out 3D objects over a faint dashed blueprint grid, locked-off 2D camera with snappy push transitions, every word entering with a blur-to-sharp focus pull, refined boardroom-grade finish, no film grain.
+
+SPECS: 1080x1920 vertical 9:16, 30 fps, exactly 10.0 s, part 2 of 2, opening on a full-bleed gold #E3B34C frame with a faint darker-gold #C99A35 dashed grid (90 px cells), 5 beats. All on-screen text in French, spelled exactly as written with every accent (É, é) and typographic apostrophe (’), except the English brand lines of the end card. All text inside the safe zone y 260–1600 px, minimum 44 px. No voiceover, no music, no subtitles, no people, no faces, no real brand or institutional logos, no numbers, no watermark, no extra words.
+
+TIMELINE:
+0.00–2.40 | Gold #E3B34C with the darker-gold dashed grid; black jagged starbursts slide in at the top-right and bottom-left corners (0.00–0.15). "Un texte" (black Playfair Display Italic) fades in at centre then slides to the top-left; a white 3D eyeball with a gray iris (25% width) fades in gold-tinted and settles to natural white; "animé" (black Playfair Display Black Italic, at least 200 px) slams down with motion blur at 0.85; "capte le" (black italic serif) and "Regard" (black bold italic serif, large) cascade diagonally down-right, the eyeball wedged between "animé" and "capte le". Dissolve to black at 2.25.
+2.40–5.60 | Black. Title at 16–24% height with overlapping lines: "Métaphores" (gold Playfair Display Black Italic) over "visuelles" (ivory Playfair Display Italic). A tall vertical video card (62% width x 52% height, thin 2 px gold border, soft shadow) de-blurs in, showing a glowing gold #E3B34C neon line chart with bright bloom nodes on a dark perspective grid, with no numbers, no axis labels and no text; the line climbs, plateaus, spikes sharply upward then dips while the camera tracks it. Ivory Inter Medium caption at 80% height: "rendre les données lisibles". Fast push upward with motion blur at 5.25.
+5.60–7.00 | A gold #E3B34C block has risen to fill the bottom 38% of the black frame. At 16–24% height, "ce n’est pas du" (ivory Playfair Display Italic) and "Décor." (gold Playfair Display Black Italic, blur-in). A photoreal sandstone Corinthian column rises from the bottom edge to mid-frame; a brilliant-cut diamond drops onto it and levitates just above the capital, gently bobbing. Push left with an ivory flash.
+7.00–8.80 | Gold #E3B34C with the darker-gold dashed grid and a black starburst top-right. Left-aligned at 18–32% height, black italic serif "c’est de la" and a large "Santé", then "publique." in black Playfair Display Bold Italic blurs in. A glossy black 3D chess king with a thin gold edge light, tilted 10 degrees left, rises from the bottom-right with a slight overshoot, its cross overlapping "publique."; it sinks back down while all text blurs out.
+8.80–10.00 | Hard cut to black #0B0B0C, no grid. Centred gold #E3B34C Dian K Pro end card: a "DK" monogram — a tall serif "D" whose stem holds four thin circuit-board traces ending in small open circles, the "K" diagonals cutting through it — above wide-tracked serif capitals "DIAN K. PRO", tracked Inter capitals "PUBLIC HEALTH & DIGITAL STRATEGIST", and the line "Designed for Those Who Cannot Fail" flanked by thin gold rules ending in dots; it pulls focus from blur to sharp under a soft gold light sweep, then holds.
+
+TYPOGRAPHY (LOCKED): Playfair Display Italic 400 for lead-ins ("Un texte", "capte le", "visuelles", "ce n’est pas du", "c’est de la") and Bold/Black Italic 700–900 for keywords ("animé", "Regard", "Métaphores", "Décor.", "Santé", "publique."); Inter Medium 500 for the caption "rendre les données lisibles" and the end-card subline; keywords at least 150 px, lead-ins at least 64 px, nothing under 44 px, negative leading so paired lines touch; text colours limited to gold #E3B34C, ivory #F5F1E8 and black #0B0B0C (contrast at least 10:1); every word enters with a 0.15 s blur-to-sharp focus pull; accents and apostrophes rendered exactly; no outlines, no text shadows.
+
+SOUND: Sound effects only, no music bed and no vocals; soft air swell at 0.05; starburst swish at 0.10; whoosh as "Un texte" slides at 0.45; heavy type-slam at 0.85 and a lighter slam at 1.25; soft accent on "Regard" at 1.60; airy wash at 2.25; whoosh as the card de-blurs at 2.50; soft rising tick on each chart node at 3.10, 3.55, 3.95, 4.35 and 4.75; whoosh up at 5.25; full silence 5.35–5.60 then an impact at 5.60; glassy diamond "ting" at 6.05; full silence 6.75–7.00 then a heavy hit at 7.00; whoosh up as the king rises at 7.40, whoosh down at 8.40; hard cut at 8.80 into a warm low shimmer swell with a single bright chime at 8.95, reverb tail fading to silence by 10.00.
+
+FINAL FRAME: Held 9.40–10.00 — black #0B0B0C 1080x1920, no grid; centred gold #E3B34C "DK" monogram (40% width) at 30–48% height, "DIAN K. PRO" wide-tracked serif capitals (80% width) at 53% height, "PUBLIC HEALTH & DIGITAL STRATEGIST" tracked capitals (85% width) at 60% height, "Designed for Those Who Cannot Fail" flanked by thin gold rules with dot ends at 66% height; everything perfectly sharp, no watermark.
+```
+
+---
+
+## 11. Prompt Omni Flash FR : version violette (fidèle à la référence), 2 × 10 s
+
+*Palette et style de l'original, avec trois corrections de lisibilité :*
+- *la lavande est éclaircie de `#A763C8` à `#D4B3EE`, ce qui fait passer le contraste sur violet de 2,1:1 à 4,65:1 ;*
+- *aucun texte sous 44 px ;*
+- *tout le texte est dans la zone sûre.*
+
+### Partie 1 / 2 : temps 1 à 7
+
+```text
+STYLE: Premium editorial motion-design collage for a French public-health campaign — crisp flat high-key studio light with soft contact shadows, clean white-paper scenes alternating with full-bleed electric violet #751AA8 scenes, photoreal cut-out 3D objects with gentle drop shadows over a faint dashed blueprint grid, giant pale-gray ghost typography bleeding off frame, locked-off 2D camera with snappy zoom, push and iris-wipe transitions, every word entering with a blur-to-sharp focus pull, glossy social-ad finish, no film grain.
+
+SPECS: 1080x1920 vertical 9:16, 30 fps, exactly 10.0 s, part 1 of 2 (ends on a full violet frame that is the exact first frame of part 2), 7 beats. All on-screen text in French, spelled exactly as written with every accent (É, é) and typographic apostrophe (’), with a thin space before "?". All text inside the safe zone y 260–1600 px, minimum 44 px. No voiceover, no subtitles, no people, no faces, no real brand or institutional logos, no numbers, no watermark, no extra words.
+
+TIMELINE:
+0.00–1.00 | White #FFFFFF. Frame 1 is the cover and holds still for 0.30 s: a violet #8331AE banner (78% frame width, centred at 38% height) with white bold condensed all-caps sans "POURQUOI ?" (cap height at least 130 px). A grayscale halftone-engraved human brain (side view, 60% width) overlaps the banner's lower edge, a 50%-opacity lavender #BD6DF1 disc on its upper-right lobe. At 0.30 two concentric black dashed orbit rings carrying four solid black dots zoom in from 250% to 100% and spin clockwise; at 0.80 the brain morphs into a solid violet #751AA8 circle and everything dissolves to white.
+1.00–2.20 | Extreme close-up snaps out to a 2x2 grid of rounded violet #751AA8 tiles (33 px corner radius, 70% width, top at 24% height) holding photoreal studio cut-outs of unbranded public-health objects with no text on them: a small glass vaccine vial with a blank white label, a neatly folded sky-blue mosquito net, a bar of white soap with water droplets, a blank yellow vaccination booklet. Below, violet bold condensed caps stacked on two lines "CERTAINS" / "MESSAGES" rise 60 px and de-blur. Dissolve to white.
+2.20–3.50 | White with a faint dashed light-gray #F4F4F4 grid (90 px cells) and giant ghost italic serif letters "gravés" in #E6E6E6 bleeding off the right edge. Two-line title with its top at 22% height, lines touching: "restent" (violet #751AA8 bold italic serif) over "gravés ?" (charcoal #2F2F2F black italic serif). A realistic glossy pink #DE848D 3D brain with a darker maroon cerebellum (55% width) pops in front of the title with a blur-to-sharp focus pull. Whip-push upward with motion blur.
+3.50–5.10 | One white flash frame, then full-bleed violet #751AA8 with a white jagged four-point starburst in the top-right corner (35% width). Left-aligned at 30–42% height: "ce n’est pas un" (white italic serif) above a huge "Hasard." (pale lavender #D4B3EE bold italic serif, 80% width). Below, a flat vector illustration of two large ivory dice with charcoal pips tumbling mid-air with short motion lines, an ice-blue #E1EFFC blob behind them, a pale ground ellipse. Hard push left.
+5.10–6.40 | Hard cut to white with grid. A giant photoreal 3D eyeball with a violet #751AA8 iris and soft violet shadow is cropped by the right edge (70% width, centre at 85% x / 62% y); a small eyeball peeks from the top-left corner. Ghost "Motion Design" in #E6E6E6 italic serif fills the lower left. "Motion" (violet black italic serif) blurs in; "Design" (charcoal italic serif) wipes on left to right; a solid violet mouse-pointer arrow fades in under "Design" and clicks at 5.95 with a small violet ripple dot. The whole layout eases upward by 15%.
+6.40–7.70 | Fast horizontal push to the white grid: two columns of italic serif text rotated 90 degrees counter-clockwise, reading bottom to top — at left a narrow column "donne de l’" in violet (about 90 px), to its right a giant "Émotion" in charcoal spanning y 300–1580 px with the "É" in violet #751AA8. Glossy satin-violet (#7C58B0 to #C07FFA) 3D theatre masks (comedy and tragedy) fill the free corners, cropped by the frame, never covering text. Push up and out.
+7.70–10.00 | Warm cream #F6F0E4 backdrop with a lighter photo panel. A 1960s red #A31D27 tube TV on splayed walnut #72493F legs, centred, 70% width, soft floor shadow. Title at 16–26% height: "à vos" (small charcoal italic serif) over "Campagnes" (violet #751AA8 bold italic serif, de-blurs). The TV screen cycles through four abstract clips with no people, 0.30 s each: soap bubbles drifting, sunrise over village rooftops, clean water pouring into a cup, a green sprout unfurling. At 9.70 a violet #751AA8 circle bursts from the screen centre and iris-wipes to fill the whole frame.
+
+TYPOGRAPHY (LOCKED): Serif is Playfair Display only — Italic 400 for lead-ins ("ce n’est pas un", "Design", "donne de l’", "à vos"), Bold/Black Italic 700–900 for keywords ("restent", "gravés ?", "Hasard.", "Motion", "Émotion", "Campagnes"); a bold condensed all-caps grotesque (Bebas Neue style) only for "POURQUOI ?" and "CERTAINS" / "MESSAGES"; keywords at least 150 px, lead-ins at least 64 px, nothing under 44 px, negative leading so paired lines touch; text colours limited to violet #751AA8, pale lavender #D4B3EE, charcoal #2F2F2F and white #FFFFFF, ghost gray #E6E6E6 decorative only; every word enters with a 0.15 s blur-to-sharp focus pull; accents and apostrophes rendered exactly; no outlines, no text shadows.
+
+SOUND: Mid-tempo (about 85 BPM) sub-heavy hip-hop/pop bed, no vocals; airy whoosh at 0.05; orbit swish at 0.30; deep sub boom on the grid zoom-out at 1.10; tight snap as the brain sharpens at 2.45; whip swish at 3.40; hit at 3.55; wooden dice clatter 3.80–4.30; music stops dead 4.85–5.10 then a heavy sub hit at 5.10; mouse click at 5.95; swish at 6.40; TV channel-zap blips at 8.20, 8.50, 8.80 and 9.10; rising whoosh into the iris wipe 9.60–10.00.
+
+FINAL FRAME: Held 9.90–10.00 — full-bleed violet #751AA8 1080x1920 with a faint dashed violet #8437AF grid (90 px cells), no text, no objects, no starbursts.
+```
+
+### Partie 2 / 2 : temps 8 à 12
+
+```text
+STYLE: Premium editorial motion-design collage for a French public-health campaign — crisp flat high-key studio light with soft contact shadows, clean white-paper scenes alternating with full-bleed electric violet #751AA8 scenes, photoreal cut-out 3D objects with gentle drop shadows over a faint dashed blueprint grid, locked-off 2D camera with snappy push transitions, every word entering with a blur-to-sharp focus pull, glossy social-ad finish, no film grain.
+
+SPECS: 1080x1920 vertical 9:16, 30 fps, exactly 10.0 s, part 2 of 2, opening on a full-bleed violet #751AA8 frame with a faint dashed violet #8437AF grid (90 px cells), 5 beats. All on-screen text in French, spelled exactly as written with every accent (É, é) and typographic apostrophe (’). All text inside the safe zone y 260–1600 px, minimum 44 px. No voiceover, no subtitles, no people, no faces, no real brand or institutional logos, no numbers, no watermark, no extra words.
+
+TIMELINE:
+0.00–2.40 | Violet #751AA8 with the dashed violet grid; white jagged starbursts slide in at the top-right and bottom-left corners (0.00–0.15). "Un texte" (white italic serif) fades in at centre then slides to the top-left; a white 3D eyeball with a gray iris (25% width) fades in violet-tinted and desaturates to white; "animé" (white black italic serif, at least 200 px) slams down with motion blur at 0.85; "capte le" (white italic serif) and "Regard" (white bold italic serif, large) cascade diagonally down-right, the eyeball wedged between "animé" and "capte le". Wash to pale lavender, then white at 2.25.
+2.40–5.60 | White. Title at 15–22% height with overlapping lines: "Métaphores" (violet #751AA8 black italic serif) over "visuelles" (charcoal #2F2F2F italic serif). A tall vertical video card (62% width x 52% height, square corners, soft bottom-left drop shadow) de-blurs in, showing a glowing neon cyan #40D5FE line chart with bright bloom nodes on a dark navy #0B061A perspective grid with violet #403182 lines, with no numbers, no axis labels and no text; the line climbs, plateaus, spikes sharply upward then dips while the camera tracks it. Charcoal italic serif caption (at least 44 px) at 80% height: "rendre les données lisibles". Fast push upward with motion blur at 5.25.
+5.60–7.00 | A violet #751AA8 block has risen to fill the bottom 38% of the white frame. At 15–22% height, "ce n’est pas du" (charcoal italic serif) and "Décor." (violet black italic serif, blur-in). A photoreal sandstone #C59C71 Corinthian column rises from the bottom edge to mid-frame; a brilliant-cut diamond drops onto it and levitates just above the capital, gently bobbing. Push left with a lavender flash.
+7.00–8.80 | Violet #751AA8 with the dashed grid and a white starburst top-right. Left-aligned at 18–32% height, white italic serif "c’est de la" and a large "Santé", then "publique." in pale lavender #D4B3EE bold italic serif blurs in. A glossy white-marble #D3D3D3 3D chess king, tilted 10 degrees left, rises from the bottom-right with a slight overshoot, its cross overlapping "publique."; it sinks back down while all text blurs out.
+8.80–10.00 | Hard cut to plain white #FFFFFF, no grid. Centred stacked violet #7B28A8 italic serif wordmark "Votre / Logo / Ici" with tight leading, and below it the charcoal #3D3D3D italic serif line "tous droits réservés" (at least 44 px); it pulls focus from blur to sharp and holds.
+
+TYPOGRAPHY (LOCKED): Serif is Playfair Display only — Italic 400 for lead-ins ("Un texte", "capte le", "visuelles", "ce n’est pas du", "c’est de la", "tous droits réservés"), Bold/Black Italic 700–900 for keywords ("animé", "Regard", "Métaphores", "Décor.", "Santé", "publique."); keywords at least 150 px, lead-ins at least 64 px, nothing under 44 px, negative leading so paired lines touch; text colours limited to violet #751AA8, pale lavender #D4B3EE, charcoal #2F2F2F and white #FFFFFF; every word enters with a 0.15 s blur-to-sharp focus pull; accents and apostrophes rendered exactly; no outlines, no text shadows.
+
+SOUND: Mid-tempo (about 85 BPM) sub-heavy hip-hop/pop bed continuing from part 1, no vocals; starburst swish at 0.10; whoosh as "Un texte" slides at 0.45; heavy type-slam at 0.85 and a lighter slam at 1.25; airy wash at 2.25; soft rising tick on each chart node at 3.10, 3.55, 3.95, 4.35 and 4.75; whoosh up at 5.25; music stops dead 5.35–5.60 then an impact at 5.60; glassy diamond "ting" at 6.05; music stops dead 6.75–7.00 then a heavy hit at 7.00; whoosh up at 7.40, whoosh down at 8.40; hard cut at 8.80 into a bright shimmer sparkle 8.90–9.30 with a reverb tail fading to silence by 10.00.
+
+FINAL FRAME: Held 9.40–10.00 — plain white #FFFFFF 1080x1920, no grid; centred at 30–45% height a three-line stacked italic serif wordmark "Votre / Logo / Ici" in violet #7B28A8 (about 110 px cap height, tight leading), with "tous droits réservés" in charcoal #3D3D3D italic serif (about 48 px) at 50% height; everything else empty, perfectly sharp, no watermark.
+```
+
+---
+
+## 12. Assemblage et validation (version française)
+
+| Étape | Action |
+|---|---|
+| **Montage** | Mettre bout à bout la partie 1 et la partie 2, avec une coupe franche sur l'image or (ou violette) pleine. Durée totale : 20 s. |
+| **Musique Suno** (version Dian K Pro) | Poser le morceau sur les 20 s, avec des coupes franches à **4,85–5,10 s**, **15,35–15,60 s** et **16,75–17,00 s** (les silences de la timeline d'assemblage). |
+| **Signature** | Remplacer 18,80–20,00 s par l'outro animée officielle Dian K Pro (ou poser `assets/dk_pro_logo.png` par-dessus). |
+| **Voix off** (facultative) | Si vous enregistrez une voix, la caler sur la phrase de la section 9. Sans voix, la vidéo fonctionne telle quelle : aucun sous-titre n'est nécessaire. |
+| **Contrôle du texte** | Vérifier à l'image chaque accent et chaque apostrophe : les générateurs vidéo font parfois des fautes d'orthographe. En cas d'erreur, régénérer ou corriger en surimpression au montage. |
+| **Validation** | Faire relire le texte par l'équipe communication du programme concerné. Si un logo institutionnel est ajouté (ministère, PEV, partenaire), obtenir son autorisation écrite au préalable. |
