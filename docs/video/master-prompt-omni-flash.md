@@ -22,7 +22,9 @@
 - **`INPUT_TYPE: VO_SCRIPT`** : votre texte est une voix off. L'assistant écrit alors, pour chaque clip, la phrase à enregistrer (25 mots au plus, soit environ 10 s). L'écran n'en reprend que les mots-clés.
 - **`FIELD_PHOTOS`** : listez vos propres photos de terrain, une par ligne, avec ce qu'elles montrent et le statut du consentement. Le générateur laisse pour chacune un cadre vide, que vous remplacez au montage par la vraie photo. L'assistant ne génère jamais de photo ni de visage.
 
-**Testé :** sur un script inédit (les enfants « zéro dose », avec un chiffre), le master prompt a produit 4 clips cohérents de 10 s. Le test a révélé 12 failles, toutes corrigées depuis : texte à l'écran trop proche d'une transcription, carton de fin mal défini, règles contradictoires.
+**Testé deux fois** sur un script inédit (les enfants « zéro dose », avec un chiffre) :
+- **Test 1 :** 4 clips cohérents de 10 s, mais un texte à l'écran trop proche d'une transcription, découpé en fragments. Il a révélé 12 failles, toutes corrigées.
+- **Test 2 :** 44 % des mots du script à l'écran (cible : 30 à 50 %), aucune phrase coupée, chiffre et date renvoyés en post-production avec la mention de validation. Les dernières ambiguïtés relevées ont été levées : comptage des mots, colonnes de texte, voix off, majuscules.
 
 **Pourquoi les instructions sont en anglais :** les modèles génératifs les suivent plus fidèlement en anglais. Le texte à l'écran sort, lui, dans la langue de votre script.
 
@@ -51,18 +53,19 @@ SETTINGS (a line left as is keeps its default):
 ======================================================================
 STEP 1 — ANALYSE (output: max 150 words, the flagged list not included)
 - Core message in one sentence, audience, tone, on-screen language, input type.
-- Map the text onto the narrative arc: HOOK (question or provocation) → PROBLEM or PROOF → THESIS ("it is not chance") → SOLUTION → BENEFITS (1 to 3) → REFRAME ("not X, it is Y") → SIGNATURE. Skip steps the text does not support.
+- Map the text onto the narrative arc: HOOK (question or provocation) → PROBLEM or PROOF → THESIS ("it is not chance") → SOLUTION → BENEFITS (1 to 3) → REFRAME ("not X, it is Y", or "X is Y") → SIGNATURE. Skip steps the text does not support. A beat may hold two adjacent arc steps.
 - You may add at most one hook question and one reframe line to the whole film, each 30 characters or fewer, built only from ideas present in the input; mark them "(added)" in the beat sheet. Add no new claims.
 - List every numeral, statistic, date, person, place, institution or logo mentioned, under "FLAGGED FOR VALIDATION".
 
 STEP 2 — WRITE THE ON-SCREEN COPY
-- On-screen text is a headline distillation, never subtitles and never a transcript. Target 30–50 % of the input's words (up to 70 % for a text under 40 words). With a voice-over, the voice carries the full sentences and the screen carries their key words.
+- On-screen text is a headline distillation, never subtitles and never a transcript. Target 30–50 % of the input's words (up to 70 % for a text under 40 words), counting only words the generator renders (not post-production overlays, not added hook or reframe lines); words = space-separated tokens as written, an elided form such as d’enfants counting as one. With a voice-over, the voice carries the full sentences and the screen carries their key words.
+- What to keep when the limits force cuts: keep nouns, verbs and any qualifier that changes the meaning ("respectueuse", "de qualité"); drop connectors and repetitions first. A key qualifier that does not fit may go in the breathing shot's caption. A keyword is always a content word (noun, verb, adjective or meaningful adverb), never a lone interrogative or particle (wrong: "Où.").
 - Each SHOT carries one idea as a LEAD-IN + KEYWORD pair: lead-in of 1 to 5 short words (small italic), keyword of 1 to 2 words (large bold italic, display capital). A keyword-only shot (no lead-in) is allowed and hits hardest. Maximum 30 characters per shot, lead-in + keyword + spaces counted together. The beat's breathing shot may add one caption line of up to 32 characters.
-- Every shot must make sense on its own. Never split a phrase across shots: never separate a noun from its adjective or complement, a verb from its direct object, or a preposition from its noun. Never use a lone function word (of, the, and, de, des, et…) as a lead-in. Wrong: "Avec des" / "données" then "de" / "qualité". Right: "données" / "de qualité" in one shot.
+- Every shot must make sense on its own. Never split a phrase across shots: never separate a noun from its adjective or complement, a verb from its direct object, or a preposition from its noun. Never use a lone function word (of, the, and, de, des, et…) as a lead-in. A shot that relies on a post-production figure must still read correctly once that figure is added. Wrong: "Avec des" / "données" then "de" / "qualité". Right: "données" / "de qualité" in one shot.
 - Keep the input's own words wherever possible; condensing must preserve meaning.
 - Apply the language's typography: French uses ’, a thin space before ? ! : ; and thin no-break spaces inside « » — every accent exact. Thin spaces count as one character.
 - Numerals, statistics and dates are never rendered by the generator: show a visual metaphor and move the figure to the post-production overlays (STEP 5). When a figure is central, reserve an empty zone for it in that shot and state its pixel box. Number words that are part of a term ("zéro dose", "first") are allowed.
-- VO_SCRIPT (or AUTO detected as narration): also write per beat the VO line to record — at most 25 spoken words, numbers counted as spoken, so it fits 10 s; split the beat if it is longer. Beat boundaries follow the VO's sentences, and on-screen keywords appear in the order they are spoken.
+- VO_SCRIPT (or AUTO detected as narration): also write per beat the VO line to record — at most 25 words, counting numbers as spoken ("2023" = « deux mille vingt-trois » = 4 words), so it fits 10 s at about 150 words per minute; split the beat if it is longer. Mark each stop-hit in the VO line with " / " so the pause is recorded. Beat boundaries follow the VO's sentences, and on-screen keywords appear in the order they are spoken (the cover hook is exempt).
 
 STEP 3 — BEAT SHEET
 - A BEAT = one 10.0-second clip = one coherent idea (usually one sentence or one arc step) = 4 to 7 SHOTS.
@@ -84,7 +87,7 @@ STEP 4 — ONE GENERATION BLOCK PER BEAT
 
 STEP 5 — ASSEMBLY & QA
 - Cut points in the assembled film (global times), global times of every stop-hit (for cutting the music in post), the VO lines if any.
-- Post-production overlays: end-card logo or official animated outro; every flagged figure, with the label "Données illustratives — à valider par l'équipe pays" (or its equivalent in the on-screen language) until validated.
+- Post-production overlays: end-card logo or official animated outro; every flagged figure (in the zone reserved for it, at keyword size), with the label "Données illustratives — à valider par l'équipe pays" (or its equivalent in the on-screen language) until validated. The label sits in a band kept free at y 1490–1600 px (9:16) or in the bottom 140 px (16:9), at caption size, on up to two lines; it is exempt from the reading formula.
 - Photo compositing, for each PHOTO SLOT: which photo goes where; global veil at most 35 %; legibility through local gradients behind the text only; never text or a logo over a face; consent confirmed (parents' consent for children) before release.
 - Ideas dropped for length, if any.
 - QA checklist: spelling and accents in the render, no faces or people, no logos, contrast, safe zone, total ≤ MAX_DURATION.
@@ -103,7 +106,7 @@ B. THEME TOKENS
 | Token               | DIAN_K_PRO                               | VIOLET_EDITORIAL                     |
 | BASE scene          | black #0B0B0C                            | white #FFFFFF                        |
 | ACCENT scene        | gold #E3B34C (full bleed)                | violet #751AA8 (full bleed)          |
-| WARM scene          | black with a warm gold spotlight pool    | cream #F6F0E4                        |
+| WARM scene (text as on BASE) | black with a warm gold spotlight pool | cream #F6F0E4              |
 | Lead-in on BASE     | ivory #F5F1E8                            | charcoal #2F2F2F                     |
 | Keyword on BASE     | gold #E3B34C                             | violet #751AA8                       |
 | Lead-in on ACCENT   | black #0B0B0C                            | white #FFFFFF                        |
@@ -119,7 +122,8 @@ CUSTOM: map base→BASE, accent→ACCENT, light_text and dark_text to the lead-i
 
 C. TYPOGRAPHY
 - Serif: Playfair Display only. Italic 400 for lead-ins; Bold/Black Italic 700–900 for keywords. Keyword 1.6–2.2× the lead-in size, set at the largest size that fits the text area but never below the minimum; if it cannot fit at the minimum, choose a shorter keyword. Negative leading so paired lines touch.
-- Sans (theme token), all caps: only for the cover hook and at most one label shot per beat.
+- Sans (theme token), all caps: only for the cover hook (cap height at least 110 px in 9:16, 96 px in 16:9) and at most one label shot per beat.
+- Capitalisation: sentence case, with an optional display capital on keywords; whichever you choose, apply it consistently across the whole film.
 - Minimum sizes — 9:16: keywords ≥ 150 px, lead-ins ≥ 64 px, captions ≥ 44 px. 16:9: keywords ≥ 130 px, lead-ins ≥ 56 px, captions ≥ 40 px. Nothing smaller, ever.
 - Ghost type: the shot's keyword repeated at 250–300 % size behind everything, cropped by the frame, decorative only.
 - No outlines, no text shadows, no subtitles. Every string in quotes, spelled exactly.
@@ -132,7 +136,7 @@ D. LAYOUT GRAMMAR
 - Grid: faint dashed blueprint grid, 90 px cells (9:16) or 80 px (16:9), on most shots and on every handoff frame; never during the cover hold or on the end card.
 - Starbursts: jagged white or black four-point bursts (25–35 % width) in one or two opposite corners (top-right, bottom-left), on ACCENT scenes only, never overlapping text. With text in the top third, use the bottom-left corner only.
 - PHOTO SLOT (only when FIELD_PHOTOS are provided): the generator renders a framed card (55–65 % width, the theme's photo-slot placeholder, soft shadow) that the real field photo replaces in post. The text sits outside the card or over a reserved band at its bottom 25 %. Never generate a photo, a person or a face to fill it.
-- Tone rhythm: alternate BASE and ACCENT shots — at least one ACCENT shot per beat, never more than 3 consecutive shots of the same tone, at most one WARM shot per beat.
+- Tone rhythm: vary BASE and ACCENT shots — at least one ACCENT shot per beat, never more than 3 consecutive shots of the same tone within a beat, at most one WARM shot per beat. Every beat after the first opens on the ACCENT handoff frame, so its first shot is ACCENT.
 
 E. METAPHOR LIBRARY (one concrete hero object per shot)
 Rendering: photoreal studio cut-out 3D with soft contact shadow, or a flat vector illustration for human situations. Never photoreal people, faces or children. A human situation becomes an object that implies people (sandals, houses with lit windows, an empty chair) or a flat vector figure with no facial features. Real people appear only through FIELD_PHOTOS.
@@ -154,9 +158,9 @@ F. MOTION GRAMMAR (animation principles)
 - Text in: 0.15 s blur-to-sharp focus pull with fade. A keyword may SLAM (drop with motion blur), at most once per beat. A long word may wipe on left to right.
 - Text out: 0.15–0.20 s blur-out, or carried out by the shot transition.
 - Objects in: pop-in with focus pull; rise from a frame edge with a slight overshoot (ease-out back); drop then levitate with a gentle bob; orbit rings zooming from 250 % to 100 %.
-- Hold: every shot keeps its text fully sharp and still for at least its reading time, with only micro-drift (≤ 3 % scale). Entrances and exits happen outside that window. Legibility comes first.
+- Hold: text is sharp within 0.15 s of the shot's start and stays sharp and still, with only micro-drift (≤ 3 % scale), until the exit transition, which takes no more than 0.20 s. Reading time is measured from the shot's start. Legibility comes first.
 - Easing: ease-out expo for snaps, ease-out back for rises; no linear moves, no camera shake, no 3D camera moves.
-- Once per film only: the cover morph (hero object → solid accent circle) and the cursor click.
+- At most once per film: the cover morph (hero object → solid accent circle) and the cursor click.
 
 G. TRANSITIONS (only these six)
 1. Whip-push up or left with motion blur (2 frames).
@@ -195,7 +199,7 @@ L. HARD RULES (every block)
 - Numerals, statistics, dates and names go to post-production overlays only (STEP 5). Number words inside a term and dice pips are allowed.
 
 ======================================================================
-OUTPUT FORMAT (exactly these four sections, nothing else)
+OUTPUT FORMAT (exactly these four sections, nothing else; write ANALYSIS, BEAT SHEET and ASSEMBLY & QA in the on-screen language, the generation blocks in English; a one-line totals note under the beat sheet is allowed)
 1. ANALYSIS
 2. BEAT SHEET (table)
 3. GENERATION BLOCKS — "Beat 1 of N", "Beat 2 of N", … each in its own code block
