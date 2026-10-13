@@ -20,8 +20,9 @@ The music is a Suno kora track supplied by Dr. Sidibé. The voice-over is option
 | `captions_en.srt`, `captions_fr.srt` | SRT | Sidecar captions of the voice-over, for upload |
 | `vo_script_en.txt`, `vo_script_fr.txt` | text | Voice-over scripts with timed windows |
 | `QA_REPORT.md` | markdown | Durations, sizes, loudness, fact check, reading times |
+| `contact_sheet.jpg` | image | One frame per scene for all six versions |
 
-All MP4s use H.264 with `yuv420p` and `+faststart`. Audio is AAC at −14 LUFS integrated, ≤ −1 dBTP. Each file is ≤ 25 MB and ≤ 90 s, so it fits a single WhatsApp Status.
+All MP4s use H.264 with `yuv420p` and `+faststart`. Audio is AAC 192 kb/s, measured at −14.2 LUFS integrated and −1.5 dBTP true peak. Each file is 13–19 MB and 86 s long (≤ 25 MB, ≤ 90 s), so it fits a single WhatsApp Status.
 
 ## Storyboard (86 s; scene cuts snap to the music's beat grid)
 
@@ -49,9 +50,10 @@ npx remotion still Thumbnail-EN out/thumbnail_en.png
 node scripts/make_captions.mjs out                    # SRT + VO scripts
 node --experimental-strip-types scripts/qa.mjs out    # QA_REPORT.md
 node scripts/stills.mjs Pitch-EN-1x1 previews         # start/mid/end stills per scene
+python3 -I scripts/review_sheet.py out out/contact_sheet.jpg   # contact sheet from the MP4s
 ```
 
-`scripts/render_all.sh` encodes at CRF 20. If a file would exceed 24 MB, it falls back to a two-pass encode at 2.1 Mb/s. It runs a two-pass `loudnorm` to −14 LUFS / −1 dBTP.
+`scripts/render_all.sh` encodes at CRF 20. If a file would exceed 24 MB, it falls back to a two-pass encode at 2.1 Mb/s. It runs a two-pass `loudnorm` to −14 LUFS with a −2 dBTP limiter target, because AAC encoding overshoots and the delivered files must stay ≤ −1 dBTP. All six versions share one music mix, so `scripts/fix_audio.sh` can re-normalise it once and remux it into every MP4 without re-rendering video.
 
 ## How to change things
 
@@ -107,8 +109,8 @@ src/
   components/  Thread, Counter, MapAfricaME, Network, Gauge, Icons, QR, Photo, Grain, Appear
   scenes/      S1Hook … S8CTA                      Pitch.tsx   assembly + music / VO
   Root.tsx     compositions: Pitch-{EN,FR}-{16x9,1x1,9x16}, Thumbnail-{EN,FR}
-scripts/       prepare_assets.py, render_all.sh, stills.mjs, contact_sheet.py,
-               make_captions.mjs, vo_segments.py, qa.mjs
+scripts/       prepare_assets.py, render_all.sh, fix_audio.sh, stills.mjs, contact_sheet.py,
+               final_frames.py, review_sheet.py, make_captions.mjs, vo_segments.py, qa.mjs
 ```
 
 Remotion is free for individuals and companies of up to three people (see remotion.dev/license). Playfair Display and Inter are under the SIL Open Font License.

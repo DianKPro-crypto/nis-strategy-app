@@ -52,7 +52,7 @@ export const EN: Copy = {
       {value: 5, label: 'countries costed with NIS.COST'},
       {value: 23, label: 'country offices overseen'},
       {value: 15, suffix: '+', label: 'country teams trained in NIS costing'},
-      {value: 3, label: 'working languages: FR · EN · AR'},
+      {value: 3, label: 'working languages: FR\u00a0·\u00a0EN\u00a0·\u00a0AR'},
     ],
     countries: {'450': 'Madagascar', '108': 'Burundi', '174': 'Comoros', '140': 'Central African Rep.', '262': 'Djibouti'},
     countriesShort: {'450': 'Madagascar', '108': 'Burundi', '174': 'Comoros', '140': 'CAR', '262': 'Djibouti'},
@@ -115,7 +115,7 @@ export const FR: Copy = {
       {value: 5, label: 'pays chiffrés avec NIS.COST'},
       {value: 23, label: 'bureaux pays supervisés'},
       {value: 15, suffix: '+', label: 'équipes pays formées au chiffrage des SNV'},
-      {value: 3, label: 'langues de travail\u00a0: FR · EN · AR'},
+      {value: 3, label: 'langues de travail\u00a0: FR\u00a0·\u00a0EN\u00a0·\u00a0AR'},
     ],
     countries: {'450': 'Madagascar', '108': 'Burundi', '174': 'Comores', '140': 'Centrafrique', '262': 'Djibouti'},
     countriesShort: {'450': 'Madagascar', '108': 'Burundi', '174': 'Comores', '140': 'RCA', '262': 'Djibouti'},
@@ -126,7 +126,7 @@ export const FR: Copy = {
     items: [
       {num: '01', title: 'Débloquer les financements', desc: 'Quand les fonds sont budgétés mais bloqués.'},
       {num: '02', title: 'Concevoir la stratégie', desc: 'Validée, chiffrée, finançable.'},
-      {num: '03', title: 'Bâtir l’appropriation nationale', desc: 'Des pays qui pilotent eux-mêmes leur chiffrage.'},
+      {num: '03', title: 'Bâtir l’appropriation nationale', desc: 'Des pays qui pilotent eux\u2011mêmes leur chiffrage.'},
     ],
   },
   method: {

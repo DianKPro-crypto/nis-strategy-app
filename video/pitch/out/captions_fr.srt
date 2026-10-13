@@ -14,69 +14,74 @@ aucun cycle de financement ne
 s’ouvre, et les enfants attendent.
 
 4
-00:00:14,100 --> 00:00:17,556
+00:00:14,100 --> 00:00:17,572
 Je suis le Docteur Dian
 Sidibé. Depuis vingt-huit ans,
 
 5
-00:00:17,636 --> 00:00:19,258
+00:00:17,652 --> 00:00:19,282
 au sein des Nations Unies,
 
 6
-00:00:19,338 --> 00:00:23,187
+00:00:19,362 --> 00:00:23,228
 des programmes soutenus par
 Gavi et de l’action humanitaire,
 
 7
-00:00:23,267 --> 00:00:28,687
-j’aide les ministères de la Santé à transformer les données en stratégies financées.
+00:00:23,308 --> 00:00:25,530
+j’aide les ministères de la Santé à
 
 8
+00:00:25,610 --> 00:00:28,687
+transformer les données
+en stratégies financées.
+
+9
 00:00:29,167 --> 00:00:34,420
 Chiffrage conduit dans cinq pays.
 Vingt-trois bureaux pays supervisés.
 
-9
+10
 00:00:34,500 --> 00:00:37,620
 Plus de quinze équipes nationales formées.
 
-10
+11
 00:00:38,600 --> 00:00:41,117
 J’interviens de trois façons :
 
-11
+12
 00:00:41,197 --> 00:00:45,445
 débloquer des financements
 budgétés mais bloqués ;
 
-12
+13
 00:00:45,525 --> 00:00:51,678
 concevoir des stratégies vaccinales
 validées, chiffrées et finançables ;
 
-13
+14
 00:00:51,758 --> 00:00:55,487
 et bâtir la capacité
 nationale à les porter.
 
-14
+15
 00:00:56,367 --> 00:01:03,908
 Ma méthode est rapide et entièrement
 traçable : accélérée par l’IA,
 
-15
+16
 00:01:03,988 --> 00:01:07,320
 toujours validée par l’humain.
 
-16
+17
 00:01:16,333 --> 00:01:18,721
 Des stratégies que les ministères portent.
 
-17
+18
 00:01:18,801 --> 00:01:20,953
 Des plans que les bailleurs financent.
 
-18
+19
 00:01:21,333 --> 00:01:25,153
 Parlons de votre prochain
 cycle stratégique.

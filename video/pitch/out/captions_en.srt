@@ -13,54 +13,57 @@ strategy, funding cycles don’t open,
 and children wait.
 
 4
-00:00:14,100 --> 00:00:18,730
+00:00:14,100 --> 00:00:18,753
 I’m Dr. Dian Sidibé. For twenty-eight
 years, across the United Nations,
 
 5
-00:00:18,810 --> 00:00:22,313
+00:00:18,833 --> 00:00:22,353
 Gavi-supported programmes
 and humanitarian operations,
 
 6
-00:00:22,393 --> 00:00:27,687
+00:00:22,433 --> 00:00:24,953
 I have helped ministries of health turn
-evidence into strategies that get funded.
 
 7
+00:00:25,033 --> 00:00:27,687
+evidence into strategies that get funded.
+
+8
 00:00:28,167 --> 00:00:34,099
 Lead costing in five countries.
 Twenty-three country offices overseen.
 
-8
+9
 00:00:34,179 --> 00:00:37,620
 More than fifteen national teams trained.
 
-9
+10
 00:00:38,600 --> 00:00:44,675
 I work in three ways. I unlock financing
 that is budgeted but not flowing.
 
-10
+11
 00:00:44,755 --> 00:00:49,914
 I architect national immunisation
 strategies that are endorsed,
 
-11
+12
 00:00:49,994 --> 00:00:55,487
 costed and fundable. And I build
 the national capacity to own them.
 
-12
+13
 00:00:56,367 --> 00:01:07,320
 My method is fast and fully traceable:
 AI-accelerated, always human-validated.
 
-13
+14
 00:01:16,333 --> 00:01:20,153
 Strategies ministries
 own. Plans donors fund.
 
-14
+15
 00:01:20,633 --> 00:01:24,353
 Let’s talk about your next strategy cycle.

@@ -37,7 +37,7 @@ export const Thumbnail: React.FC<{lang: Lang}> = ({lang}) => {
         <Img src={staticFile('logo_monogram.png')} style={{height: 84}} />
         <div style={{display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 860}}>
           <div style={{...kicker('landscape', C.ivoire), letterSpacing: '0.14em'}}>{copy.reveal.name}</div>
-          <div style={{...kicker('landscape', C.sable), letterSpacing: '0.04em', textTransform: 'none', fontWeight: 500}}>{copy.reveal.title}</div>
+          <div style={{...kicker('landscape', C.sable), letterSpacing: '0.04em', textTransform: 'none', fontWeight: 500, textWrap: 'balance'} as React.CSSProperties}>{copy.reveal.title}</div>
         </div>
       </div>
       <Grain opacity={0.03} />

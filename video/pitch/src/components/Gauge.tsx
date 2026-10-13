@@ -26,7 +26,8 @@ export const Gauge: React.FC<{
   labelSize: number;
   outOf: string;
   decimal: string;
-}> = ({at, from, to, r, numSize, labelSize, outOf, decimal}) => {
+  stack?: boolean; // put "/ 100" under the number (narrow gauges)
+}> = ({at, from, to, r, numSize, labelSize, outOf, decimal, stack = false}) => {
   const frame = useCurrentFrame();
   const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
   const appear = interpolate(frame, [at, at + 18], [0, 1], {...clamp, easing: easeOut});
@@ -42,7 +43,7 @@ export const Gauge: React.FC<{
     return {x1: cx + (r - sw) * Math.cos(t), y1: cy - (r - sw) * Math.sin(t), x2: cx + (r + sw * 1.4) * Math.cos(t), y2: cy - (r + sw * 1.4) * Math.sin(t), t};
   })();
   return (
-    <div style={{position: 'relative', width: W, height: cy + numSize * 0.35, opacity: appear}}>
+    <div style={{position: 'relative', width: W, height: cy + numSize * 0.35 + (stack ? labelSize * 1.1 : 0), opacity: appear}}>
       <svg width={W} height={cy + sw} style={{position: 'absolute', left: 0, top: 0, overflow: 'visible'}}>
         <path d={arc(cx, cy, r, 0, 100)} stroke={C.anthracite} strokeWidth={sw} fill="none" strokeLinecap="butt" />
         <path d={arc(cx, cy, r, 0, Math.min(value, from))} stroke={C.pierre} strokeWidth={sw} fill="none" />
@@ -79,7 +80,9 @@ export const Gauge: React.FC<{
         }}
       >
         {fmt(value, 1, decimal)}
-        <span style={{fontFamily: TEXT, fontSize: labelSize, color: C.sable, fontWeight: 500, marginLeft: 12}}>{outOf}</span>
+        <span style={{fontFamily: TEXT, fontSize: labelSize, color: C.sable, fontWeight: 500, marginLeft: stack ? 0 : 12, display: stack ? 'block' : 'inline', marginTop: stack ? 8 : 0}}>
+          {outOf}
+        </span>
       </div>
     </div>
   );

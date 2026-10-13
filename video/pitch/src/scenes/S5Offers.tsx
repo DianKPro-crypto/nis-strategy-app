@@ -78,7 +78,7 @@ const Card: React.FC<{
             </div>
           ) : null}
         </div>
-        <div style={{position: 'relative', flex: 1, padding: column ? '0 40px 36px' : f === 'square' ? '18px 28px' : '24px 30px', display: 'flex', flexDirection: 'column', gap: column ? 18 : 12, justifyContent: column ? 'flex-start' : 'center'}}>
+        <div style={{position: 'relative', flex: 1, padding: column ? '0 40px 36px' : f === 'square' ? '10px 28px' : '24px 30px', display: 'flex', flexDirection: 'column', gap: column ? 18 : f === 'square' ? 6 : 12, justifyContent: column ? 'flex-start' : 'center'}}>
           {column ? (
             <div style={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: -iconSize / 2}}>
               <div style={{width: iconSize, height: iconSize, borderRadius: '50%', background: C.noir, border: `2px solid ${C.or}`, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>

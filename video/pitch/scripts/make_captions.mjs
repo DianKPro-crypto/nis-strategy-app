@@ -23,8 +23,27 @@ const mmss = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${(t % 60).t
 
 // Split a block into caption chunks of ≤ 2 lines × 42 characters, at sentence
 // then clause boundaries.
+// Split an over-long clause into near-equal word groups that each fit a cue.
+const splitLong = (piece, max) => {
+  if (piece.length <= max) return [piece];
+  const words = piece.split(' ');
+  const n = Math.ceil(piece.length / (max - 8));
+  const target = piece.length / n;
+  const out = [];
+  let cur = '';
+  for (const w of words) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (cur && next.length > target && out.length < n - 1) {
+      out.push(cur);
+      cur = w;
+    } else cur = next;
+  }
+  out.push(cur);
+  return out;
+};
+
 const chunk = (text) => {
-  const pieces = text.split(/(?<=[.?!…;:])\s+|(?<=,)\s+/);
+  const pieces = text.split(/(?<=[.?!…;:])\s+|(?<=,)\s+/).flatMap((p) => splitLong(p, MAX_LINE * 2 - 4));
   const out = [];
   let cur = '';
   for (const p of pieces) {

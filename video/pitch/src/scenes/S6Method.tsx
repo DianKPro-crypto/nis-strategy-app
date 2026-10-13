@@ -116,10 +116,10 @@ export const S6Method: React.FC<SceneProps> = ({dur, copy}) => {
       num: 72,
       net: {left: 320, top: 372, size: 440},
       traced: {left: T.margin, top: 0, width: 0},
-      gauge: {left: 0, top: 1160, width: W},
+      gauge: {left: 0, top: 1128, width: W},
       r: 130,
       gaugeNum: 76,
-      tag: {left: T.margin, top: 1360, width: W - 2 * T.margin},
+      tag: {left: T.margin, top: 1392, width: W - 2 * T.margin},
       threadY: 352,
       threadEnd: W + 20,
     },
@@ -146,7 +146,7 @@ export const S6Method: React.FC<SceneProps> = ({dur, copy}) => {
           </Appear>
         ) : null}
         <div style={{position: 'absolute', ...L.gauge, display: 'flex', flexDirection: f === 'portrait' ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', gap: f === 'portrait' ? 44 : 18}}>
-          <Gauge at={70} from={m.gauge.from} to={m.gauge.to} r={L.r} numSize={L.gaugeNum} labelSize={T.label} outOf={m.gauge.outOf} decimal={copy.decimal} />
+          <Gauge at={70} from={m.gauge.from} to={m.gauge.to} r={L.r} numSize={L.gaugeNum} labelSize={T.label} outOf={m.gauge.outOf} decimal={copy.decimal} stack={f === 'portrait'} />
           <Appear at={100} dy={14}>
             <div style={{...body(T.label, C.ivoire, 500), textAlign: f === 'portrait' ? 'left' : 'center', maxWidth: f === 'portrait' ? 400 : L.r * 2.6}}>{m.gauge.label}</div>
           </Appear>
