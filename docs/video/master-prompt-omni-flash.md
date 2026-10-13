@@ -18,6 +18,12 @@
 - calcul du rythme (temps de lecture) ;
 - règles éthiques : pas de visages, pas de logos, chiffres validés en post-production.
 
+**Deux réglages utiles :**
+- **`INPUT_TYPE: VO_SCRIPT`** : votre texte est une voix off. L'assistant écrit alors, pour chaque clip, la phrase à enregistrer (25 mots au plus, soit environ 10 s). L'écran n'en reprend que les mots-clés.
+- **`FIELD_PHOTOS`** : listez vos propres photos de terrain, une par ligne, avec ce qu'elles montrent et le statut du consentement. Le générateur laisse pour chacune un cadre vide, que vous remplacez au montage par la vraie photo. L'assistant ne génère jamais de photo ni de visage.
+
+**Testé :** sur un script inédit (les enfants « zéro dose », avec un chiffre), le master prompt a produit 4 clips cohérents de 10 s. Le test a révélé 12 failles, toutes corrigées depuis : texte à l'écran trop proche d'une transcription, carton de fin mal défini, règles contradictoires.
+
 **Pourquoi les instructions sont en anglais :** les modèles génératifs les suivent plus fidèlement en anglais. Le texte à l'écran sort, lui, dans la langue de votre script.
 
 ~~~text
