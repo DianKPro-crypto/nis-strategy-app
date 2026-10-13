@@ -1,0 +1,23 @@
+{
+  "_source": "DIAN K. PRO — Charte chromatique V1.0 (septembre 2026)",
+  "primary": "#0A0A0A",
+  "secondary": "#D4A44C",
+  "accent": "#ECBA5B",
+  "fontDisplay": "Playfair Display",
+  "fontText": "Inter",
+  "palette": {
+    "noir": "#0A0A0A",
+    "or": "#D4A44C",
+    "champagne": "#ECBA5B",
+    "orProfond": "#A87C33",
+    "graphite": "#1A1A1A",
+    "anthracite": "#2E2A24",
+    "pierre": "#8A8378",
+    "sable": "#E6DCC8",
+    "ivoire": "#F7F3EA",
+    "succes": "#2F855A",
+    "info": "#2F5D8A",
+    "alerte": "#B23A3A"
+  },
+  "metallicGradient": "linear-gradient(115deg, #A87C33 0%, #D4A44C 35%, #ECBA5B 52%, #D4A44C 68%, #A87C33 100%)"
+}

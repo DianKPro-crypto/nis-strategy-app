@@ -1,0 +1,31 @@
+{
+  "name": "dian-sidibe-pitch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dr. Dian SIDIBE \u2014 motion-design pitch video (Remotion)",
+  "scripts": {
+    "studio": "remotion studio",
+    "still": "remotion still",
+    "render": "remotion render",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.531",
+    "@remotion/fonts": "4.0.531",
+    "@remotion/paths": "4.0.531",
+    "d3-geo": "3.1.1",
+    "qrcode": "1.5.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.531",
+    "topojson-client": "3.1.0",
+    "world-atlas": "2.0.2"
+  },
+  "devDependencies": {
+    "@types/d3-geo": "3.1.0",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "19.1.8",
+    "@types/topojson-client": "3.1.5",
+    "typescript": "5.8.3"
+  }
+}

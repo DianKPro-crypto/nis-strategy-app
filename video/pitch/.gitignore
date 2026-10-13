@@ -1,0 +1,4 @@
+node_modules/
+previews/
+out/*.raw.mp4
+.remotion/

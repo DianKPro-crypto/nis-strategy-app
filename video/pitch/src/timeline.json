@@ -1,0 +1,15 @@
+{
+  "fps": 30,
+  "total": 86,
+  "snapToleranceSec": 0.25,
+  "scenes": [
+    {"id": "hook", "start": 0},
+    {"id": "bottleneck", "start": 6},
+    {"id": "reveal", "start": 14},
+    {"id": "proof", "start": 22},
+    {"id": "offers", "start": 38},
+    {"id": "method", "start": 56},
+    {"id": "trust", "start": 68},
+    {"id": "cta", "start": 76}
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "_doc": "Voice-over scripts (≈175 words, 135–145 wpm). Each block is anchored to a scene: start = scene start + startOffset; end = (endScene start or scene end) + endOffset (seconds). Used to build captions_*.srt and vo_script_*.txt.",
+  "en": [
+    {
+      "scene": "hook",
+      "startOffset": 0.3,
+      "endOffset": -0.4,
+      "text": "What if the money was already there… and the strategy wasn’t?"
+    },
+    {
+      "scene": "bottleneck",
+      "startOffset": 0.3,
+      "endOffset": -0.3,
+      "text": "Without an endorsed, costed national strategy, funding cycles don’t open, and children wait."
+    },
+    {
+      "scene": "reveal",
+      "startOffset": 0.3,
+      "endScene": "proof",
+      "endAt": 6.0,
+      "text": "I’m Dr. Dian Sidibé. For twenty-eight years, across the United Nations, Gavi-supported programmes and humanitarian operations, I have helped ministries of health turn evidence into strategies that get funded."
+    },
+    {
+      "scene": "proof",
+      "startOffset": 6.4,
+      "endOffset": -0.5,
+      "text": "Lead costing in five countries. Twenty-three country offices overseen. More than fifteen national teams trained."
+    },
+    {
+      "scene": "offers",
+      "startOffset": 0.4,
+      "endOffset": -0.4,
+      "text": "I work in three ways. I unlock financing that is budgeted but not flowing. I architect national immunisation strategies that are endorsed, costed and fundable. And I build the national capacity to own them."
+    },
+    {
+      "scene": "method",
+      "startOffset": 0.4,
+      "endOffset": -0.6,
+      "text": "My method is fast and fully traceable: AI-accelerated, always human-validated."
+    },
+    {
+      "scene": "cta",
+      "startOffset": 0.3,
+      "endAt": 4.2,
+      "text": "Strategies ministries own. Plans donors fund."
+    },
+    {
+      "scene": "cta",
+      "startOffset": 4.6,
+      "endAt": 8.4,
+      "text": "Let’s talk about your next strategy cycle."
+    }
+  ],
+  "fr": [
+    {
+      "scene": "hook",
+      "startOffset": 0.3,
+      "endOffset": -0.4,
+      "text": "Et si l’argent était déjà là… mais pas la stratégie ?"
+    },
+    {
+      "scene": "bottleneck",
+      "startOffset": 0.3,
+      "endOffset": -0.3,
+      "text": "Sans stratégie nationale validée et chiffrée, aucun cycle de financement ne s’ouvre, et les enfants attendent."
+    },
+    {
+      "scene": "reveal",
+      "startOffset": 0.3,
+      "endScene": "proof",
+      "endAt": 7.0,
+      "text": "Je suis le Docteur Dian Sidibé. Depuis vingt-huit ans, au sein des Nations Unies, des programmes soutenus par Gavi et de l’action humanitaire, j’aide les ministères de la Santé à transformer les données en stratégies financées."
+    },
+    {
+      "scene": "proof",
+      "startOffset": 7.4,
+      "endOffset": -0.5,
+      "text": "Chiffrage conduit dans cinq pays. Vingt-trois bureaux pays supervisés. Plus de quinze équipes nationales formées."
+    },
+    {
+      "scene": "offers",
+      "startOffset": 0.4,
+      "endOffset": -0.4,
+      "text": "J’interviens de trois façons : débloquer des financements budgétés mais bloqués ; concevoir des stratégies vaccinales validées, chiffrées et finançables ; et bâtir la capacité nationale à les porter."
+    },
+    {
+      "scene": "method",
+      "startOffset": 0.4,
+      "endOffset": -0.6,
+      "text": "Ma méthode est rapide et entièrement traçable : accélérée par l’IA, toujours validée par l’humain."
+    },
+    {
+      "scene": "cta",
+      "startOffset": 0.3,
+      "endAt": 5.0,
+      "text": "Des stratégies que les ministères portent. Des plans que les bailleurs financent."
+    },
+    {
+      "scene": "cta",
+      "startOffset": 5.3,
+      "endAt": 9.2,
+      "text": "Parlons de votre prochain cycle stratégique."
+    }
+  ]
+}
