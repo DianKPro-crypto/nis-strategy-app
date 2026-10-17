@@ -1,0 +1,1129 @@
+<title>Boussole IA</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Boussole IA · Santé publique : préparer, protéger, produire et vérifier chaque usage de l'IA dans les missions de santé publique.">
+<style>
+/* Mise en page : rail de navigation à gauche sur ordinateur, barre d'onglets en bas sur mobile ;
+   contenu en colonne de lecture, outils en grilles. Charte Dian K Pro : noir et or, Playfair Display + Inter. */
+:root {
+  --bg: #0B0B0C;
+  --bg-voile: rgba(11, 11, 12, .86);
+  --surface: #151517;
+  --surface-2: #1D1D20;
+  --line: #2C2B28;
+  --line-strong: #45423B;
+  --fg: #F5F2EB;
+  --fg-2: #D6D0C4;
+  --fg-3: #ABA497;
+  --or: #E3B34C;
+  --or-texte: #E8BC5C;
+  --sur-or: #0B0B0C;
+  --or-voile: rgba(227, 179, 76, .13);
+  --or-bord: rgba(227, 179, 76, .45);
+  --ok: #62C995;
+  --ok-voile: rgba(98, 201, 149, .14);
+  --att: #F2A65A;
+  --att-voile: rgba(242, 166, 90, .15);
+  --bloq: #F47C72;
+  --bloq-voile: rgba(244, 124, 114, .15);
+  --ombre: 0 18px 40px rgba(0, 0, 0, .35);
+  --f-titre: "Playfair Display", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --f-texte: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --rayon: 14px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F5F5F2; --bg-voile: rgba(245, 245, 242, .88); --surface: #FFFFFF; --surface-2: #EFEDE7;
+    --line: #E1DDD3; --line-strong: #C9C2B2; --fg: #141413; --fg-2: #37342E; --fg-3: #5C574C;
+    --or: #E3B34C; --or-texte: #85600F; --sur-or: #0B0B0C; --or-voile: rgba(227, 179, 76, .18); --or-bord: rgba(160, 118, 24, .45);
+    --ok: #1C7A4E; --ok-voile: rgba(28, 122, 78, .1); --att: #A8520A; --att-voile: rgba(168, 82, 10, .1);
+    --bloq: #B3261E; --bloq-voile: rgba(179, 38, 30, .09); --ombre: 0 14px 34px rgba(40, 32, 12, .1);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F5F5F2; --bg-voile: rgba(245, 245, 242, .88); --surface: #FFFFFF; --surface-2: #EFEDE7;
+  --line: #E1DDD3; --line-strong: #C9C2B2; --fg: #141413; --fg-2: #37342E; --fg-3: #5C574C;
+  --or: #E3B34C; --or-texte: #85600F; --sur-or: #0B0B0C; --or-voile: rgba(227, 179, 76, .18); --or-bord: rgba(160, 118, 24, .45);
+  --ok: #1C7A4E; --ok-voile: rgba(28, 122, 78, .1); --att: #A8520A; --att-voile: rgba(168, 82, 10, .1);
+  --bloq: #B3261E; --bloq-voile: rgba(179, 38, 30, .09); --ombre: 0 14px 34px rgba(40, 32, 12, .1);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 17px/1.6 var(--f-texte); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 40; background: var(--bg); }
+[hidden] { display: none !important; }
+img, svg { max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--or-texte); }
+:focus-visible { outline: 2px solid var(--or); outline-offset: 2px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+h1, h2 { font-family: var(--f-titre); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(2rem, 1.4rem + 2.6vw, 3rem); }
+h1, h2, .porte-titre, .verdict-titre, .ck-bloc legend, .marque-nom { font-variant-numeric: lining-nums; }
+.chiffre b, .score b, .module-num, .cinq-temps li::before { font-variant-numeric: lining-nums tabular-nums; }
+h2 { font-size: clamp(1.35rem, 1.15rem + .8vw, 1.7rem); }
+h3 { font-size: 1.1rem; font-weight: 650; line-height: 1.3; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.surtitre { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--or-texte); font-weight: 650; }
+.discret { color: var(--fg-3); font-size: .92rem; }
+.chapeau { font-size: 1.12rem; color: var(--fg-2); max-width: 62ch; }
+.pile { display: grid; gap: 16px; }
+.pile-l { display: grid; gap: 28px; }
+.rangee { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ico { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* --- Structure --- */
+.app { min-height: 100vh; }
+.nav { display: none; }
+.barre-haut {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--bg-voile); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+}
+.barre-haut .outils-haut { display: flex; gap: 6px; }
+.btn-icone { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-2); text-decoration: none; cursor: pointer; }
+.btn-icone.actif { color: var(--or-texte); border-color: var(--or-bord); }
+.vue { max-width: 1120px; margin: 0 auto; padding-block: 24px 128px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.onglets {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr);
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+}
+.onglets a { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 2px 8px; font-size: .74rem; font-weight: 550; color: var(--fg-3); text-decoration: none; }
+.onglets a.actif { color: var(--or-texte); }
+.onglets .ico { width: 22px; height: 22px; }
+
+.marque { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); }
+.marque svg { width: 34px; height: 34px; }
+.marque-nom { font-family: var(--f-titre); font-size: 1.22rem; font-weight: 700; line-height: 1; }
+.marque-sous { display: block; font-family: var(--f-texte); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--or-texte); font-weight: 650; margin-top: 4px; }
+
+@media (min-width: 960px) {
+  .app { display: grid; grid-template-columns: 272px minmax(0, 1fr); }
+  .barre-haut, .onglets { display: none; }
+  .nav { display: flex; flex-direction: column; gap: 28px; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 28px 18px 22px; border-right: 1px solid var(--line); background: var(--surface); }
+  .nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .nav a.lien-nav { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--fg-2); text-decoration: none; font-weight: 520; font-size: .98rem; }
+  .nav a.lien-nav:hover { background: var(--surface-2); color: var(--fg); }
+  .nav a.lien-nav.actif { background: var(--or-voile); color: var(--or-texte); font-weight: 620; }
+  .nav .sep { height: 1px; background: var(--line); margin: 10px 12px; }
+  .nav-pied { margin-top: auto; font-size: .8rem; color: var(--fg-3); padding: 0 12px; display: grid; gap: 4px; }
+  .vue { padding-block: 44px 88px; padding-left: max(48px, env(safe-area-inset-left, 0px)); padding-right: max(48px, env(safe-area-inset-right, 0px)); }
+}
+
+/* --- Boutons et puces --- */
+.btn, .btn-sec, .btn-lien { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 12px; font-weight: 620; font-size: .98rem; cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s, color .15s; }
+.btn { background: var(--or); color: var(--sur-or); border: 1px solid var(--or); }
+.btn:hover { filter: brightness(1.06); }
+.btn[disabled], .btn-sec[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
+.btn-sec { background: transparent; color: var(--fg); border: 1px solid var(--line-strong); }
+.btn-sec:hover { border-color: var(--or-bord); }
+.btn-lien { background: none; border: 0; padding: 6px 4px; min-height: 0; color: var(--or-texte); font-weight: 600; }
+.btn-lien:hover { text-decoration: underline; }
+.btn.copie, .btn-sec.copie { background: var(--ok); border-color: var(--ok); color: var(--sur-or); }
+.puce { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--fg-2); font-size: .8rem; font-weight: 560; line-height: 1.5; white-space: nowrap; }
+.puce.or { border-color: var(--or-bord); color: var(--or-texte); background: var(--or-voile); }
+.puce.ok, .puce.N0 { border-color: color-mix(in srgb, var(--ok) 50%, transparent); color: var(--ok); background: var(--ok-voile); }
+.puce.N1 { border-color: var(--or-bord); color: var(--or-texte); background: var(--or-voile); }
+.puce.att, .puce.N2 { border-color: color-mix(in srgb, var(--att) 50%, transparent); color: var(--att); background: var(--att-voile); }
+.puce.bloq, .puce.N3 { border-color: color-mix(in srgb, var(--bloq) 50%, transparent); color: var(--bloq); background: var(--bloq-voile); }
+.filtres { display: flex; flex-wrap: wrap; gap: 8px; }
+.filtre { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; cursor: pointer; font-size: .9rem; font-weight: 560; color: var(--fg-2); }
+.filtre[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.recherche { width: 100%; max-width: 420px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); }
+.recherche::placeholder, textarea::placeholder, input::placeholder { color: var(--fg-3); opacity: 1; }
+.barre-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid var(--line); }
+.retour { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-3); background: none; border: 0; cursor: pointer; padding: 4px 0; font-size: .92rem; font-weight: 560; }
+.retour:hover { color: var(--fg); }
+
+/* --- Panneaux --- */
+.panneau { background: var(--surface); border: 1px solid var(--line); border-radius: var(--rayon); padding: 22px; }
+.panneau-titre { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.grille { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.duo { display: grid; gap: 20px; align-items: start; }
+@media (min-width: 860px) { .duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.bandeau { padding: 12px 16px; border-radius: 12px; border: 1px solid var(--att); background: var(--att-voile); color: var(--fg); font-size: .92rem; }
+
+/* --- Accueil --- */
+.hero { display: grid; gap: 14px; padding-bottom: 8px; }
+.hero h1 { font-size: clamp(2.6rem, 1.8rem + 4vw, 4.2rem); }
+.hero h1 em { font-style: normal; color: var(--or-texte); }
+.portes { display: grid; gap: 14px; }
+@media (min-width: 760px) { .portes { grid-template-columns: 1.25fr 1fr 1fr; } }
+.porte { display: grid; align-content: start; gap: 10px; text-align: left; padding: 22px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; transition: border-color .15s, transform .15s; }
+.porte:hover { border-color: var(--or-bord); transform: translateY(-1px); }
+.porte .ico { width: 26px; height: 26px; color: var(--or-texte); }
+.porte-titre { font-family: var(--f-titre); font-size: 1.35rem; font-weight: 600; line-height: 1.2; }
+.porte-texte { color: var(--fg-2); font-size: .95rem; }
+.porte-cta { display: inline-flex; align-items: center; gap: 6px; font-weight: 650; font-size: .92rem; color: var(--or-texte); margin-top: 4px; }
+.porte-principale { background: var(--or); border-color: var(--or); color: var(--sur-or); }
+.porte-principale .ico, .porte-principale .porte-cta, .porte-principale .porte-texte { color: var(--sur-or); }
+.porte-principale:hover { border-color: var(--or); filter: brightness(1.05); }
+.comp { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.comp:last-child { border-bottom: 0; padding-bottom: 0; }
+.comp-tete { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 600; }
+.jauge { position: relative; height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.jauge > span { position: absolute; inset: 0 auto 0 0; background: var(--or); border-radius: 99px; }
+.jauge > i { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--surface); }
+.comp-desc { font-size: .86rem; color: var(--fg-3); }
+.niv-Découverte { } .niv-Pratique { border-color: var(--or-bord); color: var(--or-texte); } .niv-Maîtrise { background: var(--or); color: var(--sur-or); border-color: var(--or); }
+.chiffres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.chiffre { padding: 14px; border-radius: 12px; background: var(--surface-2); }
+.chiffre b { display: block; font-family: var(--f-titre); font-size: 1.7rem; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.chiffre span { font-size: .84rem; color: var(--fg-3); }
+.suivant { display: grid; gap: 8px; padding: 18px; border-radius: 14px; border: 1px solid var(--or-bord); background: var(--or-voile); }
+.cinq-temps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); counter-reset: t; }
+.cinq-temps li { counter-increment: t; padding: 16px; border-top: 2px solid var(--or); background: var(--surface); border-radius: 0 0 12px 12px; display: grid; gap: 4px; }
+.cinq-temps li::before { content: "0" counter(t); font-family: var(--f-titre); color: var(--or-texte); font-size: 1.1rem; font-weight: 700; }
+.cinq-temps b { font-size: 1.02rem; }
+.cinq-temps span { font-size: .88rem; color: var(--fg-3); }
+
+/* --- Mission --- */
+.stepper { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.stepper li { display: grid; justify-items: center; gap: 6px; text-align: center; font-size: .78rem; font-weight: 600; color: var(--fg-3); position: relative; }
+.stepper li::after { content: ""; position: absolute; top: 15px; left: calc(50% + 20px); right: calc(-50% + 20px); height: 2px; background: var(--line); }
+.stepper li:last-child::after { display: none; }
+.stepper .rond { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line-strong); background: var(--bg); font-size: .9rem; color: var(--fg-2); }
+.stepper li.fait .rond { background: var(--or-voile); border-color: var(--or); color: var(--or-texte); }
+.stepper li.fait::after { background: var(--or-bord); }
+.stepper li.actif { color: var(--fg); }
+.stepper li.actif .rond { background: var(--or); border-color: var(--or); color: var(--sur-or); }
+.stepper button { all: unset; display: grid; justify-items: center; gap: 6px; cursor: pointer; }
+.stepper button:focus-visible { outline: 2px solid var(--or); outline-offset: 4px; border-radius: 8px; }
+.tache-entete { display: grid; gap: 8px; padding: 18px 20px; border-radius: var(--rayon); background: var(--surface); border: 1px solid var(--line); }
+.taches { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.tache { display: grid; gap: 8px; text-align: left; padding: 18px; border-radius: var(--rayon); border: 1px solid var(--line); background: var(--surface); cursor: pointer; color: var(--fg); transition: border-color .15s; }
+.tache:hover { border-color: var(--or-bord); }
+.tache h3 { font-size: 1.04rem; }
+.tache p { color: var(--fg-2); font-size: .92rem; }
+.gain { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.gain .ico { width: 16px; height: 16px; }
+.entrainement { padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border: 1px dashed var(--line-strong); font-size: .9rem; color: var(--fg-2); }
+
+/* Checklist */
+.ck-grille { display: grid; gap: 20px; align-items: start; }
+@media (min-width: 1100px) { .ck-grille { grid-template-columns: minmax(0, 1fr) 360px; } .ck-grille .verdict { position: sticky; top: 24px; } }
+.ck-bloc { border: 0; margin: 0; padding: 0; display: grid; gap: 14px; }
+.ck-bloc legend { font-family: var(--f-titre); font-size: 1.25rem; font-weight: 600; padding: 0; margin-bottom: 4px; }
+.ck-q { display: grid; gap: 10px; padding: 16px 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.ck-q.repondu { border-color: var(--line-strong); }
+.ck-q > p { font-weight: 560; }
+.ck-indice { font-size: .85rem; color: var(--fg-3); }
+.ck-opts { display: grid; gap: 8px; }
+.ck-opts.cartes { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+.ck-opt { text-align: left; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; cursor: pointer; font-size: .94rem; display: grid; gap: 3px; }
+.ck-opt:hover { border-color: var(--or-bord); }
+.ck-opt[aria-pressed="true"] { border-color: var(--or); background: var(--or-voile); }
+.ck-opt b { font-weight: 650; }
+.ck-opt small { color: var(--fg-3); font-size: .82rem; line-height: 1.45; }
+.select { width: 100%; max-width: 420px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); }
+.verdict { display: grid; gap: 14px; padding: 20px; border-radius: var(--rayon); border: 1px solid var(--line-strong); background: var(--surface); }
+.verdict.v-ok { border-color: var(--ok); background: linear-gradient(var(--ok-voile), var(--ok-voile)), var(--surface); }
+.verdict.v-attention { border-color: var(--att); background: linear-gradient(var(--att-voile), var(--att-voile)), var(--surface); }
+.verdict.v-bloquant { border-color: var(--bloq); background: linear-gradient(var(--bloq-voile), var(--bloq-voile)), var(--surface); }
+.verdict-tete { display: flex; gap: 14px; align-items: center; }
+.feu { display: grid; gap: 5px; padding: 7px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); flex: none; }
+.feu span { width: 14px; height: 14px; border-radius: 50%; background: var(--line-strong); opacity: .5; }
+.v-bloquant .feu .r { background: var(--bloq); opacity: 1; box-shadow: 0 0 10px var(--bloq); }
+.v-attention .feu .o { background: var(--att); opacity: 1; box-shadow: 0 0 10px var(--att); }
+.v-ok .feu .v { background: var(--ok); opacity: 1; box-shadow: 0 0 10px var(--ok); }
+.verdict-titre { font-family: var(--f-titre); font-size: 1.3rem; font-weight: 600; line-height: 1.2; }
+.conseils { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.conseils li { display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: .9rem; align-items: start; }
+.conseils .pastille { width: 10px; height: 10px; border-radius: 50%; margin-top: 7px; }
+.pastille.ok { background: var(--ok); } .pastille.attention { background: var(--att); } .pastille.bloquant { background: var(--bloq); }
+.pays-encart { display: grid; gap: 4px; padding: 12px 14px; border-radius: 10px; background: var(--surface-2); font-size: .88rem; }
+
+/* Produire */
+.produire { display: grid; gap: 20px; align-items: start; }
+@media (min-width: 1100px) { .produire { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); } .col-prompt { position: sticky; top: 24px; } }
+.champ { display: grid; gap: 6px; }
+.champ label { font-weight: 600; font-size: .95rem; }
+.champ input, .champ textarea, textarea.zone { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface-2); font-size: .95rem; line-height: 1.5; }
+.champ textarea { min-height: 120px; resize: vertical; font-family: var(--f-mono); font-size: .86rem; }
+.champ textarea.libre { min-height: 90px; font-family: var(--f-texte); font-size: .95rem; }
+.champ-aide { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: .82rem; color: var(--fg-3); }
+.prompt { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: .86rem/1.6 var(--f-mono); color: var(--fg-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; max-height: 62vh; overflow: auto; }
+.prompt mark { border-radius: 4px; padding: 0 3px; }
+.prompt mark.vide { background: var(--or-voile); color: var(--or-texte); outline: 1px dashed var(--or-bord); }
+.prompt mark.rempli { background: var(--ok-voile); color: var(--fg); }
+details.depli { border-top: 1px solid var(--line); padding-top: 12px; }
+details.depli summary { cursor: pointer; font-weight: 620; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+details.depli summary::-webkit-details-marker { display: none; }
+details.depli summary::after { content: "+"; color: var(--or-texte); font-weight: 700; }
+details.depli[open] summary::after { content: "−"; }
+details.depli > div { padding-top: 12px; }
+.cadre-liste { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cadre-liste li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; font-size: .92rem; color: var(--fg-2); }
+.lettre { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--or-voile); color: var(--or-texte); font-family: var(--f-titre); font-weight: 700; font-size: 1.1rem; }
+.relance { display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: .92rem; color: var(--fg-2); }
+.relance:last-child { border-bottom: 0; }
+.relance button { flex: none; }
+.liens-outils { display: flex; flex-wrap: wrap; gap: 8px; }
+.liens-outils a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-strong); text-decoration: none; color: var(--fg-2); font-size: .88rem; font-weight: 560; }
+.liens-outils a:hover { border-color: var(--or-bord); color: var(--fg); }
+.liens-outils .ico { width: 15px; height: 15px; }
+
+/* Vérifier */
+.verif-liste { display: grid; gap: 12px; }
+.verif-item { display: grid; grid-template-columns: 48px 1fr; gap: 14px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.verif-item .lettre { width: 48px; height: 48px; font-size: 1.5rem; }
+.verif-item .rangee { margin-top: 8px; }
+.choix { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; cursor: pointer; font-size: .88rem; font-weight: 580; }
+.choix[aria-pressed="true"].c-ok { background: var(--ok-voile); border-color: var(--ok); color: var(--ok); }
+.choix[aria-pressed="true"].c-attention { background: var(--att-voile); border-color: var(--att); color: var(--att); }
+.choix[aria-pressed="true"].c-na { background: var(--surface-2); border-color: var(--fg-3); }
+.coches { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.coche { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: .93rem; text-align: left; width: 100%; }
+.coche .case { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line-strong); display: grid; place-items: center; margin-top: 1px; }
+.coche[aria-pressed="true"] .case { background: var(--ok); border-color: var(--ok); color: var(--sur-or); }
+.coche .case .ico { width: 14px; height: 14px; stroke-width: 3; opacity: 0; }
+.coche[aria-pressed="true"] .case .ico { opacity: 1; }
+.liste-simple { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--fg-2); font-size: .94rem; }
+
+/* --- Bibliothèque --- */
+.carte-prompt { position: relative; display: grid; gap: 10px; align-content: start; padding: 20px; border-radius: var(--rayon); border: 1px solid var(--line); background: var(--surface); }
+.carte-prompt:hover { border-color: var(--or-bord); }
+.carte-prompt h3 a { color: var(--fg); text-decoration: none; }
+.carte-prompt h3 a::after { content: ""; position: absolute; inset: 0; border-radius: var(--rayon); }
+.carte-prompt p { color: var(--fg-2); font-size: .92rem; }
+.etoile { position: relative; z-index: 2; background: none; border: 0; cursor: pointer; color: var(--fg-3); padding: 4px; }
+.etoile[aria-pressed="true"] { color: var(--or); }
+.etoile[aria-pressed="true"] .ico { fill: var(--or); }
+.carte-tete { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.fiche { display: grid; gap: 22px; }
+.fiche-sections { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.table-defil { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-3); font-weight: 650; background: var(--surface-2); }
+tr:last-child td { border-bottom: 0; }
+td { color: var(--fg-2); }
+
+/* --- Parcours --- */
+.modules { display: grid; gap: 12px; }
+.module { display: grid; grid-template-columns: 64px 1fr; gap: 18px; text-align: left; padding: 20px; border-radius: var(--rayon); border: 1px solid var(--line); background: var(--surface); cursor: pointer; color: var(--fg); align-items: center; }
+.module:hover { border-color: var(--or-bord); }
+.module-num { font-family: var(--f-titre); font-size: 2.2rem; font-weight: 700; color: var(--or-texte); line-height: 1; text-align: center; }
+.module.inactif .module-num { color: var(--fg-3); }
+.module-corps { display: grid; gap: 6px; min-width: 0; }
+.module-corps p { color: var(--fg-2); font-size: .92rem; }
+.mini-jauge { height: 5px; border-radius: 99px; background: var(--surface-2); overflow: hidden; max-width: 260px; }
+.mini-jauge span { display: block; height: 100%; background: var(--or); }
+.lecons { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: l; }
+.lecons button { width: 100%; display: grid; grid-template-columns: 34px 1fr auto; gap: 14px; align-items: center; text-align: left; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; }
+.lecons button:hover { border-color: var(--or-bord); }
+.lecons .etat { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line-strong); font-size: .85rem; font-weight: 700; color: var(--fg-3); }
+.lecons .lue .etat { background: var(--ok); border-color: var(--ok); color: var(--sur-or); }
+.lecons .etat .ico { width: 15px; height: 15px; stroke-width: 3; }
+.lecon { display: grid; gap: 22px; max-width: 760px; }
+.lecon-corps { display: grid; gap: 14px; color: var(--fg-2); font-size: 1.02rem; line-height: 1.7; }
+.lecon-corps h4 { margin: 10px 0 0; font-size: 1.05rem; color: var(--fg); font-weight: 650; }
+.lecon-corps ul, .lecon-corps ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.lecon-corps strong { color: var(--fg); }
+.encadre { padding: 14px 16px; border-radius: 12px; background: var(--or-voile); border: 1px solid var(--or-bord); color: var(--fg); font-size: .96rem; }
+.exemple { padding: 14px 16px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); font: .88rem/1.65 var(--f-mono); color: var(--fg-2); overflow-wrap: anywhere; }
+.retenir { padding: 18px 20px; border-radius: var(--rayon); border: 1px solid var(--line-strong); background: var(--surface); display: grid; gap: 10px; }
+.retenir ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.quiz-q { display: grid; gap: 12px; padding: 18px; border-radius: var(--rayon); background: var(--surface); border: 1px solid var(--line); }
+.quiz-q > p { font-weight: 600; }
+.opt { text-align: left; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; cursor: pointer; font-size: .95rem; width: 100%; }
+.opt:hover:not([disabled]) { border-color: var(--or-bord); }
+.opt[disabled] { cursor: default; }
+.opt.bonne { border-color: var(--ok); background: var(--ok-voile); }
+.opt.fausse { border-color: var(--bloq); background: var(--bloq-voile); }
+.explication { font-size: .9rem; color: var(--fg-2); padding: 10px 12px; border-radius: 10px; background: var(--surface-2); }
+.score { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; padding: 18px 20px; border-radius: var(--rayon); border: 1px solid var(--or-bord); background: var(--or-voile); }
+.score b { font-family: var(--f-titre); font-size: 1.6rem; }
+.contexte-ia { padding: 14px 16px; border-radius: 12px; background: var(--surface-2); font-size: .92rem; color: var(--fg-2); }
+.reponse-ia { padding: 20px; border-radius: var(--rayon); background: var(--surface); border: 1px solid var(--line); display: grid; gap: 12px; line-height: 1.75; }
+.reponse-ia .entete-ia { display: flex; align-items: center; gap: 8px; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--fg-3); font-weight: 650; }
+.seg { cursor: pointer; border-radius: 4px; padding: 1px 2px; transition: background .12s; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.seg:hover { background: var(--surface-2); }
+.seg.sel { background: var(--or-voile); box-shadow: inset 0 -2px 0 var(--or); }
+.seg.trouve { background: var(--ok-voile); box-shadow: inset 0 -2px 0 var(--ok); }
+.seg.manque { background: var(--bloq-voile); box-shadow: inset 0 -2px 0 var(--bloq); }
+.seg.fauxpos { text-decoration: line-through; text-decoration-color: var(--fg-3); }
+.verifie .seg { cursor: default; }
+.erreur-expl { display: grid; gap: 4px; padding: 12px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: .92rem; }
+.detection { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* --- Éthique --- */
+.onglets-int { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.onglets-int button { padding: 10px 14px; border: 0; background: none; cursor: pointer; font-weight: 600; color: var(--fg-3); border-bottom: 2px solid transparent; white-space: nowrap; font-size: .95rem; }
+.onglets-int button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--or); }
+.cel { font-weight: 620; font-size: .84rem; }
+.cel.ok { color: var(--ok); } .cel.attention { color: var(--att); } .cel.bloquant { color: var(--bloq); }
+.niveaux { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.niveau { padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); display: grid; gap: 6px; font-size: .9rem; color: var(--fg-2); }
+.cadre-ref { display: grid; gap: 6px; padding: 16px 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.cadre-ref p { color: var(--fg-2); font-size: .93rem; }
+.jalons { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.jalons li { display: grid; grid-template-columns: 130px 1fr; gap: 12px; font-size: .92rem; }
+@media (max-width: 520px) { .jalons li { grid-template-columns: 1fr; gap: 2px; } }
+.jalons time { font-weight: 650; font-variant-numeric: tabular-nums; }
+
+/* --- Progression --- */
+.journal td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.verif-mini { display: inline-flex; gap: 3px; }
+.verif-mini span { width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; font-size: .7rem; font-weight: 700; background: var(--surface-2); color: var(--fg-3); }
+.verif-mini .ok { background: var(--ok-voile); color: var(--ok); }
+.verif-mini .attention { background: var(--att-voile); color: var(--att); }
+.vide { padding: 28px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--rayon); color: var(--fg-3); display: grid; gap: 12px; justify-items: center; }
+
+/* --- Mémo --- */
+.memo { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.memo .panneau { display: grid; gap: 12px; align-content: start; }
+.memo ol, .memo ul { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; font-size: .93rem; color: var(--fg-2); }
+
+/* --- Toast et modale --- */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(86px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: .92rem; box-shadow: var(--ombre); }
+@media (min-width: 960px) { .toast { bottom: 28px; } }
+.modale { position: fixed; inset: 0; z-index: 70; background: rgba(0, 0, 0, .55); display: grid; place-items: center; padding: 16px; }
+.modale > div { width: min(640px, 100%); max-height: 86vh; overflow: auto; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 16px; padding: 22px; display: grid; gap: 14px; }
+
+@media print {
+  .nav, .barre-haut, .onglets, .no-print, .toast { display: none !important; }
+  body { background: #fff; color: #000; font-size: 12pt; }
+  .vue { padding: 0; max-width: none; }
+  .panneau { border-color: #bbb; break-inside: avoid; }
+}
+</style>
+
+<div class="app">
+  <aside class="nav" aria-label="Navigation principale">
+    <a class="marque" href="#accueil" data-a="nav" data-r="accueil" id="marque-nav"></a>
+    <ul id="liens-nav"></ul>
+    <div class="nav-pied">
+      <span>Hors ligne · vos données restent sur cet appareil</span>
+      <span id="version-nav"></span>
+    </div>
+  </aside>
+  <header class="barre-haut">
+    <a class="marque" href="#accueil" data-a="nav" data-r="accueil" id="marque-haut"></a>
+    <div class="outils-haut" id="outils-haut"></div>
+  </header>
+  <main id="vue" class="vue" tabindex="-1"></main>
+  <nav class="onglets" aria-label="Navigation" id="onglets"></nav>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<div id="modale" class="modale" hidden></div>
+
+<!--CONTENU-->
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   MOTEUR DE L'APPLICATION
+   Le contenu (prompts, leçons, checklist) se trouve dans le bloc CONTENU
+   ci-dessus. Cette partie gère l'affichage, la navigation et la progression.
+   ══════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  // ---------- Utilitaires ----------
+  const $ = (s, r) => (r || document).querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtDate = iso => { try { return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+  const fmtDuree = min => { min = Math.round(min || 0); if (min < 60) return min + ' min'; const h = Math.floor(min / 60), m = min % 60; return h + ' h' + (m ? ' ' + String(m).padStart(2, '0') : ''); };
+  const EST_FICHIER = location.protocol === 'file:';
+
+  // ---------- Contenu ----------
+  // Chaque bloc de contenu est facultatif : un module absent s'affiche « en préparation ».
+  const MODULES = [
+    typeof MODULE_M0 !== 'undefined' ? MODULE_M0 : null, typeof MODULE_M1 !== 'undefined' ? MODULE_M1 : null,
+    typeof MODULE_M2 !== 'undefined' ? MODULE_M2 : null, typeof MODULE_M3 !== 'undefined' ? MODULE_M3 : null,
+    typeof MODULE_M4 !== 'undefined' ? MODULE_M4 : null, typeof MODULE_M5 !== 'undefined' ? MODULE_M5 : null,
+    typeof MODULE_M6 !== 'undefined' ? MODULE_M6 : null
+  ].map((m, i) => m || { id: 'm' + i, num: i, titre: 'Module ' + i, sousTitre: 'Contenu en préparation.', competence: 'fondamentaux', bientot: 'Version 1.0', lecons: [], quiz: [] });
+  const PROMPTS_ = typeof PROMPTS !== 'undefined' ? PROMPTS : [];
+  const ERREURS_ = typeof ERREURS !== 'undefined' ? ERREURS : [];
+  const REG = typeof REGLEMENTATION !== 'undefined' ? REGLEMENTATION : { pays: [], cadres: [] };
+  const LECONS = {};
+  MODULES.forEach(m => (m.lecons || []).forEach((l, i) => { LECONS[l.id] = Object.assign({}, l, { module: m, index: i, competence: l.competence || m.competence }); }));
+  const PROMPT = Object.fromEntries(PROMPTS_.map(p => [p.id, p]));
+  const ERREUR = Object.fromEntries(ERREURS_.map(e => [e.id, e]));
+  const domaine = id => DOMAINES.find(d => d.id === id) || { nom: id, court: id };
+
+  // ---------- Icônes ----------
+  const ICO = {
+    accueil: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+    mission: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+    prompts: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 7.5h6M9 11h6"/>',
+    parcours: '<path d="M6 20c0-4 3-5 6-5s6-1 6-5"/><circle cx="6" cy="20" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M18 8V3l4 1.6L18 6"/>',
+    ethique: '<path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+    progression: '<path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/>',
+    memo: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    copier: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+    etoile: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+    externe: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+    fleche: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    retour: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    horloge: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    lecture: '<path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/>',
+    ia: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 10h4v4h-4z"/>'
+  };
+  const ico = (n, cls) => '<svg class="ico ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICO[n] || '') + '</svg>';
+  const MARQUE_SVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--or)" stroke-width="1.6"/><g stroke="var(--fg-3)" stroke-width="1.4"><path d="M20 3.5v3M20 33.5v3M3.5 20h3M33.5 20h3"/></g><path d="M20 8.5l4.2 11.5h-8.4z" fill="var(--or)"/><path d="M20 31.5l-4.2-11.5h8.4z" fill="none" stroke="var(--fg-2)" stroke-width="1.4" stroke-linejoin="round"/><circle cx="20" cy="20" r="1.8" fill="var(--bg)" stroke="var(--or)" stroke-width="1.4"/></svg>';
+
+  // ---------- État et sauvegarde locale ----------
+  const CLE = 'boussole-ia/v1';
+  const etatVide = () => ({ v: 1, lecons: {}, quiz: {}, exercices: {}, missions: [], verifs: [], favoris: [], prefs: { pays: '' }, brouillon: null, cree: new Date().toISOString() });
+  let STOCKAGE_OK = true;
+  function charger() {
+    try {
+      const t = localStorage.getItem(CLE);
+      if (t) { const o = JSON.parse(t); if (o && o.v === 1) return Object.assign(etatVide(), o); }
+      localStorage.setItem('boussole-test', '1'); localStorage.removeItem('boussole-test');
+    } catch (e) { STOCKAGE_OK = false; }
+    return etatVide();
+  }
+  let S = charger();
+  function sauver() { try { localStorage.setItem(CLE, JSON.stringify(S)); STOCKAGE_OK = true; } catch (e) { STOCKAGE_OK = false; } }
+  let minuteur = null;
+  const sauverPlusTard = () => { clearTimeout(minuteur); minuteur = setTimeout(sauver, 400); };
+
+  // État d'interface (non sauvegardé)
+  const UI = {
+    route: 'accueil',
+    parcours: { module: null, lecon: null, vue: null },
+    prompts: { filtre: 'tous', q: '', ouvert: null },
+    mission: { filtre: 'tous', q: '', confirmAbandon: false },
+    ethique: { onglet: 'checklist', reponses: {}, enregistre: false },
+    pays: { q: '', region: '', statut: '' },
+    quizRep: {}, exSel: {}, exVerifie: {}, reecriture: {},
+    prog: { exportVisible: false, importTexte: '', confirmImport: false, confirmReset: false, erreurImport: '' }
+  };
+
+  // ---------- Progression : points et niveaux ----------
+  function points() {
+    const p = Object.fromEntries(COMPETENCES.map(c => [c.id, 0]));
+    Object.keys(S.lecons).forEach(id => { if (LECONS[id]) p[LECONS[id].competence] += 1; });
+    Object.keys(S.quiz).forEach(mid => { const m = MODULES.find(x => x.id === mid); if (m) p[m.competence] += S.quiz[mid] >= .8 ? 3 : S.quiz[mid] >= .5 ? 1 : 0; });
+    Object.keys(S.exercices).forEach(id => { const e = S.exercices[id]; p[e.competence || 'critique'] += e.score >= .66 ? 2 : 1; });
+    S.missions.forEach(m => { p.usages += 1; p.prompt += 1; p.ethique += 1; if (m.verifComplet) p.critique += 1; });
+    p.ethique += Math.min(S.verifs.length, 5);
+    return p;
+  }
+  const niveau = pts => NIVEAUX_COMPETENCE.reduce((n, x) => pts >= x.min ? x : n, NIVEAUX_COMPETENCE[0]);
+  function stats() {
+    const totalLecons = Object.keys(LECONS).length;
+    const lues = Object.keys(S.lecons).filter(id => LECONS[id]).length;
+    const gain = S.missions.reduce((s, m) => s + (Number(m.gain) || 0), 0);
+    return { missions: S.missions.length, gain, verifs: S.verifs.length + S.missions.length, lues, totalLecons };
+  }
+  function prochaineEtape() {
+    const nonLue = mid => { const m = MODULES.find(x => x.id === mid); return m && (m.lecons || []).find(l => !S.lecons[l.id]); };
+    const m0 = nonLue('m0');
+    if (m0) return { titre: m0.titre, texte: 'Démarrage express · ' + m0.duree + ' min', a: 'ouvrirLecon', id: m0.id };
+    if (!S.missions.length) return { titre: 'Votre première mission', texte: 'Appliquez la méthode à une tâche réelle ou à un exemple.', a: 'nav', r: 'mission' };
+    for (const mid of ['m2', 'm4', 'm1', 'm5']) { const l = nonLue(mid); if (l) return { titre: l.titre, texte: 'Micro-leçon · ' + l.duree + ' min', a: 'ouvrirLecon', id: l.id }; }
+    for (const m of MODULES) { if ((m.quiz || []).length && !(S.quiz[m.id] >= .8)) return { titre: 'Quiz : ' + m.titre, texte: (m.quiz.length) + ' questions · validez vos acquis', a: 'ouvrirQuiz', m: m.id }; }
+    for (const m of MODULES) for (const ex of (m.exercices || [])) { const id = ex.ref || ex.id; if (!S.exercices[id] && (ex.type !== 'erreurs' || ERREUR[id])) return { titre: 'Exercice : ' + (ex.titre || (ERREUR[id] || {}).titre), texte: 'Mise en pratique', a: 'ouvrirEx', m: m.id, id }; }
+    return { titre: 'Nouvelle mission', texte: 'La maîtrise vient de la pratique répétée sur des tâches réelles.', a: 'nav', r: 'mission' };
+  }
+  const attrs = o => Object.keys(o).filter(k => !['titre', 'texte'].includes(k)).map(k => (k === 'a' ? 'data-a' : 'data-' + k) + '="' + esc(o[k]) + '"').join(' ');
+
+  // ---------- Navigation ----------
+  const NAV = [
+    { r: 'accueil', nom: 'Accueil', ico: 'accueil', tab: true },
+    { r: 'mission', nom: 'Mode Mission', court: 'Mission', ico: 'mission', tab: true },
+    { r: 'prompts', nom: 'Bibliothèque de prompts', court: 'Prompts', ico: 'prompts', tab: true },
+    { r: 'parcours', nom: 'Parcours', ico: 'parcours', tab: true },
+    { r: 'ethique', nom: 'Checklist éthique', ico: 'ethique', sep: true },
+    { r: 'progression', nom: 'Ma progression', court: 'Progrès', ico: 'progression', tab: true },
+    { r: 'memo', nom: 'Aide-mémoire', ico: 'memo' }
+  ];
+  function construireNav() {
+    const marque = MARQUE_SVG + '<span><span class="marque-nom">' + esc(APP.nom) + '</span><span class="marque-sous">' + esc(APP.sousTitre) + '</span></span>';
+    $('#marque-nav').innerHTML = marque; $('#marque-haut').innerHTML = marque;
+    $('#liens-nav').innerHTML = NAV.map(n => (n.sep ? '<li class="sep" role="presentation"></li>' : '') + '<li><a class="lien-nav" href="#' + n.r + '" data-a="nav" data-r="' + n.r + '" data-nav="' + n.r + '">' + ico(n.ico) + esc(n.nom) + '</a></li>').join('');
+    $('#onglets').innerHTML = NAV.filter(n => n.tab).map(n => '<a href="#' + n.r + '" data-a="nav" data-r="' + n.r + '" data-nav="' + n.r + '">' + ico(n.ico) + '<span>' + esc(n.court || n.nom) + '</span></a>').join('');
+    $('#outils-haut').innerHTML = '<a class="btn-icone" href="#ethique" data-a="nav" data-r="ethique" data-nav="ethique" aria-label="Checklist éthique">' + ico('ethique') + '</a><a class="btn-icone" href="#memo" data-a="nav" data-r="memo" data-nav="memo" aria-label="Aide-mémoire">' + ico('memo') + '</a>';
+    $('#version-nav').textContent = 'Version ' + APP.version + ' · contenu ' + APP.dateContenu;
+  }
+  const ROUTES = NAV.map(n => n.r);
+  const routeDuLien = () => { const h = (location.hash || '').replace('#', ''); return ROUTES.includes(h) ? h : 'accueil'; };
+  function aller(route) {
+    UI.route = route;
+    render(true);
+    if (location.hash !== '#' + route) { try { history.pushState(null, '', '#' + route); } catch (e) { location.hash = route; } }
+  }
+  window.addEventListener('hashchange', () => { const r = routeDuLien(); if (r !== UI.route) { UI.route = r; render(true); } });
+  window.addEventListener('popstate', () => { const r = routeDuLien(); if (r !== UI.route) { UI.route = r; render(true); } });
+
+  function render(haut) {
+    document.querySelectorAll('[data-nav]').forEach(a => { const on = a.dataset.nav === UI.route; a.classList.toggle('actif', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    const vue = $('#vue');
+    vue.innerHTML = (VUES[UI.route] || VUES.accueil)();
+    if (haut) { window.scrollTo(0, 0); }
+  }
+
+  function toast(msg) {
+    const t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast.m); toast.m = setTimeout(() => { t.hidden = true; }, 2200);
+  }
+  function modale(html) { const m = $('#modale'); m.innerHTML = '<div role="dialog" aria-modal="true">' + html + '</div>'; m.hidden = false; }
+  function copier(texte, btn) {
+    const ok = () => { toast('Copié dans le presse-papiers'); if (btn) { btn.classList.add('copie'); setTimeout(() => btn.classList.remove('copie'), 1500); } };
+    const secours = () => {
+      const t = document.createElement('textarea'); t.value = texte; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select(); let r = false; try { r = document.execCommand('copy'); } catch (e) { r = false; } document.body.removeChild(t);
+      if (r) ok(); else modale('<h3>Copiez le texte ci-dessous</h3><p class="discret">La copie automatique n\'est pas disponible ici. Sélectionnez le texte puis copiez-le.</p><textarea class="zone" rows="12" readonly>' + esc(texte) + '</textarea><div class="rangee"><button class="btn" data-a="fermerModale">Fermer</button></div>');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texte).then(ok, secours); else secours();
+  }
+  function telecharger(nom, texte) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texte], { type: 'application/json' })); a.download = nom;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  }
+
+  // ---------- Composants partagés ----------
+  const puceNiveau = id => { const n = NIVEAUX_DONNEES.find(x => x.id === id); return '<span class="puce ' + esc(id) + '" title="' + esc(n ? n.def : '') + '">' + esc(id) + ' · ' + esc(n ? n.nom : '') + '</span>'; };
+  const gainHTML = g => g ? '<span class="gain">' + ico('horloge') + esc(g.sans) + ' → ' + esc(g.avec) + '</span>' : '';
+  function apercuHTML(p, val) {
+    let out = '', last = 0, m; const re = /\{\{(\w+)\}\}/g;
+    while ((m = re.exec(p.modele))) {
+      out += esc(p.modele.slice(last, m.index));
+      const c = p.champs.find(x => x.id === m[1]); const v = ((val || {})[m[1]] || '').trim();
+      out += v ? '<mark class="rempli">' + esc(v) + '</mark>' : '<mark class="vide">[' + esc(c ? c.label : m[1]) + ']</mark>';
+      last = re.lastIndex;
+    }
+    return out + esc(p.modele.slice(last));
+  }
+  const promptTexte = (p, val) => p.modele.replace(/\{\{(\w+)\}\}/g, (s, id) => { const v = ((val || {})[id] || '').trim(); const c = p.champs.find(x => x.id === id); return v || '[' + (c ? c.label : id) + ']'; });
+  function barreCompetence(c, pts) {
+    const n = niveau(pts); const pct = Math.min(100, Math.round(pts / 15 * 100));
+    return '<div class="comp"><div class="comp-tete"><span>' + esc(c.nom) + '</span><span class="puce niv-' + esc(n.nom) + '">' + esc(n.nom) + '</span></div>' +
+      '<div class="jauge" role="img" aria-label="' + esc(c.nom + ' : ' + pts + ' points, niveau ' + n.nom) + '"><span style="width:' + pct + '%"></span><i style="left:33.3%"></i><i style="left:66.6%"></i></div>' +
+      '<p class="comp-desc">' + esc(c.desc) + '</p></div>';
+  }
+  function leconCorps(l) {
+    return '<div class="lecon-corps">' + l.contenu.replace(/<table>/g, '<div class="table-defil"><table>').replace(/<\/table>/g, '</table></div>') + '</div>' +
+      '<div class="retenir"><p class="surtitre">À retenir</p><ul>' + l.retenir.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul></div>';
+  }
+  const tete = (surtitre, titre, chapeau) => '<header class="pile">' + (surtitre ? '<p class="surtitre">' + surtitre + '</p>' : '') + '<h1>' + titre + '</h1>' + (chapeau ? '<p class="chapeau">' + chapeau + '</p>' : '') + '</header>';
+  const bandeauStockage = () => STOCKAGE_OK ? '' : '<p class="bandeau">Ce navigateur bloque l\'enregistrement local : votre progression sera perdue à la fermeture. Exportez-la régulièrement depuis « Ma progression ».</p>';
+
+  // Checklist éthique (partagée entre le Mode Mission et la page Éthique)
+  const gravite = r => ({ ok: 0, attention: 1, bloquant: 2 }[r] || 0);
+  function evaluer(rep) {
+    const items = []; let total = 0, repondu = 0;
+    CHECKLIST.forEach(b => b.questions.forEach(q => {
+      total++; const v = rep[q.id]; if (v === undefined) return; repondu++;
+      if (q.type) return;
+      const o = q.options[v]; if (o && o.r !== 'ok') items.push({ r: o.r, c: o.c });
+    }));
+    if (rep.niveau && rep.outil && MATRICE[rep.outil]) { const x = MATRICE[rep.outil][rep.niveau]; items.unshift({ r: x[0], c: x[1], matrice: true }); }
+    const pire = items.reduce((p, i) => gravite(i.r) > gravite(p) ? i.r : p, 'ok');
+    return { pire, items, complet: repondu === total, repondu, total };
+  }
+  function paysEncart(code) {
+    const p = (REG.pays || []).find(x => x.iso2 === code); if (!p) return '';
+    const statut = { loi: 'Loi en vigueur', projet: 'Projet de loi', aucune: 'Pas de loi générale identifiée' }[p.statut] || '';
+    return '<div class="pays-encart"><b>' + esc(p.pays) + ' · ' + esc(statut) + '</b>' + (p.loi ? '<span>' + esc(p.loi) + '</span>' : '') +
+      (p.autorite ? '<span>Autorité : ' + esc(p.autorite) + '</span>' : '') + (p.note ? '<span class="discret">' + esc(p.note) + '</span>' : '') +
+      '<span class="discret">Vérifiez la version en vigueur auprès de l\'autorité nationale.</span></div>';
+  }
+  function checklistHTML(ctx, rep, pays, indiceNiveau) {
+    const options = (q) => {
+      if (q.type === 'niveau') return '<div class="ck-opts cartes" role="group">' + NIVEAUX_DONNEES.map(n => '<button class="ck-opt" data-a="ck" data-ctx="' + ctx + '" data-q="niveau" data-v="' + n.id + '" aria-pressed="' + (rep.niveau === n.id) + '"><b>' + n.id + ' · ' + esc(n.nom) + '</b><small>' + esc(n.def) + '</small></button>').join('') + '</div>';
+      if (q.type === 'outil') return '<div class="ck-opts cartes" role="group">' + TYPES_OUTILS.map(t => '<button class="ck-opt" data-a="ck" data-ctx="' + ctx + '" data-q="outil" data-v="' + t.id + '" aria-pressed="' + (rep.outil === t.id) + '"><b>' + esc(t.nom) + '</b><small>' + esc(t.def) + '</small></button>').join('') + '</div>';
+      return '<div class="ck-opts" role="group">' + q.options.map((o, i) => '<button class="ck-opt" data-a="ck" data-ctx="' + ctx + '" data-q="' + q.id + '" data-v="' + i + '" aria-pressed="' + (rep[q.id] === i) + '">' + esc(o.l) + '</button>').join('') + '</div>';
+    };
+    const paysOpts = (REG.pays || []).slice().sort((a, b) => a.pays.localeCompare(b.pays, 'fr')).map(p => '<option value="' + esc(p.iso2) + '"' + (p.iso2 === pays ? ' selected' : '') + '>' + esc(p.pays) + '</option>').join('');
+    const ev = evaluer(rep);
+    const titres = { ok: 'Feu vert', attention: 'Feu orange', bloquant: 'Feu rouge' };
+    const textes = { ok: 'Vous pouvez utiliser l\'IA pour cette tâche, avec les précautions habituelles.', attention: 'Usage possible sous conditions : appliquez les mesures ci-dessous avant de commencer.', bloquant: 'N\'utilisez pas l\'IA dans ces conditions. Modifiez d\'abord votre approche : agréger, anonymiser, changer d\'outil.' };
+    const verdict = '<aside class="verdict v-' + (ev.repondu ? ev.pire : 'neutre') + '" aria-live="polite">' +
+      '<div class="verdict-tete"><div class="feu" aria-hidden="true"><span class="r"></span><span class="o"></span><span class="v"></span></div><div><p class="verdict-titre">' + (ev.complet ? titres[ev.pire] : (ev.repondu ? titres[ev.pire] + ' provisoire' : 'Votre verdict')) + '</p><p class="discret">' + ev.repondu + ' / ' + ev.total + ' questions</p></div></div>' +
+      (ev.repondu ? '<p>' + textes[ev.pire] + '</p>' : '<p class="discret">Répondez aux questions : le verdict se met à jour à chaque réponse.</p>') +
+      (ev.items.length ? '<ul class="conseils">' + ev.items.map(i => '<li><span class="pastille ' + i.r + '"></span><span>' + (i.matrice ? '<b>Outil × données : </b>' : '') + esc(i.c) + '</span></li>').join('') + '</ul>' : '') +
+      paysEncart(pays) + '</aside>';
+    return '<div class="ck-grille"><div class="pile-l">' +
+      '<div class="ck-q"><p>Pays concerné <span class="discret">(facultatif, pour afficher la loi nationale applicable)</span></p><select class="select" data-ch="pays" data-ctx="' + ctx + '" aria-label="Pays concerné"><option value="">Choisir un pays</option>' + paysOpts + '</select></div>' +
+      CHECKLIST.map(b => '<fieldset class="ck-bloc"><legend>' + esc(b.titre) + '</legend>' + b.questions.map(q => '<div class="ck-q' + (rep[q.id] !== undefined ? ' repondu' : '') + '"><p>' + esc(q.texte) + '</p>' + (q.type === 'niveau' && indiceNiveau ? '<p class="ck-indice">Niveau typique pour cette tâche : ' + puceNiveau(indiceNiveau) + '</p>' : '') + options(q) + '</div>').join('') + '</fieldset>').join('') +
+      '</div>' + verdict + '</div>';
+  }
+
+  // ---------- Vues ----------
+  const VUES = {};
+
+  VUES.accueil = () => {
+    const pts = points(), st = stats(), nx = prochaineEtape();
+    const b = S.brouillon && S.brouillon.etape < 5 ? S.brouillon : null;
+    return '<div class="pile-l">' + bandeauStockage() +
+      '<header class="hero"><p class="surtitre">Santé publique · Usage expert de l\'IA</p><h1>Boussole <em>IA</em></h1>' +
+      '<p class="chapeau">Préparez, protégez, produisez et vérifiez chaque usage de l\'IA dans vos missions, de la donnée à la décision.</p></header>' +
+      (b ? '<div class="suivant"><p class="surtitre">Mission en cours</p><h3>' + esc((PROMPT[b.promptId] || {}).titre) + '</h3><div class="rangee"><button class="btn" data-a="nav" data-r="mission">Reprendre la mission ' + ico('fleche') + '</button></div></div>' : '') +
+      '<section class="portes" aria-label="Points d\'entrée">' +
+      '<button class="porte porte-principale" data-a="nav" data-r="mission">' + ico('mission') + '<span class="porte-titre">J\'ai une tâche maintenant</span><span class="porte-texte">Cadrer, protéger, produire, vérifier : environ dix minutes de méthode autour de votre outil d\'IA.</span><span class="porte-cta">Démarrer une mission ' + ico('fleche') + '</span></button>' +
+      '<button class="porte" ' + attrs(nx) + '>' + ico('lecture') + '<span class="porte-titre">Je progresse</span><span class="porte-texte">' + esc(nx.titre) + ' · ' + esc(nx.texte) + '</span><span class="porte-cta">Continuer ' + ico('fleche') + '</span></button>' +
+      '<button class="porte" data-a="nav" data-r="prompts">' + ico('prompts') + '<span class="porte-titre">Bibliothèque</span><span class="porte-texte">' + PROMPTS_.length + ' prompts prêts à l\'emploi, annotés : pourquoi ils marchent, comment les adapter.</span><span class="porte-cta">Parcourir ' + ico('fleche') + '</span></button>' +
+      '</section>' +
+      '<section class="duo">' +
+      '<div class="panneau"><div class="panneau-titre"><h2>Vos compétences</h2><button class="btn-lien" data-a="nav" data-r="progression">Détail</button></div>' + COMPETENCES.map(c => barreCompetence(c, pts[c.id])).join('') + '</div>' +
+      '<div class="pile"><div class="panneau pile"><h2>Repères</h2><div class="chiffres">' +
+      '<div class="chiffre"><b>' + st.missions + '</b><span>missions réalisées</span></div>' +
+      '<div class="chiffre"><b>' + fmtDuree(st.gain) + '</b><span>temps gagné estimé</span></div>' +
+      '<div class="chiffre"><b>' + st.verifs + '</b><span>vérifications éthiques</span></div>' +
+      '<div class="chiffre"><b>' + st.lues + '/' + st.totalLecons + '</b><span>micro-leçons lues</span></div></div></div>' +
+      '<div class="panneau pile"><h2>Les 5 règles d\'or</h2><ol class="liste-simple">' + REGLES.map(r => '<li><b>' + esc(r.titre) + '.</b> ' + esc(r.texte) + '</li>').join('') + '</ol></div></div>' +
+      '</section>' +
+      '<section class="pile"><h2>Une mission en cinq temps</h2><ol class="cinq-temps">' +
+      [['Cadrer', 'Choisir la tâche et le livrable attendu.'], ['Protéger', 'Checklist éthique : données, outil, équité.'], ['Produire', 'Prompt CADRE assemblé, copié vers votre outil.'], ['Vérifier', 'Grille VÉRIF appliquée à la réponse.'], ['Apprendre', 'Une micro-leçon liée à la tâche.']].map(e => '<li><b>' + e[0] + '</b><span>' + e[1] + '</span></li>').join('') +
+      '</ol></section></div>';
+  };
+
+  // ----- Mode Mission -----
+  const ETAPES = ['Cadrer', 'Protéger', 'Produire', 'Vérifier', 'Apprendre'];
+  function stepper(cur, max) {
+    return '<ol class="stepper" aria-label="Étapes de la mission">' + ETAPES.map((n, i) => {
+      const k = i + 1, cls = k === cur ? 'actif' : (k < cur || k <= max) ? 'fait' : '';
+      const inner = '<span class="rond">' + (k < cur ? ico('check') : k) + '</span><span>' + n + '</span>';
+      const cliquable = k !== cur && k <= max && k >= 1 && max < 5 && S.brouillon;
+      return '<li class="' + cls + '"' + (k === cur ? ' aria-current="step"' : '') + '>' + (cliquable ? '<button data-a="etape" data-n="' + k + '">' + inner + '</button>' : inner) + '</li>';
+    }).join('') + '</ol>';
+  }
+  function listeTaches() {
+    const q = UI.mission.q.trim().toLowerCase();
+    const l = PROMPTS_.filter(p => (UI.mission.filtre === 'tous' || p.domaine === UI.mission.filtre) && (!q || (p.titre + ' ' + p.resume).toLowerCase().includes(q)));
+    if (!l.length) return '<div class="vide">Aucune tâche ne correspond à votre recherche.</div>';
+    return l.map(p => '<button class="tache" data-a="choisirTache" data-id="' + p.id + '"><span class="surtitre">' + esc(domaine(p.domaine).court) + '</span><h3>' + esc(p.titre) + '</h3><p>' + esc(p.resume) + '</p><span class="rangee">' + puceNiveau(p.donnees) + '<span class="puce">' + esc(p.niveau) + '</span>' + gainHTML(p.gain) + '</span></button>').join('');
+  }
+  VUES.mission = () => {
+    const b = S.brouillon;
+    if (!b || !PROMPT[b.promptId]) {
+      return '<div class="pile-l">' + tete('Mode Mission', 'Quelle est votre tâche ?', 'Choisissez la tâche la plus proche de votre besoin. Vous l\'adapterez à votre contexte à l\'étape Produire.') + stepper(1, 1) +
+        '<div class="pile"><div class="filtres" role="group" aria-label="Filtrer par domaine">' + [{ id: 'tous', court: 'Toutes' }].concat(DOMAINES).map(d => '<button class="filtre" data-a="filtreMission" data-f="' + d.id + '" aria-pressed="' + (UI.mission.filtre === d.id) + '">' + esc(d.court) + '</button>').join('') + '</div>' +
+        '<input class="recherche" type="search" id="rech-mission" data-in="rechMission" placeholder="Rechercher une tâche (ex. abandon, ministre, risques)" value="' + esc(UI.mission.q) + '" aria-label="Rechercher une tâche"></div>' +
+        '<div class="taches" id="liste-taches">' + listeTaches() + '</div></div>';
+    }
+    const p = PROMPT[b.promptId];
+    const entete = '<div class="tache-entete"><div class="rangee" style="justify-content:space-between"><span class="surtitre">Mission · ' + esc(domaine(p.domaine).court) + '</span>' +
+      (b.etape < 5 ? (UI.mission.confirmAbandon ? '<span class="rangee"><span class="discret">Abandonner cette mission ?</span><button class="btn-sec" data-a="abandon">Oui, abandonner</button><button class="btn-lien" data-a="annulerAbandon">Non</button></span>' : '<button class="btn-lien" data-a="demanderAbandon">Changer de tâche</button>') : '') + '</div>' +
+      '<h2>' + esc(p.titre) + '</h2>' + (b.entrainement ? '<p class="entrainement">Mode entraînement : les champs sont pré-remplis avec des données d\'exemple fictives.</p>' : '') + '</div>';
+    const corps = { 2: etapeProteger, 3: etapeProduire, 4: etapeVerifier, 5: etapeApprendre }[b.etape] || etapeProteger;
+    return '<div class="pile-l">' + stepper(b.etape, b.etapeMax || b.etape) + entete + corps(b, p) + '</div>';
+  };
+  function etapeProteger(b, p) {
+    const ev = evaluer(b.checklist);
+    const peut = ev.complet && ev.pire !== 'bloquant';
+    return '<div class="pile"><h2>Protéger</h2><p class="chapeau">Douze questions avant d\'ouvrir votre outil d\'IA. Elles prennent une minute et évitent les erreurs graves.</p></div>' +
+      checklistHTML('mission', b.checklist, S.prefs.pays, p.donnees) +
+      '<div class="barre-actions"><span class="discret">' + (ev.pire === 'bloquant' && ev.repondu ? 'Le feu rouge bloque la suite : ajustez votre approche puis vos réponses.' : (!ev.complet ? 'Répondez à toutes les questions pour continuer.' : 'Vous pouvez passer à la production du prompt.')) + '</span>' +
+      '<button class="btn" data-a="versProduire"' + (peut ? '' : ' disabled') + '>Continuer : produire le prompt ' + ico('fleche') + '</button></div>';
+  }
+  function compteChamps(p, b) { const n = p.champs.filter(c => (b.valeurs[c.id] || '').trim()).length; return n + ' / ' + p.champs.length + ' champs renseignés'; }
+  function etapeProduire(b, p) {
+    return '<div class="pile"><h2>Produire</h2><p class="chapeau">Renseignez votre contexte, copiez le prompt, collez-le dans votre outil d\'IA.</p></div>' +
+      '<div class="produire"><div class="panneau pile"><div class="panneau-titre"><h3>Votre contexte</h3><button class="btn-lien" data-a="toutExemple">Tout pré-remplir avec l\'exemple</button></div>' +
+      p.champs.map(c => '<div class="champ"><label for="champ-' + c.id + '">' + esc(c.label) + '</label>' +
+        (c.type === 'zone' ? '<textarea id="champ-' + c.id + '" data-in="champ" data-id="' + c.id + '" rows="6" placeholder="' + esc(c.exemple) + '">' + esc(b.valeurs[c.id] || '') + '</textarea>' : '<input id="champ-' + c.id + '" type="text" data-in="champ" data-id="' + c.id + '" placeholder="' + esc(c.exemple) + '" value="' + esc(b.valeurs[c.id] || '') + '">') +
+        '<div class="champ-aide"><span>' + esc(c.aide || '') + '</span><button class="btn-lien" data-a="exemple" data-id="' + c.id + '">Utiliser l\'exemple</button></div></div>').join('') +
+      '<p class="discret">Les exemples sont fictifs. Ne collez jamais de données nominatives.</p></div>' +
+      '<div class="col-prompt pile"><div class="panneau pile"><div class="panneau-titre"><h3>Votre prompt</h3><span class="discret" id="compte-champs">' + compteChamps(p, b) + '</span></div>' +
+      '<pre class="prompt" id="apercu">' + apercuHTML(p, b.valeurs) + '</pre>' +
+      '<div class="rangee"><button class="btn" data-a="copierPrompt">' + ico('copier') + 'Copier le prompt</button></div>' +
+      '<div class="pile" style="gap:8px"><span class="discret">Puis ouvrez votre outil :</span><div class="liens-outils">' + LIENS_OUTILS.map(o => '<a href="' + o.url + '" target="_blank" rel="noopener">' + esc(o.nom) + ico('externe') + '</a>').join('') + '</div><p class="discret">' + esc(p.outils) + '</p></div>' +
+      '<details class="depli"><summary>Pourquoi ce prompt fonctionne</summary><div><ul class="cadre-liste">' + CADRE.map(c => '<li><span class="lettre">' + c.l + '</span><span><b>' + esc(c.nom) + '.</b> ' + esc(p.cadre[c.l]) + '</span></li>').join('') + '</ul></div></details>' +
+      '<details class="depli"><summary>Comment l\'adapter</summary><div><ul class="liste-simple">' + p.adapter.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul></div></details>' +
+      '<details class="depli"><summary>Relances utiles après la première réponse</summary><div>' + RELANCES.map((r, i) => '<div class="relance"><span>' + esc(r) + '</span><button class="btn-lien" data-a="copierRelance" data-i="' + i + '" aria-label="Copier la relance">' + ico('copier') + '</button></div>').join('') + '</div></details>' +
+      '</div></div></div>' +
+      '<div class="barre-actions"><button class="btn-sec" data-a="etape" data-n="2">' + ico('retour') + 'Protéger</button><button class="btn" data-a="versVerifier">J\'ai la réponse de l\'IA : vérifier ' + ico('fleche') + '</button></div>';
+  }
+  function etapeVerifier(b, p) {
+    const toutes = VERIF.every(v => b.verif[v.l]);
+    const aCorriger = VERIF.filter(v => b.verif[v.l] === 'attention');
+    const gains = [0, 15, 30, 45, 60, 90, 120, 180, 240, 360];
+    return '<div class="pile"><h2>Vérifier</h2><p class="chapeau">Appliquez la grille VÉRIF à la réponse obtenue avant tout usage.</p></div>' +
+      '<div class="verif-liste">' + VERIF.map(v => '<div class="verif-item"><span class="lettre">' + v.l + '</span><div><h3>' + esc(v.nom) + '</h3><p>' + esc(v.q) + '</p><p class="discret">' + esc(v.aide) + '</p><div class="rangee" role="group" aria-label="' + esc(v.nom) + '">' +
+        [['ok', 'Conforme'], ['attention', 'À corriger'], ['na', 'Sans objet']].map(c => '<button class="choix c-' + c[0] + '" data-a="verif" data-l="' + v.l + '" data-v="' + c[0] + '" aria-pressed="' + (b.verif[v.l] === c[0]) + '">' + c[1] + '</button>').join('') + '</div></div></div>').join('') + '</div>' +
+      (aCorriger.length ? '<p class="bandeau">Corrigez avec une relance ciblée, puis réévaluez. Par exemple : « Le calcul pour le district B est faux : refais-le en montrant la formule utilisée. »</p>' : '') +
+      '<div class="duo"><div class="panneau pile"><h3>Contrôles propres à cette tâche</h3><ul class="coches">' + p.verif.map((v, i) => '<li><button class="coche" data-a="controle" data-i="' + i + '" aria-pressed="' + !!b.controles[i] + '"><span class="case">' + ico('check') + '</span><span>' + esc(v) + '</span></button></li>').join('') + '</ul></div>' +
+      '<div class="panneau pile"><h3>Pièges fréquents</h3><ul class="liste-simple">' + p.pieges.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div></div>' +
+      '<div class="panneau pile"><h3>Journal de mission</h3>' +
+      '<div class="pile" style="gap:8px"><p>Usage du résultat</p><div class="rangee" role="group">' + [['tel', 'Utilisé tel quel'], ['corrige', 'Utilisé après corrections'], ['non', 'Non utilisé']].map(c => '<button class="choix c-ok" data-a="utilise" data-v="' + c[0] + '" aria-pressed="' + (b.utilise === c[0]) + '">' + c[1] + '</button>').join('') + '</div></div>' +
+      '<div class="champ"><label for="gain">Temps gagné estimé</label><select class="select" id="gain" data-ch="gain">' + gains.map(g => '<option value="' + g + '"' + (String(b.gain) === String(g) ? ' selected' : '') + '>' + (g ? fmtDuree(g) : 'Aucun ou je ne sais pas') + '</option>').join('') + '</select><span class="discret">Repère indicatif pour cette tâche : ' + esc(p.gain.sans) + ' sans IA, ' + esc(p.gain.avec) + ' avec.</span></div>' +
+      '<div class="champ"><label for="note">Ce que je retiens de cette mission</label><textarea id="note" class="libre" data-in="note" rows="3" placeholder="Exemple : l\'IA a confondu population cible et naissances vivantes ; préciser le dénominateur dans le prompt.">' + esc(b.note || '') + '</textarea></div></div>' +
+      '<div class="barre-actions"><button class="btn-sec" data-a="etape" data-n="3">' + ico('retour') + 'Produire</button><button class="btn" data-a="enregistrerMission"' + (toutes ? '' : ' disabled') + '>Enregistrer la mission ' + ico('fleche') + '</button></div>' +
+      (toutes ? '' : '<p class="discret" style="text-align:right">Évaluez les 5 critères VÉRIF pour enregistrer.</p>');
+  }
+  function etapeApprendre(b, p) {
+    const l = LECONS[p.lecon];
+    return '<div class="suivant"><p class="surtitre">Mission enregistrée</p><h3>Bien joué. Votre journal et vos compétences sont à jour.</h3><div class="rangee"><button class="btn" data-a="nouvelleMission">Nouvelle mission</button><button class="btn-sec" data-a="nav" data-r="progression">Voir ma progression</button></div></div>' +
+      (l ? '<article class="lecon"><div class="pile"><p class="surtitre">Apprendre · Micro-leçon liée · ' + l.duree + ' min</p><h2>' + esc(l.titre) + '</h2></div>' + leconCorps(l) +
+        '<div class="rangee">' + (S.lecons[l.id] ? '<span class="puce ok">' + ico('check') + 'Leçon lue</span>' : '<button class="btn" data-a="luMission" data-id="' + l.id + '">Marquer comme lue</button>') + '<button class="btn-lien" data-a="ouvrirModule" data-m="' + l.module.id + '">Voir le module complet</button></div></article>' : '');
+  }
+
+  // ----- Bibliothèque -----
+  function grillePrompts() {
+    const q = UI.prompts.q.trim().toLowerCase(), f = UI.prompts.filtre;
+    const l = PROMPTS_.filter(p => (f === 'tous' || p.domaine === f || (f === 'favoris' && S.favoris.includes(p.id))) && (!q || (p.titre + ' ' + p.resume + ' ' + p.modele).toLowerCase().includes(q)));
+    if (!l.length) return '<div class="vide">' + (f === 'favoris' ? 'Aucun favori pour l\'instant. Ajoutez-en avec l\'étoile d\'une fiche.' : 'Aucun prompt ne correspond à votre recherche.') + '</div>';
+    return l.map(p => '<article class="carte-prompt"><div class="carte-tete"><span class="surtitre">' + esc(domaine(p.domaine).court) + '</span><button class="etoile" data-a="favori" data-id="' + p.id + '" aria-pressed="' + S.favoris.includes(p.id) + '" aria-label="Favori">' + ico('etoile') + '</button></div>' +
+      '<h3><a href="#prompts" data-a="ouvrirPrompt" data-id="' + p.id + '">' + esc(p.titre) + '</a></h3><p>' + esc(p.resume) + '</p><span class="rangee">' + puceNiveau(p.donnees) + '<span class="puce">' + esc(p.niveau) + '</span>' + gainHTML(p.gain) + '</span></article>').join('');
+  }
+  VUES.prompts = () => {
+    const p = PROMPT[UI.prompts.ouvert];
+    if (p) {
+      const l = LECONS[p.lecon];
+      return '<div class="fiche"><button class="retour" data-a="fermerPrompt">' + ico('retour') + 'Bibliothèque</button>' +
+        tete(esc(domaine(p.domaine).nom), esc(p.titre), esc(p.resume)) +
+        '<div class="rangee">' + puceNiveau(p.donnees) + '<span class="puce">' + esc(p.niveau) + '</span>' + gainHTML(p.gain) + '</div>' +
+        '<div class="rangee"><button class="btn" data-a="choisirTache" data-id="' + p.id + '">Utiliser dans une mission ' + ico('fleche') + '</button><button class="btn-sec" data-a="copierModele" data-id="' + p.id + '">' + ico('copier') + 'Copier le modèle</button><button class="btn-sec" data-a="favori" data-id="' + p.id + '" aria-pressed="' + S.favoris.includes(p.id) + '">' + ico('etoile') + (S.favoris.includes(p.id) ? 'Retirer des favoris' : 'Ajouter aux favoris') + '</button></div>' +
+        '<div class="panneau pile"><h3>Le prompt</h3><p class="discret">Les zones dorées sont à remplacer par votre contexte. Le Mode Mission les remplit pour vous.</p><pre class="prompt">' + apercuHTML(p, {}) + '</pre></div>' +
+        '<div class="fiche-sections">' +
+        '<div class="panneau pile"><h3>Pourquoi il fonctionne</h3><ul class="cadre-liste">' + CADRE.map(c => '<li><span class="lettre">' + c.l + '</span><span><b>' + esc(c.nom) + '.</b> ' + esc(p.cadre[c.l]) + '</span></li>').join('') + '</ul></div>' +
+        '<div class="pile"><div class="panneau pile"><h3>Comment l\'adapter</h3><ul class="liste-simple">' + p.adapter.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul></div>' +
+        '<div class="panneau pile"><h3>Pièges fréquents</h3><ul class="liste-simple">' + p.pieges.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul></div></div>' +
+        '<div class="panneau pile"><h3>Vérifications à faire</h3><ul class="liste-simple">' + p.verif.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul></div>' +
+        '<div class="panneau pile"><h3>Outil conseillé</h3><p>' + esc(p.outils) + '</p><p class="discret">Sensibilité typique des données : ' + puceNiveau(p.donnees) + '</p>' + (l ? '<button class="btn-lien" data-a="ouvrirLecon" data-id="' + l.id + '">Micro-leçon liée : ' + esc(l.titre) + '</button>' : '') + '</div>' +
+        '</div>' +
+        '<div class="panneau pile"><h3>Champs à renseigner</h3><div class="table-defil"><table><thead><tr><th>Champ</th><th>Exemple fictif</th></tr></thead><tbody>' + p.champs.map(c => '<tr><td><b>' + esc(c.label) + '</b></td><td style="white-space:pre-wrap">' + esc(c.exemple) + '</td></tr>').join('') + '</tbody></table></div></div></div>';
+    }
+    return '<div class="pile-l">' + tete('Bibliothèque', 'Prompts prêts à l\'emploi', 'Chaque prompt est annoté : ce que fait chaque partie, comment l\'adapter, les pièges à surveiller et les vérifications à faire.') +
+      '<div class="pile"><div class="filtres" role="group" aria-label="Filtrer">' + [{ id: 'tous', court: 'Tous' }].concat(DOMAINES, [{ id: 'favoris', court: 'Favoris' }]).map(d => '<button class="filtre" data-a="filtrePrompts" data-f="' + d.id + '" aria-pressed="' + (UI.prompts.filtre === d.id) + '">' + esc(d.court) + '</button>').join('') + '</div>' +
+      '<input class="recherche" type="search" data-in="rechPrompts" placeholder="Rechercher (ex. zéro-dose, plaidoyer, risques)" value="' + esc(UI.prompts.q) + '" aria-label="Rechercher un prompt"></div>' +
+      '<div class="grille" id="grille-prompts">' + grillePrompts() + '</div></div>';
+  };
+
+  // ----- Parcours -----
+  function progresModule(m) { const t = (m.lecons || []).length; const l = (m.lecons || []).filter(x => S.lecons[x.id]).length; return { t, l, pct: t ? Math.round(l / t * 100) : 0 }; }
+  VUES.parcours = () => {
+    const P = UI.parcours;
+    if (P.lecon && LECONS[P.lecon]) return vueLecon(LECONS[P.lecon]);
+    const m = MODULES.find(x => x.id === P.module);
+    if (m && P.vue === 'quiz') return vueQuiz(m);
+    if (m && P.vue && P.vue.indexOf('ex:') === 0) return vueExercice(m, P.vue.slice(3));
+    if (m) return vueModule(m);
+    return '<div class="pile-l">' + tete('Parcours', 'Sept modules courts', 'Des micro-leçons de 3 à 5 minutes, des exercices et des quiz. Suivez-les dans l\'ordre ou au fil de vos missions.') +
+      '<div class="modules">' + MODULES.map(m => {
+        const pr = progresModule(m), inactif = !!m.bientot;
+        const info = m.special === 'pratique' ? PROMPTS_.length + ' tâches d\'entraînement' : inactif ? 'Disponible en ' + esc(m.bientot) : pr.l + ' / ' + pr.t + ' leçons' + (m.quiz && m.quiz.length ? ' · quiz ' + (S.quiz[m.id] !== undefined ? Math.round(S.quiz[m.id] * 100) + ' %' : 'à faire') : '');
+        return '<button class="module' + (inactif ? ' inactif' : '') + '" data-a="ouvrirModule" data-m="' + m.id + '"><span class="module-num">' + m.num + '</span><span class="module-corps"><h3>' + esc(m.titre) + '</h3><p>' + esc(m.sousTitre) + '</p>' +
+          (!inactif && pr.t ? '<span class="mini-jauge"><span style="width:' + pr.pct + '%"></span></span>' : '') + '<span class="discret">' + info + '</span></span></button>';
+      }).join('') + '</div></div>';
+  };
+  function vueModule(m) {
+    const retour = '<button class="retour" data-a="retourModules">' + ico('retour') + 'Tous les modules</button>';
+    const ent = retour + tete('Module ' + m.num + ' · ' + esc((COMPETENCES.find(c => c.id === m.competence) || {}).nom || ''), esc(m.titre), esc(m.sousTitre));
+    if (m.bientot) return '<div class="pile-l">' + ent + '<div class="panneau pile"><h3>Au programme de la ' + esc(m.bientot) + '</h3><ul class="liste-simple">' + (m.plan || []).map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div></div>';
+    if (m.special === 'pratique') {
+      return '<div class="pile-l">' + ent + '<p class="chapeau">Chaque tâche lance une mission complète avec des données d\'exemple fictives : idéal pour vous entraîner avant de l\'appliquer à un cas réel.</p>' +
+        DOMAINES.map(d => '<section class="pile"><h2>' + esc(d.nom) + '</h2><div class="taches">' + PROMPTS_.filter(p => p.domaine === d.id).map(p => '<button class="tache" data-a="entrainement" data-id="' + p.id + '"><h3>' + esc(p.titre) + '</h3><p>' + esc(p.resume) + '</p><span class="porte-cta">S\'entraîner avec l\'exemple ' + ico('fleche') + '</span></button>').join('') + '</div></section>').join('') + '</div>';
+    }
+    const exos = (m.exercices || []).filter(ex => ex.type !== 'erreurs' || ERREUR[ex.ref]);
+    return '<div class="pile-l">' + ent +
+      ((m.lecons || []).length ? '<section class="pile"><h2>Micro-leçons</h2><ol class="lecons">' + m.lecons.map((l, i) => '<li class="' + (S.lecons[l.id] ? 'lue' : '') + '"><button data-a="ouvrirLecon" data-id="' + l.id + '"><span class="etat">' + (S.lecons[l.id] ? ico('check') : i + 1) + '</span><span><b>' + esc(l.titre) + '</b></span><span class="discret">' + l.duree + ' min</span></button></li>').join('') + '</ol></section>' : '') +
+      (exos.length ? '<section class="pile"><h2>Exercices</h2><ol class="lecons">' + exos.map((ex, i) => { const id = ex.ref || ex.id; const fait = S.exercices[id]; const t = ex.titre || ERREUR[id].titre; return '<li class="' + (fait ? 'lue' : '') + '"><button data-a="ouvrirEx" data-m="' + m.id + '" data-id="' + id + '"><span class="etat">' + (fait ? ico('check') : i + 1) + '</span><span><b>' + esc(t) + '</b><br><span class="discret">' + (ex.type === 'erreurs' ? 'Trouvez l\'erreur' : 'Réécriture') + '</span></span><span class="discret">' + (fait ? Math.round(fait.score * 100) + ' %' : '') + '</span></button></li>'; }).join('') + '</ol></section>' : '') +
+      ((m.quiz || []).length ? '<section class="pile"><h2>Quiz</h2><div class="score"><span>' + m.quiz.length + ' questions · ' + (S.quiz[m.id] !== undefined ? 'meilleur score ' + Math.round(S.quiz[m.id] * 100) + ' %' : 'pas encore tenté') + '</span><button class="btn" data-a="ouvrirQuiz" data-m="' + m.id + '">' + (S.quiz[m.id] !== undefined ? 'Refaire le quiz' : 'Commencer le quiz') + '</button></div></section>' : '') +
+      (m.id === 'm5' ? '<section class="pile"><h2>Références</h2><div class="rangee"><button class="btn-sec" data-a="ongletEthique" data-o="pays">Repères réglementaires par pays</button><button class="btn-sec" data-a="ongletEthique" data-o="cadres">Cadres internationaux</button></div></section>' : '') +
+      '</div>';
+  }
+  function vueLecon(l) {
+    const m = l.module, prec = m.lecons[l.index - 1], suiv = m.lecons[l.index + 1];
+    return '<article class="lecon"><button class="retour" data-a="ouvrirModule" data-m="' + m.id + '">' + ico('retour') + 'Module ' + m.num + ' · ' + esc(m.titre) + '</button>' +
+      '<header class="pile"><p class="surtitre">Micro-leçon ' + (l.index + 1) + ' / ' + m.lecons.length + ' · ' + l.duree + ' min</p><h1>' + esc(l.titre) + '</h1></header>' + leconCorps(l) +
+      '<div class="barre-actions">' + (prec ? '<button class="btn-sec" data-a="ouvrirLecon" data-id="' + prec.id + '">' + ico('retour') + 'Précédente</button>' : '<span></span>') +
+      '<button class="btn" data-a="lu" data-id="' + l.id + '">' + (S.lecons[l.id] ? (suiv ? 'Leçon suivante' : 'Retour au module') : (suiv ? 'Marquer comme lue et continuer' : 'Marquer comme lue')) + ' ' + ico('fleche') + '</button></div></article>';
+  }
+  function vueQuiz(m) {
+    const rep = UI.quizRep[m.id] || (UI.quizRep[m.id] = {});
+    const n = Object.keys(rep).length, bons = m.quiz.filter((q, i) => rep[i] === q.bonne).length;
+    const fini = n === m.quiz.length;
+    return '<div class="pile-l"><button class="retour" data-a="ouvrirModule" data-m="' + m.id + '">' + ico('retour') + 'Module ' + m.num + '</button>' + tete('Quiz · Module ' + m.num, esc(m.titre), 'Choisissez une réponse : l\'explication s\'affiche aussitôt. Seuil de réussite : 80 %.') +
+      m.quiz.map((q, i) => { const r = rep[i]; return '<div class="quiz-q"><p>' + (i + 1) + '. ' + esc(q.q) + '</p><div class="pile" style="gap:8px">' + q.options.map((o, j) => '<button class="opt' + (r !== undefined ? (j === q.bonne ? ' bonne' : (j === r ? ' fausse' : '')) : '') + '" data-a="rep" data-m="' + m.id + '" data-q="' + i + '" data-o="' + j + '"' + (r !== undefined ? ' disabled' : '') + '>' + esc(o) + '</button>').join('') + '</div>' + (r !== undefined ? '<p class="explication"><b>' + (r === q.bonne ? 'Exact. ' : 'Pas tout à fait. ') + '</b>' + esc(q.explication) + '</p>' : '') + '</div>'; }).join('') +
+      (fini ? '<div class="score"><span><b>' + bons + ' / ' + m.quiz.length + '</b> · ' + Math.round(bons / m.quiz.length * 100) + ' % ' + (bons / m.quiz.length >= .8 ? '· Réussi' : '· Revoyez les leçons puis réessayez') + '</span><span class="rangee"><button class="btn-sec" data-a="recommencerQuiz" data-m="' + m.id + '">Recommencer</button><button class="btn" data-a="ouvrirModule" data-m="' + m.id + '">Retour au module</button></span></div>' : '<p class="discret">' + n + ' / ' + m.quiz.length + ' réponses</p>') + '</div>';
+  }
+  const DETECT = {
+    C: /(tu es|vous êtes|en tant que|agis comme|je prépare|je travaille|contexte|pour le comité|pour la direction|pour le ministre)/i,
+    A: /(rédige|analyse|propose|identifie|calcule|résume|synthétise|compare|classe|liste|construis|élabore|structure|évalue|décline|prépare)/i,
+    D: /(données|tableau|document|rapport|ci-dessous|ci-joint|voici|suivant|source|<donnees>|<rapport>)/i,
+    R: /(n'invente|n’invente|ne pas |n'ajoute|n’ajoute|uniquement|maximum|évite|signale|ton |règle)/i,
+    E: /(format|tableau|puces|mots|page|numérot|titre|section|lignes|messages clés)/i
+  };
+  const detection = t => CADRE.map(c => '<span class="puce ' + (DETECT[c.l].test(t) ? 'ok' : '') + '">' + (DETECT[c.l].test(t) ? ico('check') : '') + c.l + ' · ' + esc(c.nom) + '</span>').join('');
+  function vueExercice(m, id) {
+    const retour = '<button class="retour" data-a="ouvrirModule" data-m="' + m.id + '">' + ico('retour') + 'Module ' + m.num + '</button>';
+    const ex = (m.exercices || []).find(x => (x.ref || x.id) === id);
+    if (!ex) return retour;
+    if (ex.type === 'reecriture') {
+      const st = UI.reecriture[id] || (UI.reecriture[id] = { texte: '', revele: false });
+      return '<div class="pile-l">' + retour + tete('Exercice · Réécriture', esc(ex.titre), esc(ex.consigne)) +
+        '<div class="panneau pile"><p class="surtitre">Prompt de départ</p><p class="exemple">' + esc(ex.faible) + '</p></div>' +
+        '<div class="champ"><label for="reec">Votre version</label><textarea class="zone" id="reec" rows="12" data-in="reec" data-id="' + id + '" placeholder="Tu es…">' + esc(st.texte) + '</textarea></div>' +
+        '<div class="pile" style="gap:8px"><span class="discret">Détection indicative des éléments CADRE dans votre texte :</span><div class="detection" id="detection">' + detection(st.texte) + '</div></div>' +
+        (st.revele ? '<div class="panneau pile"><p class="surtitre">Une proposition de réponse</p><pre class="prompt">' + esc(ex.modele) + '</pre><p class="discret">Comparez avec votre version : chaque lettre est-elle présente ? La tâche est-elle découpée ? Le format est-il précis ?</p></div>' : '') +
+        '<div class="barre-actions"><span></span><button class="btn" data-a="revelerReec" data-m="' + m.id + '" data-id="' + id + '">' + (st.revele ? 'Exercice terminé' : 'Comparer avec une proposition') + '</button></div></div>';
+    }
+    const e = ERREUR[id]; if (!e) return retour;
+    const sel = UI.exSel[id] || (UI.exSel[id] = {}); const ver = !!UI.exVerifie[id];
+    const paragraphes = [[]];
+    e.segments.forEach((s, i) => { if (s.t === '\n') paragraphes.push([]); else paragraphes[paragraphes.length - 1].push([s, i]); });
+    const segHTML = (s, i) => { let c = 'seg'; if (ver) { if (s.err && sel[i]) c += ' trouve'; else if (s.err) c += ' manque'; else if (sel[i]) c += ' fauxpos'; } else if (sel[i]) c += ' sel';
+      return '<span class="' + c + '"' + (ver ? '' : ' role="button" tabindex="0" data-a="seg" data-e="' + id + '" data-i="' + i + '" aria-pressed="' + !!sel[i] + '"') + '>' + esc(s.t).replace(/\n/g, '<br>') + '</span>'; };
+    const errs = e.segments.map((s, i) => [s, i]).filter(x => x[0].err);
+    const trouves = errs.filter(x => sel[x[1]]).length, faux = e.segments.filter((s, i) => !s.err && sel[i]).length;
+    return '<div class="pile-l">' + retour + tete('Exercice · Trouvez l\'erreur', esc(e.titre), 'Cliquez sur les passages qui vous paraissent faux, invérifiables ou trompeurs, puis validez. Données fictives à visée pédagogique.') +
+      '<div class="contexte-ia"><b>Demande faite à l\'IA : </b>' + esc(e.contexte.replace(/^\s*Prompt donné à l['’]IA\s*:\s*/i, '')) + '</div>' +
+      '<div class="reponse-ia' + (ver ? ' verifie' : '') + '"><span class="entete-ia">' + ico('ia') + 'Réponse de l\'assistant</span>' + paragraphes.filter(p => p.length).map(p => '<p>' + p.map(x => segHTML(x[0], x[1])).join(' ') + '</p>').join('') + '</div>' +
+      (ver ? '<div class="score"><span><b>' + trouves + ' / ' + errs.length + '</b> erreurs trouvées' + (faux ? ' · ' + faux + ' passage' + (faux > 1 ? 's' : '') + ' correct' + (faux > 1 ? 's' : '') + ' signalé' + (faux > 1 ? 's' : '') + ' à tort' : '') + '</span><button class="btn-sec" data-a="recommencerEx" data-e="' + id + '">Recommencer</button></div>' +
+        '<section class="pile"><h2>Les erreurs à repérer</h2>' + errs.map(x => '<div class="erreur-expl"><span class="rangee"><span class="puce ' + (sel[x[1]] ? 'ok' : 'bloq') + '">' + (sel[x[1]] ? 'Trouvée' : 'Manquée') + '</span><b>' + esc(x[0].type) + '</b></span><span class="discret">« ' + esc(x[0].t.length > 160 ? x[0].t.slice(0, 160) + '…' : x[0].t) + ' »</span><span>' + esc(x[0].explication) + '</span></div>').join('') +
+        '<div class="encadre"><b>À retenir. </b>' + esc(e.bilan) + '</div></section>'
+        : '<div class="barre-actions"><span class="discret">' + Object.values(sel).filter(Boolean).length + ' passage(s) sélectionné(s)</span><button class="btn" data-a="verifierEx" data-m="' + m.id + '" data-e="' + id + '">Vérifier mes réponses</button></div>') + '</div>';
+  }
+
+  // ----- Éthique -----
+  VUES.ethique = () => {
+    const o = UI.ethique.onglet;
+    const ongl = [['checklist', 'Checklist'], ['matrice', 'Données × outils'], ['pays', 'Repères par pays'], ['cadres', 'Cadres de référence']];
+    let corps = '';
+    if (o === 'checklist') {
+      const ev = evaluer(UI.ethique.reponses);
+      corps = '<p class="chapeau">À faire avant tout usage de l\'IA hors Mode Mission. Le Mode Mission l\'intègre automatiquement.</p>' + checklistHTML('ethique', UI.ethique.reponses, S.prefs.pays) +
+        '<div class="barre-actions"><button class="btn-sec" data-a="resetChecklist">Effacer les réponses</button>' + (UI.ethique.enregistre ? '<span class="puce ok">' + ico('check') + 'Vérification enregistrée</span>' : '<button class="btn" data-a="enregistrerVerif"' + (ev.complet ? '' : ' disabled') + '>Enregistrer cette vérification</button>') + '</div>';
+    } else if (o === 'matrice') {
+      const lib = { ok: 'Autorisé', attention: 'Sous conditions', bloquant: 'Interdit' };
+      corps = '<p class="chapeau">Règle de prudence croisant le type d\'outil et la sensibilité des données. La politique de votre organisation prime toujours.</p>' +
+        '<div class="niveaux">' + NIVEAUX_DONNEES.map(n => '<div class="niveau">' + puceNiveau(n.id) + '<span>' + esc(n.def) + '</span><span class="discret">Ex. : ' + esc(n.ex) + '</span></div>').join('') + '</div>' +
+        '<div class="table-defil"><table><thead><tr><th>Outil</th>' + NIVEAUX_DONNEES.map(n => '<th>' + n.id + ' · ' + esc(n.nom) + '</th>').join('') + '</tr></thead><tbody>' +
+        TYPES_OUTILS.map(t => '<tr><td><b>' + esc(t.nom) + '</b><br><span class="discret">' + esc(t.def) + '</span></td>' + NIVEAUX_DONNEES.map(n => { const x = MATRICE[t.id][n.id]; return '<td><span class="cel ' + x[0] + '">' + lib[x[0]] + '</span><br><span class="discret">' + esc(x[1]) + '</span></td>'; }).join('') + '</tr>').join('') + '</tbody></table></div>';
+    } else if (o === 'pays') {
+      corps = vuePays();
+    } else {
+      corps = vueCadres();
+    }
+    return '<div class="pile-l">' + tete('Éthique et réglementation', 'Avant chaque usage', 'Protéger les personnes, respecter le droit applicable, servir l\'équité.') +
+      '<div class="onglets-int" role="tablist">' + ongl.map(x => '<button role="tab" aria-selected="' + (o === x[0]) + '" data-a="ongletEthique" data-o="' + x[0] + '">' + x[1] + '</button>').join('') + '</div>' + corps + '</div>';
+  };
+  function lignesPays() {
+    const f = UI.pays, q = f.q.trim().toLowerCase();
+    const l = (REG.pays || []).filter(p => (!f.region || p.region === f.region) && (!f.statut || p.statut === f.statut) && (!q || (p.pays + ' ' + (p.loi || '') + ' ' + (p.autorite || '')).toLowerCase().includes(q)))
+      .sort((a, b) => a.pays.localeCompare(b.pays, 'fr'));
+    if (!l.length) return '<tr><td colspan="5">Aucun pays ne correspond.</td></tr>';
+    const st = { loi: ['ok', 'Loi en vigueur'], projet: ['att', 'Projet'], aucune: ['bloq', 'Aucune loi générale'] };
+    return l.map(p => '<tr><td><b>' + esc(p.pays) + '</b><br><span class="discret">' + esc(p.region || '') + '</span>' + (p.confiance === 'faible' ? '<br><span class="puce att">À confirmer</span>' : '') + '</td><td><span class="puce ' + (st[p.statut] || ['', ''])[0] + '">' + esc((st[p.statut] || ['', p.statut])[1]) + '</span>' + (p.loi ? '<br>' + esc(p.loi) : '') + (p.note ? '<br><span class="discret">' + esc(p.note) + '</span>' : '') + '</td><td>' + esc(p.autorite || '—') + (p.autorite_operationnelle === false ? '<br><span class="discret">Pas encore opérationnelle</span>' : '') + '</td><td>' + (p.malabo === true ? 'Ratifiée' : p.malabo === false ? 'Non' : '—') + '</td><td>' + esc(p.strategie_ia || '—') + '</td></tr>').join('');
+  }
+  function vuePays() {
+    const P = REG.pays || [];
+    if (!P.length) return '<div class="vide">Les repères par pays seront disponibles dans une prochaine version.</div>';
+    const n = s => P.filter(p => p.statut === s).length;
+    const regions = [...new Set(P.map(p => p.region).filter(Boolean))].sort();
+    return '<p class="chapeau">Lois de protection des données personnelles dans les 54 pays africains. Synthèse vérifiée en ' + esc(REG.date_verification_lisible || REG.date_verification || '') + ' : confirmez toujours la version en vigueur auprès de l\'autorité nationale.</p>' +
+      '<div class="chiffres" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"><div class="chiffre"><b>' + n('loi') + '</b><span>pays avec une loi en vigueur</span></div><div class="chiffre"><b>' + n('projet') + '</b><span>projets de loi</span></div><div class="chiffre"><b>' + n('aucune') + '</b><span>sans loi générale identifiée</span></div></div>' +
+      '<div class="rangee"><input class="recherche" type="search" data-in="rechPays" placeholder="Rechercher un pays, une loi, une autorité" value="' + esc(UI.pays.q) + '" aria-label="Rechercher un pays">' +
+      '<select class="select" style="max-width:240px" data-ch="regionPays" aria-label="Région"><option value="">Toutes les régions</option>' + regions.map(r => '<option' + (UI.pays.region === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('') + '</select>' +
+      '<select class="select" style="max-width:220px" data-ch="statutPays" aria-label="Statut"><option value="">Tous les statuts</option><option value="loi"' + (UI.pays.statut === 'loi' ? ' selected' : '') + '>Loi en vigueur</option><option value="projet"' + (UI.pays.statut === 'projet' ? ' selected' : '') + '>Projet</option><option value="aucune"' + (UI.pays.statut === 'aucune' ? ' selected' : '') + '>Aucune loi générale</option></select></div>' +
+      '<div class="table-defil"><table><thead><tr><th>Pays</th><th>Loi</th><th>Autorité de protection</th><th>Convention de Malabo</th><th>Stratégie IA</th></tr></thead><tbody id="lignes-pays">' + lignesPays() + '</tbody></table></div>';
+  }
+  function vueCadres() {
+    const C = REG.cadres || [], A = REG.ai_act;
+    if (!C.length && !A) return '<div class="vide">Les cadres de référence seront disponibles dans une prochaine version.</div>';
+    return '<p class="chapeau">Les textes continentaux, régionaux et internationaux qui encadrent l\'usage de l\'IA et des données de santé.</p>' +
+      (A ? '<div class="panneau pile"><h3>AI Act européen (règlement (UE) 2024/1689)</h3><p class="discret">' + esc(A.resume || '') + '</p><ul class="jalons">' + (A.jalons || []).map(j => '<li><time>' + esc(j.date) + '</time><span>' + esc(j.contenu) + (j.statut && j.statut !== 'confirmé' ? ' <span class="puce att">' + esc(j.statut) + '</span>' : '') + '</span></li>').join('') + '</ul>' + (A.omnibus ? '<p class="discret">' + esc(A.omnibus) + '</p>' : '') + '</div>' : '') +
+      '<div class="grille">' + C.map(c => '<div class="cadre-ref"><span class="surtitre">' + esc(c.date || '') + '</span><h3>' + esc(c.titre) + '</h3><p>' + esc(c.resume) + '</p>' + (c.source ? '<a href="' + esc(c.source) + '" target="_blank" rel="noopener" class="discret">Source</a>' : '') + '</div>').join('') + '</div>';
+  }
+
+  // ----- Progression -----
+  VUES.progression = () => {
+    const pts = points(), st = stats();
+    const P = UI.prog;
+    const verdictPuce = v => '<span class="puce ' + ({ ok: 'ok', attention: 'att', bloquant: 'bloq' }[v] || '') + '">' + ({ ok: 'Vert', attention: 'Orange', bloquant: 'Rouge' }[v] || '—') + '</span>';
+    const utilLib = { tel: 'Tel quel', corrige: 'Après corrections', non: 'Non utilisé' };
+    const journal = S.missions.length ? '<div class="table-defil"><table class="journal"><thead><tr><th>Date</th><th>Tâche</th><th>Checklist</th><th>VÉRIF</th><th>Résultat</th><th>Temps gagné</th><th>Leçon retenue</th></tr></thead><tbody>' +
+      S.missions.slice().reverse().map(m => '<tr><td>' + fmtDate(m.date) + '</td><td><b>' + esc(m.titre) + '</b>' + (m.entrainement ? '<br><span class="discret">Entraînement</span>' : '') + '</td><td>' + verdictPuce(m.verdict) + '</td><td><span class="verif-mini">' + VERIF.map(v => '<span class="' + esc((m.verif || {})[v.l] || '') + '" title="' + esc(v.nom) + '">' + v.l + '</span>').join('') + '</span></td><td>' + esc(utilLib[m.utilise] || '—') + '</td><td>' + (m.gain ? fmtDuree(m.gain) : '—') + '</td><td>' + esc(m.note || '') + '</td></tr>').join('') + '</tbody></table></div>'
+      : '<div class="vide"><p>Aucune mission pour l\'instant. Votre journal se remplira au fil de vos usages réels.</p><button class="btn" data-a="nav" data-r="mission">Démarrer une mission</button></div>';
+    const prochain = c => { const p = pts[c.id], n = NIVEAUX_COMPETENCE.find(x => x.min > p); return n ? 'Encore ' + (n.min - p) + ' point' + (n.min - p > 1 ? 's' : '') + ' pour le niveau ' + n.nom : 'Niveau maximal atteint'; };
+    return '<div class="pile-l">' + bandeauStockage() + tete('Ma progression', 'Votre tableau de bord', 'Les points viennent des leçons lues, des quiz réussis, des exercices et surtout des missions réelles.') +
+      '<div class="chiffres" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))"><div class="chiffre"><b>' + st.missions + '</b><span>missions</span></div><div class="chiffre"><b>' + fmtDuree(st.gain) + '</b><span>temps gagné estimé</span></div><div class="chiffre"><b>' + st.verifs + '</b><span>vérifications éthiques</span></div><div class="chiffre"><b>' + st.lues + '/' + st.totalLecons + '</b><span>micro-leçons</span></div></div>' +
+      '<section class="panneau"><div class="panneau-titre"><h2>Compétences</h2><span class="discret">Découverte · Pratique (5 pts) · Maîtrise (10 pts)</span></div>' + COMPETENCES.map(c => barreCompetence(c, pts[c.id]) + '<p class="discret" style="margin:-4px 0 6px">' + pts[c.id] + ' pts · ' + prochain(c) + '</p>').join('') + '</section>' +
+      '<section class="pile"><h2>Journal des missions</h2>' + journal + '</section>' +
+      '<section class="panneau pile"><h2>Sauvegarde et transfert</h2><p class="discret">Votre progression est enregistrée uniquement dans ce navigateur, sur cet appareil. Pour la transférer (Mac vers iPhone, par exemple) ou la sauvegarder, exportez-la puis importez-la sur l\'autre appareil.</p>' +
+      '<div class="rangee"><button class="btn-sec" data-a="exporter">' + (P.exportVisible ? 'Masquer l\'export' : 'Exporter ma progression') + '</button></div>' +
+      (P.exportVisible ? '<textarea class="zone" rows="6" readonly id="export-texte">' + esc(JSON.stringify(S)) + '</textarea><div class="rangee"><button class="btn" data-a="copierExport">' + ico('copier') + 'Copier</button>' + (EST_FICHIER ? '<button class="btn-sec" data-a="telechargerExport">Télécharger le fichier</button>' : '') + '</div>' : '') +
+      '<div class="champ"><label for="import-texte">Importer une progression</label><textarea class="zone" rows="4" id="import-texte" data-in="importTexte" placeholder="Collez ici le texte exporté depuis un autre appareil">' + esc(P.importTexte) + '</textarea>' +
+      '<div class="rangee"><input type="file" accept=".json,application/json,text/plain" data-ch="fichierImport" aria-label="Choisir un fichier de sauvegarde"></div></div>' +
+      (P.erreurImport ? '<p class="bandeau">' + esc(P.erreurImport) + '</p>' : '') +
+      (P.confirmImport ? '<div class="rangee"><span>Remplacer votre progression actuelle par celle importée ?</span><button class="btn" data-a="confirmerImport">Oui, remplacer</button><button class="btn-lien" data-a="annulerImport">Annuler</button></div>' : '<div class="rangee"><button class="btn-sec" data-a="importer"' + (P.importTexte.trim() ? '' : ' disabled') + '>Importer</button></div>') +
+      '<div class="rangee" style="border-top:1px solid var(--line);padding-top:16px">' + (P.confirmReset ? '<span>Effacer définitivement toute votre progression sur cet appareil ?</span><button class="btn" data-a="confirmerReset">Oui, tout effacer</button><button class="btn-lien" data-a="annulerReset">Annuler</button>' : '<button class="btn-lien" data-a="reset">Réinitialiser ma progression</button>') + '</div>' +
+      '</section></div>';
+  };
+
+  // ----- Aide-mémoire -----
+  VUES.memo = () => '<div class="pile-l">' + tete('Aide-mémoire', 'L\'essentiel sur une page', 'Les réflexes à garder sous les yeux pendant vos missions.') +
+    (EST_FICHIER ? '<div class="rangee no-print"><button class="btn-sec" data-a="imprimer">Imprimer</button></div>' : '') +
+    '<div class="memo">' +
+    '<div class="panneau"><p class="surtitre">5 règles d\'or</p><ol>' + REGLES.map(r => '<li><b>' + esc(r.titre) + '.</b> ' + esc(r.texte) + '</li>').join('') + '</ol></div>' +
+    '<div class="panneau"><p class="surtitre">CADRE : écrire un prompt</p><ul class="cadre-liste">' + CADRE.map(c => '<li><span class="lettre">' + c.l + '</span><span><b>' + esc(c.nom) + '.</b> ' + esc(c.texte) + '</span></li>').join('') + '</ul></div>' +
+    '<div class="panneau"><p class="surtitre">VÉRIF : contrôler une réponse</p><ul class="cadre-liste">' + VERIF.map(c => '<li><span class="lettre">' + c.l + '</span><span><b>' + esc(c.nom) + '.</b> ' + esc(c.q) + '</span></li>').join('') + '</ul></div>' +
+    '<div class="panneau"><p class="surtitre">Sensibilité des données</p><ul>' + NIVEAUX_DONNEES.map(n => '<li>' + puceNiveau(n.id) + ' ' + esc(n.def) + '</li>').join('') + '</ul><p class="discret">N3 : jamais dans un assistant généraliste. N2 : uniquement dans un outil institutionnel, si la politique l\'autorise.</p></div>' +
+    '<div class="panneau"><p class="surtitre">Relances utiles</p><ul>' + RELANCES.map(r => '<li>« ' + esc(r) + ' »</li>').join('') + '</ul></div>' +
+    '<div class="panneau"><p class="surtitre">Formules à vérifier</p><ul><li>Couverture = doses administrées / population cible × 100</li><li>Abandon Penta1–Penta3 = (Penta1 − Penta3) / Penta1 × 100</li><li>Zéro-dose estimés = population cible − Penta1</li><li>Complétude = rapports reçus / rapports attendus × 100</li></ul></div>' +
+    '</div></div>';
+
+  // ---------- Actions ----------
+  const nouvelleMission = (id, entrainement) => {
+    const p = PROMPT[id]; if (!p) return;
+    const valeurs = {}; if (entrainement) p.champs.forEach(c => { valeurs[c.id] = c.exemple; });
+    S.brouillon = { promptId: id, etape: 2, etapeMax: 2, valeurs, checklist: {}, verif: {}, controles: {}, gain: '', utilise: '', note: '', entrainement: !!entrainement, debut: new Date().toISOString() };
+    UI.mission.confirmAbandon = false; sauver(); aller('mission');
+  };
+  const A = {
+    nav: d => {
+      if (d.r === 'parcours') UI.parcours = { module: null, lecon: null, vue: null };
+      if (d.r === 'prompts') UI.prompts.ouvert = null;
+      aller(d.r);
+    },
+    ouvrirLecon: d => { const l = LECONS[d.id]; if (!l) return; UI.parcours = { module: l.module.id, lecon: d.id, vue: null }; aller('parcours'); },
+    ouvrirModule: d => { UI.parcours = { module: d.m, lecon: null, vue: null }; aller('parcours'); },
+    retourModules: () => { UI.parcours = { module: null, lecon: null, vue: null }; render(true); },
+    ouvrirQuiz: d => { UI.parcours = { module: d.m, lecon: null, vue: 'quiz' }; UI.quizRep[d.m] = {}; aller('parcours'); },
+    ouvrirEx: d => { UI.parcours = { module: d.m, lecon: null, vue: 'ex:' + d.id }; aller('parcours'); },
+    lu: d => {
+      const l = LECONS[d.id]; if (!l) return;
+      if (!S.lecons[d.id]) { S.lecons[d.id] = new Date().toISOString(); sauver(); toast('Leçon enregistrée'); }
+      const suiv = l.module.lecons[l.index + 1];
+      UI.parcours = suiv ? { module: l.module.id, lecon: suiv.id, vue: null } : { module: l.module.id, lecon: null, vue: null };
+      render(true);
+    },
+    luMission: d => { if (!S.lecons[d.id]) { S.lecons[d.id] = new Date().toISOString(); sauver(); toast('Leçon enregistrée'); } render(false); },
+    rep: d => {
+      const m = MODULES.find(x => x.id === d.m); const rep = UI.quizRep[d.m] || (UI.quizRep[d.m] = {});
+      rep[d.q] = Number(d.o);
+      if (Object.keys(rep).length === m.quiz.length) {
+        const sc = m.quiz.filter((q, i) => rep[i] === q.bonne).length / m.quiz.length;
+        if (S.quiz[m.id] === undefined || sc > S.quiz[m.id]) { S.quiz[m.id] = sc; sauver(); }
+      }
+      render(false);
+    },
+    recommencerQuiz: d => { UI.quizRep[d.m] = {}; render(true); },
+    seg: d => { const s = UI.exSel[d.e] || (UI.exSel[d.e] = {}); s[d.i] = !s[d.i]; render(false); },
+    verifierEx: d => {
+      const e = ERREUR[d.e], sel = UI.exSel[d.e] || {};
+      const errs = e.segments.map((s, i) => [s, i]).filter(x => x[0].err);
+      const faux = e.segments.filter((s, i) => !s.err && sel[i]).length;
+      const sc = Math.max(0, (errs.filter(x => sel[x[1]]).length - faux * 0.5) / errs.length);
+      UI.exVerifie[d.e] = true;
+      if (!S.exercices[d.e] || sc > S.exercices[d.e].score) { S.exercices[d.e] = { score: sc, competence: 'critique', date: new Date().toISOString() }; sauver(); }
+      render(false);
+    },
+    recommencerEx: d => { UI.exSel[d.e] = {}; UI.exVerifie[d.e] = false; render(false); },
+    revelerReec: d => {
+      const st = UI.reecriture[d.id] || (UI.reecriture[d.id] = { texte: '', revele: false });
+      if (st.revele) { A.ouvrirModule({ m: d.m }); return; }
+      st.revele = true;
+      const sc = CADRE.filter(c => DETECT[c.l].test(st.texte)).length / CADRE.length;
+      if (!S.exercices[d.id] || sc > S.exercices[d.id].score) { S.exercices[d.id] = { score: sc, competence: 'prompt', date: new Date().toISOString() }; sauver(); }
+      render(false);
+    },
+    suivant: () => {},
+    filtreMission: d => { UI.mission.filtre = d.f; render(false); },
+    filtrePrompts: d => { UI.prompts.filtre = d.f; render(false); },
+    choisirTache: d => nouvelleMission(d.id, false),
+    entrainement: d => nouvelleMission(d.id, true),
+    demanderAbandon: () => { UI.mission.confirmAbandon = true; render(false); },
+    annulerAbandon: () => { UI.mission.confirmAbandon = false; render(false); },
+    abandon: () => { S.brouillon = null; UI.mission.confirmAbandon = false; sauver(); render(true); },
+    nouvelleMission: () => { S.brouillon = null; sauver(); render(true); },
+    etape: d => { const b = S.brouillon; if (!b) return; const n = Number(d.n); if (n <= (b.etapeMax || b.etape)) { b.etape = n; sauver(); render(true); } },
+    ck: d => {
+      const rep = d.ctx === 'mission' ? (S.brouillon && S.brouillon.checklist) : UI.ethique.reponses; if (!rep) return;
+      rep[d.q] = (d.q === 'niveau' || d.q === 'outil') ? d.v : Number(d.v);
+      if (d.ctx === 'ethique') UI.ethique.enregistre = false;
+      sauver(); render(false);
+    },
+    versProduire: () => { const b = S.brouillon; const ev = evaluer(b.checklist); if (!ev.complet || ev.pire === 'bloquant') return; b.verdict = ev.pire; b.etape = 3; b.etapeMax = Math.max(b.etapeMax || 0, 3); sauver(); render(true); },
+    exemple: d => { const b = S.brouillon, p = PROMPT[b.promptId], c = p.champs.find(x => x.id === d.id); b.valeurs[d.id] = c.exemple; sauver(); render(false); },
+    toutExemple: () => { const b = S.brouillon, p = PROMPT[b.promptId]; p.champs.forEach(c => { if (!(b.valeurs[c.id] || '').trim()) b.valeurs[c.id] = c.exemple; }); sauver(); render(false); },
+    copierPrompt: (d, el) => { const b = S.brouillon; copier(promptTexte(PROMPT[b.promptId], b.valeurs), el); },
+    copierRelance: (d, el) => copier(RELANCES[Number(d.i)], el),
+    copierModele: (d, el) => copier(PROMPT[d.id].modele.replace(/\{\{(\w+)\}\}/g, (s, id) => { const c = PROMPT[d.id].champs.find(x => x.id === id); return '[' + (c ? c.label : id) + ']'; }), el),
+    versVerifier: () => { const b = S.brouillon; b.etape = 4; b.etapeMax = Math.max(b.etapeMax || 0, 4); sauver(); render(true); },
+    verif: d => { S.brouillon.verif[d.l] = d.v; sauver(); render(false); },
+    controle: d => { const c = S.brouillon.controles; c[d.i] = !c[d.i]; sauver(); render(false); },
+    utilise: d => { S.brouillon.utilise = d.v; sauver(); render(false); },
+    enregistrerMission: () => {
+      const b = S.brouillon, p = PROMPT[b.promptId];
+      if (!VERIF.every(v => b.verif[v.l])) return;
+      const ev = evaluer(b.checklist);
+      S.missions.push({ id: Date.now(), promptId: p.id, titre: p.titre, domaine: p.domaine, date: new Date().toISOString(), verdict: ev.pire, niveau: b.checklist.niveau, outil: b.checklist.outil, verif: Object.assign({}, b.verif), verifComplet: true, controles: Object.keys(b.controles).filter(k => b.controles[k]).length, gain: Number(b.gain) || 0, utilise: b.utilise, note: b.note, entrainement: b.entrainement });
+      b.etape = 5; b.etapeMax = 5; sauver(); toast('Mission enregistrée'); render(true);
+    },
+    ouvrirPrompt: d => { UI.prompts.ouvert = d.id; render(true); },
+    fermerPrompt: () => { UI.prompts.ouvert = null; render(true); },
+    favori: d => { const i = S.favoris.indexOf(d.id); if (i >= 0) S.favoris.splice(i, 1); else S.favoris.push(d.id); sauver(); render(false); },
+    ongletEthique: d => { UI.ethique.onglet = d.o; if (UI.route !== 'ethique') aller('ethique'); else render(false); },
+    enregistrerVerif: () => { const ev = evaluer(UI.ethique.reponses); if (!ev.complet) return; S.verifs.push({ date: new Date().toISOString(), verdict: ev.pire, niveau: UI.ethique.reponses.niveau, outil: UI.ethique.reponses.outil, pays: S.prefs.pays }); UI.ethique.enregistre = true; sauver(); toast('Vérification enregistrée'); render(false); },
+    resetChecklist: () => { UI.ethique.reponses = {}; UI.ethique.enregistre = false; render(false); },
+    exporter: () => { UI.prog.exportVisible = !UI.prog.exportVisible; render(false); },
+    copierExport: (d, el) => copier(JSON.stringify(S), el),
+    telechargerExport: () => telecharger('boussole-ia-progression-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(S, null, 2)),
+    importer: () => {
+      try { const o = JSON.parse(UI.prog.importTexte); if (!o || o.v !== 1 || !Array.isArray(o.missions)) throw new Error('format'); UI.prog.confirmImport = true; UI.prog.erreurImport = ''; }
+      catch (e) { UI.prog.erreurImport = 'Ce texte n\'est pas une sauvegarde Boussole IA valide. Vérifiez que vous avez copié l\'export en entier.'; }
+      render(false);
+    },
+    confirmerImport: () => { S = Object.assign(etatVide(), JSON.parse(UI.prog.importTexte)); sauver(); UI.prog = { exportVisible: false, importTexte: '', confirmImport: false, confirmReset: false, erreurImport: '' }; toast('Progression importée'); render(true); },
+    annulerImport: () => { UI.prog.confirmImport = false; render(false); },
+    reset: () => { UI.prog.confirmReset = true; render(false); },
+    confirmerReset: () => { S = etatVide(); sauver(); UI.prog.confirmReset = false; toast('Progression réinitialisée'); render(true); },
+    annulerReset: () => { UI.prog.confirmReset = false; render(false); },
+    imprimer: () => { try { window.print(); } catch (e) { } },
+    fermerModale: () => { $('#modale').hidden = true; }
+  };
+  // « Je progresse » : exécute la prochaine étape recommandée
+  A.suivant = () => { const nx = prochaineEtape(); const fn = A[nx.a]; if (fn) fn(nx); };
+
+  // Saisie au clavier : mise à jour partielle pour conserver le focus
+  const IN = {
+    rechMission: el => { UI.mission.q = el.value; $('#liste-taches').innerHTML = listeTaches(); },
+    rechPrompts: el => { UI.prompts.q = el.value; $('#grille-prompts').innerHTML = grillePrompts(); },
+    rechPays: el => { UI.pays.q = el.value; $('#lignes-pays').innerHTML = lignesPays(); },
+    champ: el => { const b = S.brouillon, p = PROMPT[b.promptId]; b.valeurs[el.dataset.id] = el.value; sauverPlusTard(); $('#apercu').innerHTML = apercuHTML(p, b.valeurs); $('#compte-champs').textContent = compteChamps(p, b); },
+    note: el => { S.brouillon.note = el.value; sauverPlusTard(); },
+    reec: el => { const st = UI.reecriture[el.dataset.id] || (UI.reecriture[el.dataset.id] = { texte: '', revele: false }); st.texte = el.value; $('#detection').innerHTML = detection(el.value); },
+    importTexte: el => { UI.prog.importTexte = el.value; UI.prog.confirmImport = false; UI.prog.erreurImport = ''; const b = document.querySelector('[data-a="importer"]'); if (b) b.disabled = !el.value.trim(); }
+  };
+  const CH = {
+    pays: el => { S.prefs.pays = el.value; sauver(); render(false); },
+    gain: el => { S.brouillon.gain = el.value; sauver(); },
+    regionPays: el => { UI.pays.region = el.value; $('#lignes-pays').innerHTML = lignesPays(); },
+    statutPays: el => { UI.pays.statut = el.value; $('#lignes-pays').innerHTML = lignesPays(); },
+    fichierImport: el => {
+      const f = el.files && el.files[0]; if (!f) return;
+      const r = new FileReader(); r.onload = () => { UI.prog.importTexte = String(r.result || ''); UI.prog.erreurImport = ''; render(false); }; r.readAsText(f);
+    }
+  };
+
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-a]'); if (!el) return;
+    const fn = A[el.dataset.a]; if (!fn) return;
+    if (el.disabled) return;
+    e.preventDefault(); fn(el.dataset, el, e);
+  });
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"][data-a]')) { e.preventDefault(); e.target.click(); }
+    if (e.key === 'Escape' && !$('#modale').hidden) $('#modale').hidden = true;
+  });
+  document.addEventListener('input', e => { const el = e.target; if (el.dataset && IN[el.dataset.in]) IN[el.dataset.in](el); });
+  document.addEventListener('change', e => { const el = e.target; if (el.dataset && CH[el.dataset.ch]) CH[el.dataset.ch](el); });
+  $('#modale').addEventListener('click', e => { if (e.target.id === 'modale') e.currentTarget.hidden = true; });
+
+  // Polices de la charte : chargées sans bloquer l'affichage (repli système hors ligne)
+  try {
+    const l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap';
+    document.head.appendChild(l);
+  } catch (e) { }
+
+  construireNav();
+  UI.route = routeDuLien();
+  render(false);
+})();
+</script>
