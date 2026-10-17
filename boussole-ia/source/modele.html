@@ -3,8 +3,18 @@
 <meta name="description" content="Boussole IA · Santé publique : préparer, protéger, produire et vérifier chaque usage de l'IA dans les missions de santé publique.">
 <style>
 /* Mise en page : rail de navigation à gauche sur ordinateur, barre d'onglets en bas sur mobile ;
-   contenu en colonne de lecture, outils en grilles. Charte Dian K Pro : noir et or, Playfair Display + Inter. */
+   contenu en colonne de lecture, outils en grilles. Charte Dian K Pro : noir et or, Playfair Display + Inter,
+   Cinzel réservé à la signature de marque. Le « châssis » (navigation, barres) reste noir dans les deux thèmes. */
 :root {
+  --chassis: #0B0B0C;
+  --chassis-2: #17171A;
+  --chassis-ligne: #2A2924;
+  --chassis-texte: #F5F2EB;
+  --chassis-texte-2: #CBC5B8;
+  --chassis-or: #E3B34C;
+  --chassis-or-voile: rgba(227, 179, 76, .13);
+  --or-degrade: linear-gradient(180deg, #EDC468 0%, #DCA944 100%);
+  --f-marque: Cinzel, "Trajan Pro", "Cormorant SC", Georgia, serif;
   --bg: #0B0B0C;
   --bg-voile: rgba(11, 11, 12, .86);
   --surface: #151517;
@@ -54,7 +64,7 @@
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 400 17px/1.6 var(--f-texte); -webkit-font-smoothing: antialiased; }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 40; background: var(--bg); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 40; background: var(--chassis); }
 [hidden] { display: none !important; }
 img, svg { max-width: 100%; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -83,42 +93,52 @@ p { margin: 0; }
 .barre-haut {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  background: var(--bg-voile); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
+  background: var(--chassis); color: var(--chassis-texte); border-bottom: 1px solid var(--chassis-ligne);
 }
 .barre-haut .outils-haut { display: flex; gap: 6px; }
-.btn-icone { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-2); text-decoration: none; cursor: pointer; }
-.btn-icone.actif { color: var(--or-texte); border-color: var(--or-bord); }
+.btn-icone { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--chassis-ligne); background: var(--chassis-2); color: var(--chassis-texte-2); text-decoration: none; cursor: pointer; }
+.btn-icone.actif { color: var(--chassis-or); border-color: var(--chassis-or); }
 .vue { max-width: 1120px; margin: 0 auto; padding-block: 24px 128px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .onglets {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr);
-  background: var(--surface); border-top: 1px solid var(--line);
+  background: var(--chassis); border-top: 1px solid var(--chassis-ligne);
   padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
 }
-.onglets a { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 2px 8px; font-size: .74rem; font-weight: 550; color: var(--fg-3); text-decoration: none; }
-.onglets a.actif { color: var(--or-texte); }
+.onglets a { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 2px 8px; font-size: .74rem; font-weight: 550; color: var(--chassis-texte-2); text-decoration: none; }
+.onglets a.actif { color: var(--chassis-or); }
 .onglets .ico { width: 22px; height: 22px; }
 
-.marque { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); }
-.marque svg { width: 34px; height: 34px; }
-.marque-nom { font-family: var(--f-titre); font-size: 1.22rem; font-weight: 700; line-height: 1; }
-.marque-sous { display: block; font-family: var(--f-texte); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--or-texte); font-weight: 650; margin-top: 4px; }
+/* Logo Dian K Pro : masque alpha coloré par le thème (images intégrées par construire.py) */
+.logo-mono { display: block; flex: none; aspect-ratio: 261 / 240; height: 40px; background: var(--logo-couleur, var(--or-texte)); -webkit-mask: var(--logo-mono) center / contain no-repeat; mask: var(--logo-mono) center / contain no-repeat; }
+.marque { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--chassis-texte); --logo-couleur: var(--chassis-or); }
+.marque .logo-mono { height: 38px; }
+.marque-texte { display: grid; gap: 5px; }
+.marque-nom { font-family: var(--f-titre); font-size: 1.22rem; font-weight: 700; line-height: 1; color: var(--chassis-texte); }
+.marque-maison { font-family: var(--f-marque); font-size: .7rem; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--chassis-or); line-height: 1; }
+.devise { display: flex; align-items: center; gap: 12px; font-size: .86rem; letter-spacing: .04em; color: var(--chassis-or); }
+.devise > span:not(.filet) { white-space: nowrap; }
+.devise .filet { position: relative; flex: 1; height: 1px; background: currentColor; opacity: .7; min-width: 12px; }
+.devise .filet::after { content: ""; position: absolute; top: -2.5px; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.devise .filet.g::after { right: 0; } .devise .filet.d::after { left: 0; }
 
 @media (min-width: 960px) {
   .app { display: grid; grid-template-columns: 272px minmax(0, 1fr); }
   .barre-haut, .onglets { display: none; }
-  .nav { display: flex; flex-direction: column; gap: 28px; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 28px 18px 22px; border-right: 1px solid var(--line); background: var(--surface); }
+  .nav { display: flex; flex-direction: column; gap: 30px; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 28px 18px 22px; border-right: 1px solid var(--chassis-ligne); background: var(--chassis); color: var(--chassis-texte-2); }
   .nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-  .nav a.lien-nav { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--fg-2); text-decoration: none; font-weight: 520; font-size: .98rem; }
-  .nav a.lien-nav:hover { background: var(--surface-2); color: var(--fg); }
-  .nav a.lien-nav.actif { background: var(--or-voile); color: var(--or-texte); font-weight: 620; }
-  .nav .sep { height: 1px; background: var(--line); margin: 10px 12px; }
-  .nav-pied { margin-top: auto; font-size: .8rem; color: var(--fg-3); padding: 0 12px; display: grid; gap: 4px; }
+  .nav a.lien-nav { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--chassis-texte-2); text-decoration: none; font-weight: 520; font-size: .98rem; }
+  .nav a.lien-nav:hover { background: var(--chassis-2); color: var(--chassis-texte); }
+  .nav a.lien-nav.actif { background: var(--chassis-or-voile); color: var(--chassis-or); font-weight: 620; }
+  .nav .sep { height: 1px; background: var(--chassis-ligne); margin: 10px 12px; }
+  .nav-pied { margin-top: auto; font-size: .78rem; color: var(--chassis-texte-2); padding: 0 12px; display: grid; gap: 10px; }
+  .nav-pied .devise { font-size: .76rem; font-style: italic; letter-spacing: .02em; }
+  .nav-pied .devise > span { white-space: normal; text-wrap: balance; }
   .vue { padding-block: 44px 88px; padding-left: max(48px, env(safe-area-inset-left, 0px)); padding-right: max(48px, env(safe-area-inset-right, 0px)); }
 }
 
 /* --- Boutons et puces --- */
 .btn, .btn-sec, .btn-lien { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 12px; font-weight: 620; font-size: .98rem; cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s, color .15s; }
-.btn { background: var(--or); color: var(--sur-or); border: 1px solid var(--or); }
+.btn { background: var(--or-degrade); color: var(--sur-or); border: 1px solid var(--or); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 6px 18px rgba(227, 179, 76, .18); }
 .btn:hover { filter: brightness(1.06); }
 .btn[disabled], .btn-sec[disabled] { opacity: .45; cursor: not-allowed; filter: none; }
 .btn-sec { background: transparent; color: var(--fg); border: 1px solid var(--line-strong); }
@@ -150,9 +170,35 @@ p { margin: 0; }
 .bandeau { padding: 12px 16px; border-radius: 12px; border: 1px solid var(--att); background: var(--att-voile); color: var(--fg); font-size: .92rem; }
 
 /* --- Accueil --- */
-.hero { display: grid; gap: 14px; padding-bottom: 8px; }
-.hero h1 { font-size: clamp(2.6rem, 1.8rem + 4vw, 4.2rem); }
-.hero h1 em { font-style: normal; color: var(--or-texte); }
+.couverture {
+  position: relative; overflow: hidden; display: grid; gap: 28px; align-items: center;
+  padding: clamp(24px, 4vw, 48px); border-radius: 24px; border: 1px solid rgba(227, 179, 76, .32);
+  background: radial-gradient(circle at 78% 42%, rgba(227, 179, 76, .17), transparent 52%), var(--chassis);
+  color: var(--chassis-texte); --logo-couleur: var(--chassis-or);
+}
+@media (min-width: 860px) { .couverture { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); } }
+.couv-texte { display: grid; gap: 18px; position: relative; z-index: 1; }
+.couv-maison { display: flex; flex-wrap: wrap; column-gap: .9em; row-gap: 4px; font-family: var(--f-marque); font-size: .8rem; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: var(--chassis-or); }
+.couverture h1 { font-size: clamp(2.7rem, 1.8rem + 4.2vw, 4.6rem); color: var(--chassis-texte); }
+.couverture h1 em { font-style: normal; color: var(--chassis-or); }
+.salut { font-size: 1.05rem; color: var(--chassis-texte-2); }
+.couv-chapeau { font-size: 1.12rem; color: var(--chassis-texte-2); max-width: 54ch; }
+.couv-visuel { position: relative; display: grid; place-items: center; min-height: 200px; }
+.couv-visuel .logo-mono { height: clamp(150px, 22vw, 250px); position: relative; z-index: 1; filter: drop-shadow(0 10px 30px rgba(227, 179, 76, .25)); }
+.circuits { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--chassis-or); opacity: .5; }
+.circuits path { stroke-dasharray: 260; stroke-dashoffset: 0; animation: tracer 1.8s ease-out both; }
+.circuits circle { animation: noeud 1.8s ease-out both; }
+@keyframes tracer { from { stroke-dashoffset: 260; } to { stroke-dashoffset: 0; } }
+@keyframes noeud { 0%, 60% { opacity: 0; } 100% { opacity: 1; } }
+@media (max-width: 859px) { .couv-visuel { order: -1; min-height: 0; justify-items: start; } .couv-visuel .logo-mono { height: 96px; } .circuits { display: none; } }
+
+/* Signature de bas de page */
+.signature { display: grid; justify-items: center; gap: 12px; text-align: center; margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--line); --logo-couleur: var(--or-texte); }
+.signature .logo-mono { height: 44px; }
+.sig-maison { font-family: var(--f-marque); font-size: .95rem; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: var(--or-texte); }
+.sig-titre { font-size: .74rem; letter-spacing: .2em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; }
+.signature .devise { color: var(--or-texte); width: min(440px, 100%); }
+.signature .discret { font-size: .8rem; }
 .portes { display: grid; gap: 14px; }
 @media (min-width: 760px) { .portes { grid-template-columns: 1.25fr 1fr 1fr; } }
 .porte { display: grid; align-content: start; gap: 10px; text-align: left; padding: 22px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; transition: border-color .15s, transform .15s; }
@@ -161,7 +207,7 @@ p { margin: 0; }
 .porte-titre { font-family: var(--f-titre); font-size: 1.35rem; font-weight: 600; line-height: 1.2; }
 .porte-texte { color: var(--fg-2); font-size: .95rem; }
 .porte-cta { display: inline-flex; align-items: center; gap: 6px; font-weight: 650; font-size: .92rem; color: var(--or-texte); margin-top: 4px; }
-.porte-principale { background: var(--or); border-color: var(--or); color: var(--sur-or); }
+.porte-principale { background: var(--or-degrade); border-color: var(--or); color: var(--sur-or); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 14px 34px rgba(227, 179, 76, .2); }
 .porte-principale .ico, .porte-principale .porte-cta, .porte-principale .porte-texte { color: var(--sur-or); }
 .porte-principale:hover { border-color: var(--or); filter: brightness(1.05); }
 .comp { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -394,15 +440,13 @@ td { color: var(--fg-2); }
   .panneau { border-color: #bbb; break-inside: avoid; }
 }
 </style>
+<!--MARQUE-->
 
 <div class="app">
   <aside class="nav" aria-label="Navigation principale">
     <a class="marque" href="#accueil" data-a="nav" data-r="accueil" id="marque-nav"></a>
     <ul id="liens-nav"></ul>
-    <div class="nav-pied">
-      <span>Hors ligne · vos données restent sur cet appareil</span>
-      <span id="version-nav"></span>
-    </div>
+    <div class="nav-pied" id="nav-pied"></div>
   </aside>
   <header class="barre-haut">
     <a class="marque" href="#accueil" data-a="nav" data-r="accueil" id="marque-haut"></a>
@@ -469,7 +513,12 @@ td { color: var(--fg-2); }
     ia: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 10h4v4h-4z"/>'
   };
   const ico = (n, cls) => '<svg class="ico ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICO[n] || '') + '</svg>';
-  const MARQUE_SVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="var(--or)" stroke-width="1.6"/><g stroke="var(--fg-3)" stroke-width="1.4"><path d="M20 3.5v3M20 33.5v3M3.5 20h3M33.5 20h3"/></g><path d="M20 8.5l4.2 11.5h-8.4z" fill="var(--or)"/><path d="M20 31.5l-4.2-11.5h8.4z" fill="none" stroke="var(--fg-2)" stroke-width="1.4" stroke-linejoin="round"/><circle cx="20" cy="20" r="1.8" fill="var(--bg)" stroke="var(--or)" stroke-width="1.4"/></svg>';
+  const CIRCUITS_SVG = '<svg class="circuits" viewBox="0 0 420 320" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M0 64H118l20 20h44"/><path d="M0 252H96l24-24h46"/><path d="M420 46H332l-22 22h-34"/><path d="M420 274H352l-20-20h-38"/><path d="M48 320v-34l18-18v-22"/><path d="M372 0v30l-16 16v16"/></g>' +
+    '<g fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="186" cy="84" r="4.2"/><circle cx="170" cy="228" r="4.2"/><circle cx="272" cy="68" r="4.2"/><circle cx="290" cy="254" r="4.2"/><circle cx="66" cy="242" r="4.2"/><circle cx="356" cy="66" r="4.2"/></g></svg>';
+  const devise = filets => '<p class="devise">' + (filets ? '<span class="filet g"></span>' : '') + '<span>' + esc(APP.devise) + '</span>' + (filets ? '<span class="filet d"></span>' : '') + '</p>';
+  const signatureHTML = () => '<footer class="signature"><span class="logo-mono" aria-hidden="true"></span><p class="sig-maison">' + esc(APP.maison) + '</p><p class="sig-titre">' + esc(APP.titreMaison) + '</p>' + devise(true) +
+    '<p class="discret">' + esc(APP.nom) + ' ' + esc(APP.version) + ' · une création ' + esc(APP.maison) + '</p></footer>';
 
   // ---------- État et sauvegarde locale ----------
   const CLE = 'boussole-ia/v1';
@@ -540,12 +589,12 @@ td { color: var(--fg-2); }
     { r: 'memo', nom: 'Aide-mémoire', ico: 'memo' }
   ];
   function construireNav() {
-    const marque = MARQUE_SVG + '<span><span class="marque-nom">' + esc(APP.nom) + '</span><span class="marque-sous">' + esc(APP.sousTitre) + '</span></span>';
+    const marque = '<span class="logo-mono" role="img" aria-label="Logo ' + esc(APP.maison) + '"></span><span class="marque-texte"><span class="marque-nom">' + esc(APP.nom) + '</span><span class="marque-maison">' + esc(APP.maison) + '</span></span>';
     $('#marque-nav').innerHTML = marque; $('#marque-haut').innerHTML = marque;
     $('#liens-nav').innerHTML = NAV.map(n => (n.sep ? '<li class="sep" role="presentation"></li>' : '') + '<li><a class="lien-nav" href="#' + n.r + '" data-a="nav" data-r="' + n.r + '" data-nav="' + n.r + '">' + ico(n.ico) + esc(n.nom) + '</a></li>').join('');
     $('#onglets').innerHTML = NAV.filter(n => n.tab).map(n => '<a href="#' + n.r + '" data-a="nav" data-r="' + n.r + '" data-nav="' + n.r + '">' + ico(n.ico) + '<span>' + esc(n.court || n.nom) + '</span></a>').join('');
     $('#outils-haut').innerHTML = '<a class="btn-icone" href="#ethique" data-a="nav" data-r="ethique" data-nav="ethique" aria-label="Checklist éthique">' + ico('ethique') + '</a><a class="btn-icone" href="#memo" data-a="nav" data-r="memo" data-nav="memo" aria-label="Aide-mémoire">' + ico('memo') + '</a>';
-    $('#version-nav').textContent = 'Version ' + APP.version + ' · contenu ' + APP.dateContenu;
+    $('#nav-pied').innerHTML = devise(false) + '<span>Hors ligne · vos données restent sur cet appareil</span><span>Version ' + esc(APP.version) + ' · contenu ' + esc(APP.dateContenu) + '</span>';
   }
   const ROUTES = NAV.map(n => n.r);
   const routeDuLien = () => { const h = (location.hash || '').replace('#', ''); return ROUTES.includes(h) ? h : 'accueil'; };
@@ -560,7 +609,7 @@ td { color: var(--fg-2); }
   function render(haut) {
     document.querySelectorAll('[data-nav]').forEach(a => { const on = a.dataset.nav === UI.route; a.classList.toggle('actif', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     const vue = $('#vue');
-    vue.innerHTML = (VUES[UI.route] || VUES.accueil)();
+    vue.innerHTML = (VUES[UI.route] || VUES.accueil)() + signatureHTML();
     if (haut) { window.scrollTo(0, 0); }
   }
 
@@ -658,8 +707,12 @@ td { color: var(--fg-2); }
     const pts = points(), st = stats(), nx = prochaineEtape();
     const b = S.brouillon && S.brouillon.etape < 5 ? S.brouillon : null;
     return '<div class="pile-l">' + bandeauStockage() +
-      '<header class="hero"><p class="surtitre">Santé publique · Usage expert de l\'IA</p><h1>Boussole <em>IA</em></h1>' +
-      '<p class="chapeau">Préparez, protégez, produisez et vérifiez chaque usage de l\'IA dans vos missions, de la donnée à la décision.</p></header>' +
+      '<section class="couverture" aria-label="' + esc(APP.nom + ', une création ' + APP.maison) + '"><div class="couv-texte">' +
+      '<p class="couv-maison"><span>' + esc(APP.maison) + '</span><span aria-hidden="true">·</span><span>' + esc(APP.titreMaison) + '</span></p>' +
+      (S.prefs.nom ? '<p class="salut">Bonjour, ' + esc(S.prefs.nom) + '.</p>' : '') +
+      '<h1>Boussole <em>IA</em></h1>' +
+      '<p class="couv-chapeau">L\'intelligence artificielle au service de vos missions de santé publique : préparer, protéger, produire et vérifier, de la donnée à la décision.</p>' +
+      devise(true) + '</div><div class="couv-visuel" aria-hidden="true">' + CIRCUITS_SVG + '<span class="logo-mono"></span></div></section>' +
       (b ? '<div class="suivant"><p class="surtitre">Mission en cours</p><h3>' + esc((PROMPT[b.promptId] || {}).titre) + '</h3><div class="rangee"><button class="btn" data-a="nav" data-r="mission">Reprendre la mission ' + ico('fleche') + '</button></div></div>' : '') +
       '<section class="portes" aria-label="Points d\'entrée">' +
       '<button class="porte porte-principale" data-a="nav" data-r="mission">' + ico('mission') + '<span class="porte-titre">J\'ai une tâche maintenant</span><span class="porte-texte">Cadrer, protéger, produire, vérifier : environ dix minutes de méthode autour de votre outil d\'IA.</span><span class="porte-cta">Démarrer une mission ' + ico('fleche') + '</span></button>' +
@@ -944,6 +997,7 @@ td { color: var(--fg-2); }
       '<div class="chiffres" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))"><div class="chiffre"><b>' + st.missions + '</b><span>missions</span></div><div class="chiffre"><b>' + fmtDuree(st.gain) + '</b><span>temps gagné estimé</span></div><div class="chiffre"><b>' + st.verifs + '</b><span>vérifications éthiques</span></div><div class="chiffre"><b>' + st.lues + '/' + st.totalLecons + '</b><span>micro-leçons</span></div></div>' +
       '<section class="panneau"><div class="panneau-titre"><h2>Compétences</h2><span class="discret">Découverte · Pratique (5 pts) · Maîtrise (10 pts)</span></div>' + COMPETENCES.map(c => barreCompetence(c, pts[c.id]) + '<p class="discret" style="margin:-4px 0 6px">' + pts[c.id] + ' pts · ' + prochain(c) + '</p>').join('') + '</section>' +
       '<section class="pile"><h2>Journal des missions</h2>' + journal + '</section>' +
+      '<section class="panneau pile"><h2>Personnalisation</h2><div class="champ"><label for="nom-usage">Nom affiché à l\'accueil</label><input id="nom-usage" type="text" data-in="nom" maxlength="40" placeholder="Exemple : Dr Sidibé" value="' + esc(S.prefs.nom || '') + '"></div></section>' +
       '<section class="panneau pile"><h2>Sauvegarde et transfert</h2><p class="discret">Votre progression est enregistrée uniquement dans ce navigateur, sur cet appareil. Pour la transférer (Mac vers iPhone, par exemple) ou la sauvegarder, exportez-la puis importez-la sur l\'autre appareil.</p>' +
       '<div class="rangee"><button class="btn-sec" data-a="exporter">' + (P.exportVisible ? 'Masquer l\'export' : 'Exporter ma progression') + '</button></div>' +
       (P.exportVisible ? '<textarea class="zone" rows="6" readonly id="export-texte">' + esc(JSON.stringify(S)) + '</textarea><div class="rangee"><button class="btn" data-a="copierExport">' + ico('copier') + 'Copier</button>' + (EST_FICHIER ? '<button class="btn-sec" data-a="telechargerExport">Télécharger le fichier</button>' : '') + '</div>' : '') +
@@ -1087,6 +1141,7 @@ td { color: var(--fg-2); }
     rechPays: el => { UI.pays.q = el.value; $('#lignes-pays').innerHTML = lignesPays(); },
     champ: el => { const b = S.brouillon, p = PROMPT[b.promptId]; b.valeurs[el.dataset.id] = el.value; sauverPlusTard(); $('#apercu').innerHTML = apercuHTML(p, b.valeurs); $('#compte-champs').textContent = compteChamps(p, b); },
     note: el => { S.brouillon.note = el.value; sauverPlusTard(); },
+    nom: el => { S.prefs.nom = el.value.trim(); sauverPlusTard(); },
     reec: el => { const st = UI.reecriture[el.dataset.id] || (UI.reecriture[el.dataset.id] = { texte: '', revele: false }); st.texte = el.value; $('#detection').innerHTML = detection(el.value); },
     importTexte: el => { UI.prog.importTexte = el.value; UI.prog.confirmImport = false; UI.prog.erreurImport = ''; const b = document.querySelector('[data-a="importer"]'); if (b) b.disabled = !el.value.trim(); }
   };
@@ -1118,7 +1173,7 @@ td { color: var(--fg-2); }
   // Polices de la charte : chargées sans bloquer l'affichage (repli système hors ligne)
   try {
     const l = document.createElement('link'); l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap';
+    l.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap';
     document.head.appendChild(l);
   } catch (e) { }
 

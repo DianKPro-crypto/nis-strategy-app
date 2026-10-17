@@ -67,7 +67,8 @@ Niveaux : **Découverte** (0 à 4 points), **Pratique** (5 à 9), **Maîtrise** 
 | Validation automatique du contenu (`valider.js`) | Éviter qu'un prompt ou une leçon mal formé ne casse l'application |
 | Progression dans le stockage local du navigateur, avec export et import JSON | Confidentialité totale : rien ne quitte l'appareil |
 | Aucune IA appelée par l'application | Pas de coût, pas de clé d'API, pas de fuite de données ; outil indépendant du fournisseur d'IA |
-| Charte Dian K Pro : noir #0B0B0C, or #E3B34C, Playfair Display et Inter ; thèmes sombre et clair | Cohérence de marque et lisibilité, contraste conforme WCAG AA |
+| Identité Dian K Pro : logo intégré (navigation, couverture, signature, icône d'onglet), châssis noir et or, Playfair Display, Inter et Cinzel pour la signature ; thèmes sombre et clair | Plateforme premium et cohérente avec la marque ; lisibilité, contraste conforme WCAG AA |
+| Logo intégré en masque alpha (`source/marque/`) | Une seule image, colorée par le thème : or vif sur noir, or foncé sur fond clair ; fichier autonome, sans téléchargement externe |
 
 ### Données enregistrées localement (clé `boussole-ia/v1`)
 
@@ -80,7 +81,7 @@ Niveaux : **Découverte** (0 à 4 points), **Pratique** (5 à 9), **Maîtrise** 
 ## 7. Qualité
 
 - `python3 source/construire.py` valide le contenu, puis construit `boussole-ia.html`.
-- `node source/tests/parcours.test.js` lance 40 contrôles automatisés :
+- `node source/tests/parcours.test.js` lance 44 contrôles automatisés :
   - mission complète, feu rouge bloquant, copie du prompt ;
   - quiz, exercices, favoris, recherche ;
   - 54 pays affichés, export et import, persistance après rechargement ;

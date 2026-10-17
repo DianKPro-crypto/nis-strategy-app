@@ -4,7 +4,9 @@
 
 Boussole IA est une application autonome qui fait passer d'un usage occasionnel de l'IA à une maîtrise opérationnelle et critique. Elle ne remplace pas Claude, ChatGPT ou Copilot : elle structure le travail **autour** de ces outils, mission après mission.
 
-> Version 0.1.0 (MVP) · contenu à jour en octobre 2026 · Dr Dian Sidibé
+> Une création **Dian K. Pro** · Public Health & Digital Strategist · *Designed for Those Who Cannot Fail*
+>
+> Version 0.1.0 (MVP) · contenu à jour en octobre 2026
 
 ---
 
@@ -100,6 +102,7 @@ boussole-ia/
   source/                   Fichiers de travail (modifiés par Claude lors des évolutions)
     contenu/                Prompts, leçons, quiz, exercices, checklist, repères pays
     modele.html             Interface et moteur de l'application
+    marque/                 Logo Dian K Pro (original et déclinaisons numériques)
     construire.py           Assemble boussole-ia.html à partir du contenu
     valider.js              Contrôle la cohérence du contenu
     tests/                  Test de bout en bout dans un navigateur

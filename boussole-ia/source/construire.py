@@ -8,6 +8,7 @@ Produit :
 
 Chaque fichier de contenu est d'abord contrôlé par valider.js (si Node.js est installé).
 """
+import base64
 import json
 import shutil
 import subprocess
@@ -16,6 +17,7 @@ from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent
 CONTENU = SOURCE / "contenu"
+MARQUE = SOURCE / "marque"
 RACINE = SOURCE.parent
 BUILD = RACINE / "build"
 
@@ -62,6 +64,10 @@ def reglementation():
     return "const REGLEMENTATION = " + json.dumps(bloc, ensure_ascii=False, indent=1) + ";"
 
 
+def data_uri(fichier):
+    return "data:image/png;base64," + base64.b64encode((MARQUE / fichier).read_bytes()).decode("ascii")
+
+
 def construire():
     valider()
     blocs = []
@@ -81,7 +87,9 @@ def construire():
         "   ══════════════════════════════════════════════════════════════════════ */\n"
         + "\n\n".join(blocs) + "\n</script>"
     )
-    page = (SOURCE / "modele.html").read_text(encoding="utf-8").replace("<!--CONTENU-->", contenu)
+    # Logo Dian K Pro : monogramme intégré en masque (couleur appliquée par le thème)
+    marque = '<style>:root { --logo-mono: url("' + data_uri("dk-monogramme.png") + '"); }</style>'
+    page = (SOURCE / "modele.html").read_text(encoding="utf-8").replace("<!--CONTENU-->", contenu).replace("<!--MARQUE-->", marque)
 
     BUILD.mkdir(exist_ok=True)
     (BUILD / "artifact.html").write_text(page, encoding="utf-8")
@@ -89,6 +97,8 @@ def construire():
     autonome = (
         "<!doctype html>\n<html lang=\"fr\">\n<head>\n<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">\n"
+        "<meta name=\"theme-color\" content=\"#0B0B0C\">\n"
+        f"<link rel=\"icon\" type=\"image/png\" href=\"{data_uri('dk-favicon.png')}\">\n"
         + page.replace("<div class=\"app\">", "</head>\n<body>\n<div class=\"app\">", 1)
         + "\n</body>\n</html>\n"
     )

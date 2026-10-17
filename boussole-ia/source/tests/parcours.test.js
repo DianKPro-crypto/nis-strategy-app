@@ -20,8 +20,11 @@ const ok = (cond, msg) => { if (!cond) { erreurs.push('ÉCHEC : ' + msg); consol
   page.on('console', m => { if (m.type() === 'error' && !/fonts\.googleapis|ERR_|net::/.test(m.text())) erreurs.push('console: ' + m.text()); });
 
   await page.goto(FICHIER);
-  await page.waitForSelector('.hero');
+  await page.waitForSelector('.couverture');
   ok(await page.title() === 'Boussole IA', 'titre de la page');
+  ok(await page.evaluate(() => { const c = getComputedStyle(document.querySelector('.nav .logo-mono')); return String(c.maskImage || c.webkitMaskImage).includes('data:image/png'); }), 'logo Dian K Pro intégré à la navigation');
+  ok(await page.locator('.couverture .logo-mono').isVisible(), 'couverture de marque avec monogramme');
+  ok(await page.locator('footer.signature').count() === 1, 'signature Dian K Pro en bas de page');
   await page.screenshot({ path: SHOTS + '/01-accueil-desktop.png', fullPage: true });
 
   // --- Mission complète ---
@@ -139,13 +142,17 @@ const ok = (cond, msg) => { if (!cond) { erreurs.push('ÉCHEC : ' + msg); consol
   // --- Progression, export, persistance ---
   await page.click('.nav [data-r="progression"]');
   ok((await page.locator('.journal').innerText()).includes('Penta1'), 'mission au journal');
+  await page.fill('#nom-usage', 'Dr Sidibé');
+  await page.click('.nav [data-r="accueil"]');
+  ok((await page.locator('.salut').innerText()).includes('Dr Sidibé'), 'accueil personnalisé');
+  await page.click('.nav [data-r="progression"]');
   await page.click('[data-a="exporter"]');
   const exp = await page.locator('#export-texte').inputValue();
   ok(JSON.parse(exp).missions.length === 1, 'export JSON valide');
   await page.screenshot({ path: SHOTS + '/14-progression.png', fullPage: true });
   await page.goto('about:blank');
   await page.goto(FICHIER);
-  await page.waitForSelector('.hero');
+  await page.waitForSelector('.couverture');
   ok((await page.locator('.chiffre').first().innerText()).startsWith('1'), 'progression conservée après rechargement');
   // Import dans un contexte neuf
   const ctx2 = await browser.newContext({ viewport: { width: 1360, height: 900 } });
@@ -162,12 +169,21 @@ const ok = (cond, msg) => { if (!cond) { erreurs.push('ÉCHEC : ' + msg); consol
   await page.click('.nav [data-r="memo"]');
   await page.screenshot({ path: SHOTS + '/15-memo.png', fullPage: true });
 
+  // --- Ordinateur, thème clair ---
+  const clair = await browser.newContext({ viewport: { width: 1360, height: 900 }, colorScheme: 'light' });
+  const pc = await clair.newPage();
+  pc.on('pageerror', e => erreurs.push('pageerror(clair): ' + e.message));
+  await pc.goto(FICHIER);
+  await pc.waitForSelector('.couverture');
+  await pc.waitForTimeout(2000);
+  await pc.screenshot({ path: SHOTS + '/16-accueil-clair.png' });
+
   // --- Mobile, thème clair ---
   const mob = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light', isMobile: true, hasTouch: true });
   const pm = await mob.newPage();
   pm.on('pageerror', e => erreurs.push('pageerror(mobile): ' + e.message));
   await pm.goto(FICHIER);
-  await pm.waitForSelector('.hero');
+  await pm.waitForSelector('.couverture');
   for (const r of ['accueil', 'mission', 'prompts', 'parcours', 'ethique', 'progression', 'memo']) {
     await pm.evaluate(r => { location.hash = r; }, r);
     await pm.waitForTimeout(150);

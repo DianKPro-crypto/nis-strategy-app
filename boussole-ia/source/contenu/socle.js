@@ -1,6 +1,9 @@
 const APP = {
   nom: "Boussole IA",
   sousTitre: "Santé publique",
+  maison: "Dian K. Pro",
+  titreMaison: "Public Health & Digital Strategist",
+  devise: "Designed for Those Who Cannot Fail",
   version: "0.1.0",
   dateContenu: "octobre 2026"
 };
