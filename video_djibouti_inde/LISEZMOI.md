@@ -1,7 +1,8 @@
 # Habillage vidéo « Djibouti × India » — Dian K. Pro
 
 Script Python qui transforme la vidéo client en rendu « campagne de luxe » :
-page de garde animée, étalonnage chaud et lumineux, netteté, drapeaux discrets,
+page de garde animée, image stabilisée et fluide, oratrice détourée devant les
+drapeaux de Djibouti et de l'Inde (version 9:16), étalonnage chaud et lumineux,
 fondus au noir, outro **Dian K. Pro**, export H.264 haute qualité.
 
 ---
@@ -17,6 +18,7 @@ fondus au noir, outro **Dian K. Pro**, export H.264 haute qualité.
 | `logo_dian_k_pro.png` | logo doré Dian K. Pro de l'outro |
 | `dk_monogramme.png` | monogramme de secours, utilisé seulement si le logo est absent |
 | `fonts/` | Playfair Display et Inter (licence libre OFL) |
+| `models/` | modèle de détourage RobustVideoMatting (licence GPL-3.0), téléchargé automatiquement au premier lancement s'il manque |
 
 À ajouter vous-même : **`video_client.mp4`** (`.mov` accepté).
 
@@ -71,10 +73,13 @@ Le fichier final n'apparaît qu'une fois le rendu complet : une interruption
 
 | Étape | Outil | Détail |
 |---|---|---|
+| Fluidité | FFmpeg | Les images perdues par le téléphone sont recréées par interpolation de mouvement, pour une cadence régulière de 30 i/s. Étape automatique, seulement si la cadence source est irrégulière. |
+| Stabilisation | FFmpeg (vid.stab) | Deux passes : mesure du tremblement, puis trajectoire de caméra lissée sur environ 2 s. Les mouvements naturels sont conservés, les secousses supprimées. |
+| Fond drapeaux (9:16) | Python (RobustVideoMatting) | L'oratrice est détourée image par image, sans scintillement. Elle est placée devant les drapeaux en plein cadre, avec un léger flou de profondeur de champ et une ombre portée douce. Le bord du détourage est nettoyé, sans liseré blanc. |
 | Page de garde (5 s) | MoviePy | Diptyque des drapeaux en satin, lente poussée caméra et reflet lumineux. Titre visible **dès la première image**, qui sert de miniature. |
 | Étalonnage | FFmpeg | Luminosité, contraste et saturation légèrement relevés. Ombres teal, hautes lumières chaudes, diffusion lumineuse type « Pro-Mist ». La dominante verte des téléphones est neutralisée. |
 | Netteté | FFmpeg | Débruitage léger, mise à l'échelle Lanczos, accentuation de la luminance. |
-| Drapeaux | FFmpeg | Deux médaillons cerclés d'or qui se chevauchent, symbole du partenariat. Ils apparaissent en fondu après l'ouverture. En 16:9 avec une source portrait, les drapeaux deviennent des panneaux latéraux flous et assombris. |
+| Drapeaux | FFmpeg | En 9:16 : drapeaux plein cadre derrière l'oratrice (voir plus haut). En 16:9 avec une source portrait : panneaux latéraux flous et assombris. Sinon : deux médaillons cerclés d'or. |
 | Fondus | FFmpeg | Fondu au noir de 2 s à l'entrée et à la sortie de la vidéo client. Le son a des fondus de 0,5 s pour ne couper ni le premier ni le dernier mot. |
 | Son | FFmpeg | Stéréo 48 kHz, volume normalisé à −16 LUFS (norme web et mobile). |
 | Outro (5 s) | MoviePy | Logo doré Dian K. Pro : apparition en fondu, lent recul de caméra, reflet de lumière sur l'or, fondu au noir. Les bords du logo se fondent dans le noir de la charte. |
@@ -109,6 +114,9 @@ python montage_dian_k_pro.py --preset faster                         # brouillon
 | `--fade` / `--audio-fade` | 2 / 0,5 | durée des fondus image et son |
 | `--grade` | `luxe` | `luxe`, `subtil` ou `aucun` |
 | `--sharpen` | 0,7 | netteté (0 = désactivée) |
+| `--background` | `auto` | `auto` = drapeaux plein cadre en 9:16 ; `video` = garder le décor d'origine |
+| `--no-stabilize` | — | désactiver la stabilisation |
+| `--smooth-motion` | `auto` | recréer les images manquantes : `auto`, `on` ou `off` |
 | `--emblem` / `--emblem-opacity` | `top-left` / 0,9 | position et opacité des médaillons (`off` pour les masquer) |
 | `--logo` | `logo_dian_k_pro.png` | logo de l'outro ; `--logo ""` donne une outro composée (monogramme + « Dian K. Pro ») |
 | `--crf` | 18 | qualité : 16 = master, 18 = haute, 21 = web léger |
@@ -120,15 +128,15 @@ python montage_dian_k_pro.py --preset faster                         # brouillon
 
 Mesurés sur une machine à 4 cœurs ; un ordinateur portable récent à 8 cœurs va environ 2 fois plus vite.
 
-| Vidéo source | Temps de rendu | Mémoire |
+| Vidéo source | 9:16 drapeaux plein cadre | 16:9 |
 |---|---|---|
-| 56 s, portrait (votre fichier) | environ 4 min | environ 1,5 Go |
-| 56 min, 1080p | 1 h 30 à 3 h selon la machine | environ 1,5 Go, **constante** |
+| 56 s, portrait (votre fichier) | environ 10 min | environ 7 min |
+| 56 min, 1080p | plusieurs heures (détourage) : à lancer le soir | 1 h 30 à 3 h |
 
-Avec `--preset faster`, le rendu est environ 2 fois plus rapide, au prix d'un fichier un peu plus lourd.
-La consommation mémoire ne dépend pas de la durée : elle a été vérifiée stable du début à la fin d'un rendu 1080p.
-
----
+Le détourage est l'étape la plus lourde. Une carte graphique NVIDIA accélère
+fortement le traitement (`pip install onnxruntime-gpu`). Sans détourage
+(`--background video`), une vidéo de 56 min se traite en 1 h 30 à 3 h.
+La mémoire reste stable, autour de 1,5 Go, quelle que soit la durée.
 
 ## 7. Points de vigilance avant diffusion
 

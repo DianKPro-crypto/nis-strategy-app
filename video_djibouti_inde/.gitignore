@@ -5,3 +5,4 @@ rendus/
 *.log
 .dkpro_*/
 *_vignette.png
+models/

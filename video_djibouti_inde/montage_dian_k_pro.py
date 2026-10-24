@@ -390,6 +390,22 @@ def build_emblem(dj, ind, fdj, fin, d: int) -> Image.Image:
     return out
 
 
+def build_flag_background(dj, ind, fdj, fin, W: int, H: int) -> Image.Image:
+    """Fond plein cadre derrière l'orateur détouré : diptyque Djibouti | Inde, emblèmes dans
+    la zone visible (de part et d'autre de la tête), drapé vert prolongé jusqu'en bas,
+    léger flou de profondeur de champ et bas assombri pour détacher l'orateur."""
+    top = diptych(dj, ind, fdj, fin, W, H, portrait=True)
+    fh = round(0.70 * H)
+    band = Image.fromarray(np.clip(top[round(0.78 * fh):fh], 0, 255).astype(np.uint8))
+    canvas = np.empty((H, W, 3), np.float32)
+    canvas[:round(0.78 * fh)] = top[:round(0.78 * fh)]
+    canvas[round(0.78 * fh):] = np.asarray(band.resize((W, H - round(0.78 * fh)), Image.BICUBIC))
+    y = (np.arange(H, dtype=np.float32) / H)[:, None, None]
+    canvas *= 0.92 - 0.30 * smoothstep((y - 0.50) / 0.50)
+    img = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8))
+    return img.filter(ImageFilter.GaussianBlur(0.008 * W))
+
+
 def build_backdrop(dj, ind, fdj, fin, W: int, H: int, vw: int, vh: int) -> Image.Image:
     """Fond pour une vidéo qui ne remplit pas le cadre (ex. portrait en 16:9) :
     les deux drapeaux en panneaux latéraux, assombris, avec ombre portée et filet doré."""
@@ -574,7 +590,7 @@ def make_logo_outro(path: Path, D: float, W: int, H: int) -> CompositeVideoClip:
     alpha = (smoothstep(np.minimum(xx, w - 1 - xx) / f) * smoothstep((h - 1 - yy) / f)
              * smoothstep(yy / (0.14 * h)))  # bord haut plus doux : halo du projecteur
     rgba = Image.fromarray(np.dstack([np.clip(rgb, 0, 255).astype(np.uint8),
-                                      (alpha * 255).astype(np.uint8)]), "RGBA")
+                                      (alpha * 255).astype(np.uint8)]))
     layer = anim_layer(rgba, (W / 2, H * 0.48), D, 0.3, 1.3, zoom_from=1.07,
                        zoom_dur=D - 0.3, shine=(1.9, 1.2), shine_gold=True)
     outro = CompositeVideoClip([ColorClip((W, H), color=BLACK).with_duration(D), layer],
@@ -628,13 +644,178 @@ def write_segment(clip, path: Path, fps: float) -> None:
 
 
 # --------------------------------------------------------------------------------------
-# Graphe FFmpeg : corps de la vidéo + assemblage final
+# Préparation du corps : fluidité, stabilisation, détourage
 # --------------------------------------------------------------------------------------
+BT709 = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709"]
+RVM_URL = ("https://github.com/PeterL1n/RobustVideoMatting/releases/download/v1.0.0/"
+           "rvm_mobilenetv3_fp32.onnx")
+RVM_FILE = SCRIPT_DIR / "models" / "rvm_mobilenetv3_fp32.onnx"
+
+
 def even(x: float) -> int:
     return max(2, int(round(x / 2)) * 2)
 
 
-def build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, emblem_p,
+def is_standard_fps(fps: float | None) -> bool:
+    return bool(fps) and any(abs(fps - n / d) / (n / d) < 0.006 for n, d in STANDARD_FPS)
+
+
+def rvm_session():
+    """Modèle RobustVideoMatting (détourage vidéo cohérent d'une image à l'autre, licence GPL-3.0).
+    Renvoie None si onnxruntime ou le modèle sont indisponibles."""
+    try:
+        import onnxruntime as ort
+    except ImportError:
+        log("  ! onnxruntime absent (python -m pip install onnxruntime).")
+        return None
+    if not RVM_FILE.is_file():
+        try:
+            log("  - Téléchargement du modèle de détourage (15 Mo, une seule fois)...")
+            RVM_FILE.parent.mkdir(exist_ok=True)
+            part = RVM_FILE.with_suffix(".part")
+            with urllib.request.urlopen(RVM_URL, timeout=120) as r, open(part, "wb") as f:
+                shutil.copyfileobj(r, f)
+            os.replace(part, RVM_FILE)
+        except Exception as exc:
+            log(f"  ! Téléchargement du modèle impossible ({exc}).")
+            return None
+    providers = [p for p in ("CUDAExecutionProvider", "DmlExecutionProvider")
+                 if p in ort.get_available_providers()] + ["CPUExecutionProvider"]
+    return ort.InferenceSession(str(RVM_FILE), providers=providers)
+
+
+def read_exact(stream, n: int) -> bytes | None:
+    buf = bytearray()
+    while len(buf) < n:
+        chunk = stream.read(n - len(buf))
+        if not chunk:
+            return None
+        buf += chunk
+    return bytes(buf)
+
+
+def refine_edges(fg: np.ndarray, a: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Supprime le liseré clair autour de la silhouette (pixels de bord mêlés au mur blanc,
+    grossis par l'agrandissement) : bande de bord recolorée avec les couleurs intérieures de
+    l'orateur, prolongées aussi au-delà du contour (les filtres suivants ne « voient » plus
+    le mur), et cache resserré d'un pixel."""
+    h, w = a.shape
+    k = max(1, round(0.003 * max(w, h)))
+    am = Image.fromarray((a * 255 + 0.5).clip(0, 255).astype(np.uint8))
+    core_img = am.point(lambda v: 255 if v > 250 else 0).filter(ImageFilter.MinFilter(2 * k + 1))
+    core = np.asarray(core_img, np.float32) / 255
+    r = max(2, round(0.012 * max(w, h)))
+    den = np.asarray(core_img.filter(ImageFilter.BoxBlur(r)), np.float32) / 255
+    num = np.stack([np.asarray(Image.fromarray((fg[..., c] * core).clip(0, 255).astype(np.uint8))
+                               .filter(ImageFilter.BoxBlur(r)), np.float32) for c in range(3)], -1)
+    mean = (fg * core[..., None]).sum((0, 1)) / max(core.sum(), 1.0)
+    ext = np.where(den[..., None] > 0.02, num / np.maximum(den, 0.02)[..., None], mean)
+    s = np.asarray(core_img.filter(ImageFilter.GaussianBlur(0.6)), np.float32)[..., None] / 255
+    out = (fg * s + ext * (1 - s) + 0.5).clip(0, 255).astype(np.uint8)
+    alpha = np.asarray(am.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.5)))
+    return out, alpha
+
+
+def run_matting(sess, ff, video: Path, prefix: str, t_opt: list, D: float, fps, w: int, h: int,
+                work: Path, fg_p: Path, matte_p: Path) -> None:
+    """Détoure l'orateur image par image : premier plan décontaminé (pas de liseré du mur
+    d'origine) + cache alpha sans perte. Flux continu, mémoire constante."""
+    fps_s = f"{fps[0]}/{fps[1]}"
+    dec = [ff, "-v", "error", *t_opt, "-i", str(video), "-vf",
+           f"{prefix},crop={w}:{h}:0:0,format=rgb24", "-fps_mode", "passthrough",
+           "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]  # toutes les images, aucune supprimée
+    raw_in = ["-f", "rawvideo", "-s", f"{w}x{h}", "-r", fps_s, "-i", "-"]
+    enc_fg = [ff, "-v", "error", "-y", "-pix_fmt", "rgb24", *raw_in,
+              "-vf", "scale=out_color_matrix=bt709:out_range=tv", "-c:v", "libx264", "-crf", "12",
+              "-preset", "fast", "-pix_fmt", "yuv420p", *BT709, str(fg_p)]
+    enc_mt = [ff, "-v", "error", "-y", "-pix_fmt", "gray", *raw_in, "-c:v", "ffv1",
+              "-pix_fmt", "gray", str(matte_p)]
+    rec = [np.zeros((1, 1, 1, 1), np.float32)] * 4
+    ratio = np.array([min(1.0, 512 / max(w, h))], np.float32)
+    expected = max(1, round(D * fps[0] / fps[1]))
+    n, t0, last = 0, time.time(), 0.0
+    with open(work / "detourage.log", "w", encoding="utf-8", errors="replace") as lf:
+        pd = subprocess.Popen(dec, stdout=subprocess.PIPE, stderr=lf, stdin=subprocess.DEVNULL,
+                              cwd=work)
+        pf = subprocess.Popen(enc_fg, stdin=subprocess.PIPE, stderr=lf)
+        pm = subprocess.Popen(enc_mt, stdin=subprocess.PIPE, stderr=lf)
+        try:
+            while (buf := read_exact(pd.stdout, w * h * 3)) is not None:
+                img = np.frombuffer(buf, np.uint8).reshape(h, w, 3)
+                x = img.transpose(2, 0, 1)[None].astype(np.float32) / 255
+                fgr, pha, *rec = sess.run(None, {"src": x, "r1i": rec[0], "r2i": rec[1],
+                                                 "r3i": rec[2], "r4i": rec[3],
+                                                 "downsample_ratio": ratio})
+                a = pha[0, 0]
+                fg = fgr[0].transpose(1, 2, 0) * 255
+                fg = np.where(a[..., None] > 0.98, img, fg)  # intérieur : pixels d'origine intacts
+                fg, alpha = refine_edges(fg, a)
+                pf.stdin.write(fg.tobytes())
+                pm.stdin.write(alpha.tobytes())
+                n += 1
+                if time.time() - last > 1:
+                    last = time.time()
+                    pct = min(n / expected, 1.0)
+                    el = last - t0
+                    eta = el * (1 - pct) / pct if pct > 0.02 else 0
+                    bar = "#" * int(pct * 30) + "-" * (30 - int(pct * 30))
+                    print(f"\r  [{bar}] {pct * 100:5.1f} %  | reste ~{int(eta // 60):3d} min "
+                          f"{int(eta % 60):02d} s  | {n / el:5.1f} images/s ", end="", flush=True)
+        finally:
+            for p in (pf, pm):
+                p.stdin.close()
+            for p in (pd, pf, pm):
+                p.wait()
+    print()
+    if n == 0 or any(p.returncode for p in (pd, pf, pm)):
+        sys.exit("Échec du détourage. Journal : " + str(work / "detourage.log"))
+
+
+def prepare_main(args, ff, src: Path, info, D: float, fps, work: Path, sess):
+    """Prépare le corps de la vidéo et renvoie comment le lire dans le graphe final.
+    1. Fluidité : images manquantes recréées par interpolation de mouvement (sources à
+       cadence irrégulière, typiques des smartphones et de WhatsApp).
+    2. Stabilisation vid.stab en deux passes : trajectoire de caméra lissée sur ~2 s.
+    3. Détourage de l'orateur si une session de détourage est fournie (fond drapeaux)."""
+    fps_s = f"{fps[0]}/{fps[1]}"
+    t_opt = ["-t", f"{D:.3f}"] if args.preview else []
+    interp = args.smooth_motion == "on" or (args.smooth_motion == "auto"
+                                            and not is_standard_fps(info["fps"]))
+    base = "setpts=PTS-STARTPTS," + (
+        f"minterpolate=fps={fps_s}:mi_mode=mci:mc_mode=obmc:me_mode=bilat:vsbmc=0" if interp
+        else f"fps={fps_s}")
+    main = {"video": src, "prefix": base, "trim": True, "matte": None}
+    if interp or args.stabilize:
+        steps = (["images manquantes recréées (cadence irrégulière)"] if interp else []) + (
+            ["analyse du tremblement"] if args.stabilize else [])
+        log("      " + " + ".join(steps) + "...")
+        vf = base + (",vidstabdetect=shakiness=8:accuracy=15:stepsize=6:result=transforms.trf"
+                     if args.stabilize else "")
+        out = (["-an", "-c:v", "libx264", "-crf", "10", "-preset", "veryfast", "-pix_fmt",
+                "yuv420p", *BT709, str(work / "cfr.mkv")] if interp else ["-an", "-f", "null", "-"])
+        run_ffmpeg([ff, "-hide_banner", "-y", *t_opt, "-i", str(src), "-vf", vf, *out,
+                    "-progress", "pipe:1", "-nostats"], D, work / "preparation.log", cwd=work)
+        if interp:
+            main.update(video=work / "cfr.mkv", prefix=f"setpts=PTS-STARTPTS,fps={fps_s}",
+                        trim=False)
+        if args.stabilize:
+            main["prefix"] += (",vidstabtransform=input=transforms.trf:smoothing=30:optzoom=1"
+                               ":interpol=bicubic")
+    if sess is not None:
+        log("      détourage de l'orateur (RobustVideoMatting)...")
+        w, h = info["w"] - info["w"] % 2, info["h"] - info["h"] % 2
+        fg_p, matte_p = work / "fg.mkv", work / "matte.mkv"
+        run_matting(sess, ff, main["video"], main["prefix"], t_opt if main["trim"] else [],
+                    D, fps, w, h, work, fg_p, matte_p)
+        main = {"video": fg_p, "prefix": f"setpts=PTS-STARTPTS,fps={fps_s}", "trim": False,
+                "matte": matte_p}
+    return main
+
+
+# --------------------------------------------------------------------------------------
+# Graphe FFmpeg : corps de la vidéo + assemblage final
+# --------------------------------------------------------------------------------------
+def build_ffmpeg(args, ff, src, main, info, D, fps, W, H, fill, cover_p, outro_p, emblem_p,
                  emblem_xy, backdrop_p, music_p, out_tmp):
     fps_s = f"{fps[0]}/{fps[1]}"
     grade = GRADES[args.grade]
@@ -643,12 +824,18 @@ def build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, embl
     vf = min(args.fade, D / 3)
     af = min(args.audio_fade, D / 3)
 
+    t_opt = ["-t", f"{D:.3f}"] if args.preview else []
     cmd = [ff, "-hide_banner", "-y", "-i", str(cover_p)]
-    if args.preview:
-        cmd += ["-t", f"{D:.3f}"]
-    cmd += ["-i", str(src), "-i", str(outro_p)]
+    cmd += [*(t_opt if main["trim"] else []), "-i", str(main["video"]), "-i", str(outro_p)]
     idx = 3
-    i_emb = i_bd = i_mus = None
+    i_emb = i_bd = i_mus = i_mt = None
+    i_aud = 1
+    if main["video"] != src:  # corps préparé : le son vient toujours de la source
+        cmd += [*t_opt, "-i", str(src)]
+        i_aud, idx = idx, idx + 1
+    if main["matte"]:
+        cmd += ["-i", str(main["matte"])]
+        i_mt, idx = idx, idx + 1
     if emblem_p:
         cmd += ["-loop", "1", "-framerate", fps_s, "-t", f"{D:.3f}", "-i", str(emblem_p)]
         i_emb, idx = idx, idx + 1
@@ -659,17 +846,17 @@ def build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, embl
         cmd += ["-i", str(music_p)]
         i_mus, idx = idx, idx + 1
 
-    sw, sh = info["w"], info["h"]
+    sw, sh = info["w"] - info["w"] % 2, info["h"] - info["h"] % 2
     s = max(W / sw, H / sh) if fill else min(W / sw, H / sh)
     tw, th = even(sw * s), even(sh * s)
     if fill:
         tw, th = max(tw, W), max(th, H)
 
     g = []
-    # 1) Corps : cadence constante, débruitage léger (seulement si la source sera agrandie :
-    #    on évite d'amplifier les blocs de compression), mise à l'échelle Lanczos en BT.709
+    # 1) Corps : cadence constante (+ stabilisation), débruitage léger seulement si la source
+    #    sera agrandie (on évite d'amplifier les blocs de compression), Lanczos en BT.709
     denoise = "hqdn3d=1.5:1.5:3:3," if min(sw, sh) < 1000 else ""
-    chain = (f"[1:v]setpts=PTS-STARTPTS,fps={fps_s},{denoise}"
+    chain = (f"[1:v]{main['prefix']},crop={sw}:{sh}:0:0,{denoise}"
              f"scale={tw}:{th}:flags=lanczos+accurate_rnd+full_chroma_int"
              f":out_color_matrix=bt709:out_range=tv")
     if fill:
@@ -692,8 +879,21 @@ def build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, embl
         chain += f",unsharp=5:5:{args.sharpen:.2f}:5:5:0"
     g.append(chain + "[mv0]")
     cur = "mv0"
-    # 4) Fond drapeaux si la vidéo ne remplit pas le cadre
-    if i_bd is not None:
+    # 4a) Fond drapeaux plein cadre : orateur détouré + ombre portée douce sur le fond
+    if i_mt is not None:
+        g.append(f"[{i_mt}:v]setpts=PTS-STARTPTS,fps={fps_s},scale={tw}:{th}:flags=bicubic,"
+                 f"crop={W}:{H},format=gray,split=2[mta][mtb]")
+        g.append(f"[{cur}][mta]alphamerge[fga]")
+        g.append(f"[{i_bd}:v]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setsar=1[bg]")
+        g.append(f"[mtb]scale={even(W / 4)}:{even(H / 4)},gblur=sigma=8,"
+                 f"scale={W}:{H}:flags=bilinear[shm]")
+        g.append(f"color=c=black:s={W}x{H}:r={fps_s}:d={D:.3f},format=yuv420p[blk]")
+        g.append("[blk][shm]alphamerge,lutyuv=a='val*0.45'[shd]")
+        g.append(f"[bg][shd]overlay=0:{round(H * 0.012)}:shortest=1[bgs]")
+        g.append("[bgs][fga]overlay=0:0:shortest=1[mv1]")
+        cur = "mv1"
+    # 4b) Panneaux drapeaux si la vidéo ne remplit pas le cadre
+    elif i_bd is not None:
         g.append(f"[{i_bd}:v]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,"
                  f"setsar=1[bd]")
         g.append(f"[bd][{cur}]overlay=(W-w)/2:(H-h)/2:shortest=1[mv1]")
@@ -717,7 +917,7 @@ def build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, embl
     # Audio : stéréo 48 kHz, volume normalisé (-16 LUFS), fondus courts pour ne pas couper la voix
     fmt = "aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo"
     if info["audio"]:
-        a = f"[1:a]asetpts=PTS-STARTPTS,{fmt}"
+        a = f"[{i_aud}:a]asetpts=PTS-STARTPTS,highpass=f=70,{fmt}"  # coupe le grondement grave
         if args.loudnorm:
             a += ",loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000"
         a += (f",afade=t=in:st=0:d={af:.2f},afade=t=out:st={D - af:.3f}:d={af:.2f},"
@@ -752,13 +952,13 @@ def build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, embl
     return cmd
 
 
-def run_ffmpeg(cmd, total: float, log_path: Path) -> None:
+def run_ffmpeg(cmd, total: float, log_path: Path, cwd: Path | None = None) -> None:
     t0 = time.time()
     with open(log_path, "w", encoding="utf-8", errors="replace") as lf:
         lf.write(" ".join(f'"{c}"' if " " in c else c for c in cmd) + "\n\n")
         lf.flush()
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=lf, stdin=subprocess.DEVNULL,
-                                text=True, bufsize=1)
+                                text=True, bufsize=1, cwd=cwd)
         try:
             done, last = 0.0, 0.0
             for line in proc.stdout:
@@ -819,6 +1019,13 @@ def parse_args():
     p.add_argument("--glow", type=float, default=None,
                    help="diffusion lumineuse 0-0.3, 0 = désactivée (défaut : selon l'étalonnage)")
     p.add_argument("--sharpen", type=float, default=0.7, help="netteté 0-1.5 (0 = désactivée)")
+    p.add_argument("--background", default="auto", choices=["auto", "flags", "video"],
+                   help="auto = drapeaux plein cadre derrière l'orateur détouré en 9:16 ; "
+                        "flags = toujours (si la vidéo remplit le cadre) ; video = fond d'origine")
+    p.add_argument("--no-stabilize", dest="stabilize", action="store_false",
+                   help="ne pas stabiliser l'image")
+    p.add_argument("--smooth-motion", default="auto", choices=["auto", "on", "off"],
+                   help="recréer les images manquantes (auto = si la cadence source est irrégulière)")
     p.add_argument("--emblem", default="top-left",
                    choices=["top-left", "top-right", "bottom-left", "bottom-right", "off"],
                    help="position des médaillons des drapeaux")
@@ -859,6 +1066,8 @@ def main() -> None:
     portrait = src_portrait if args.format == "auto" else args.format == "9:16"
     W, H = (1080, 1920) if portrait else (1920, 1080)
     fill = abs((info["w"] / info["h"]) / (W / H) - 1) <= 0.04  # même format à 4 % près
+    # fond drapeaux plein cadre : par défaut en 9:16 quand la vidéo remplit le cadre
+    flags_bg = fill and (args.background == "flags" or (args.background == "auto" and portrait))
 
     out = Path(args.output)
     if args.preview and args.output == "video_client_final.mp4":
@@ -894,10 +1103,21 @@ def main() -> None:
         outro_p = work / "outro.mp4"
         write_segment(make_outro(args, W, H, portrait), outro_p, fps_f)
 
-        log("[3/4] Drapeaux...")
-        emblem_p = backdrop_p = None
+        log("[3/4] Drapeaux, fluidité, stabilisation...")
+        emblem_p = backdrop_p = sess = None
         emblem_xy = (0, 0)
-        if not fill:
+        if flags_bg:
+            sess = rvm_session()
+            if sess is None:
+                if args.background == "flags":
+                    sys.exit("Fond drapeaux impossible sans onnxruntime et le modèle de détourage.")
+                log("  ! Fond drapeaux indisponible : repli sur les médaillons.")
+                flags_bg = False
+        if flags_bg:
+            backdrop_p = work / "fond_drapeaux.png"
+            build_flag_background(dj, ind, fdj, fin, W, H).save(backdrop_p)
+            log("      fond : drapeaux plein cadre derrière l'orateur détouré.")
+        elif not fill:
             s = min(W / info["w"], H / info["h"])
             backdrop_p = work / "backdrop.png"
             build_backdrop(dj, ind, fdj, fin, W, H, even(info["w"] * s),
@@ -913,13 +1133,14 @@ def main() -> None:
             x = m if "left" in args.emblem else W - m - emb.width
             emblem_xy = (x, top if "top" in args.emblem else bottom)
             log(f"      médaillons {args.emblem}, opacité {args.emblem_opacity:.0%}.")
+        main_v = prepare_main(args, ff, src, info, D, fps, work, sess)
 
         log("[4/4] Étalonnage, netteté, fondus et assemblage (FFmpeg)...")
         out_tmp = work / ("rendu" + out.suffix)
-        cmd = build_ffmpeg(args, ff, src, info, D, fps, W, H, fill, cover_p, outro_p, emblem_p,
-                           emblem_xy, backdrop_p, music_p, out_tmp)
+        cmd = build_ffmpeg(args, ff, src, main_v, info, D, fps, W, H, fill, cover_p, outro_p,
+                           emblem_p, emblem_xy, backdrop_p, music_p, out_tmp)
         log_path = out.with_suffix(".log")
-        run_ffmpeg(cmd, total, log_path)
+        run_ffmpeg(cmd, total, log_path, cwd=work)
         os.replace(out_tmp, out)  # le fichier final n'apparaît que s'il est complet
     except KeyboardInterrupt:
         sys.exit("\nInterrompu : aucun fichier final n'a été écrit.")
