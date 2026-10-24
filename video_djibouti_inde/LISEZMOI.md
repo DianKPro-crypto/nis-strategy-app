@@ -14,7 +14,8 @@ fondus au noir, outro **Dian K. Pro**, export H.264 haute qualité.
 | `requirements.txt` | dépendances Python |
 | `drapeau_djibouti.png` | drapeau de Djibouti |
 | `drapeau_inde.png` | drapeau de l'Inde, **corrigé** : Ashoka Chakra à 24 rayons (l'image d'origine en comptait 27) |
-| `dk_monogramme.png` | monogramme DK doré de l'outro (facultatif) |
+| `logo_dian_k_pro.png` | logo doré Dian K. Pro de l'outro |
+| `dk_monogramme.png` | monogramme de secours, utilisé seulement si le logo est absent |
 | `fonts/` | Playfair Display et Inter (licence libre OFL) |
 
 À ajouter vous-même : **`video_client.mp4`** (`.mov` accepté).
@@ -76,7 +77,7 @@ Le fichier final n'apparaît qu'une fois le rendu complet : une interruption
 | Drapeaux | FFmpeg | Deux médaillons cerclés d'or qui se chevauchent, symbole du partenariat. Ils apparaissent en fondu après l'ouverture. En 16:9 avec une source portrait, les drapeaux deviennent des panneaux latéraux flous et assombris. |
 | Fondus | FFmpeg | Fondu au noir de 2 s à l'entrée et à la sortie de la vidéo client. Le son a des fondus de 0,5 s pour ne couper ni le premier ni le dernier mot. |
 | Son | FFmpeg | Stéréo 48 kHz, volume normalisé à −16 LUFS (norme web et mobile). |
-| Outro (5 s) | MoviePy | Monogramme DK, « Dian K. Pro » avec reflet doré, filet qui se dessine, signature. |
+| Outro (5 s) | MoviePy | Logo doré Dian K. Pro : apparition en fondu, lent recul de caméra, reflet de lumière sur l'or, fondu au noir. Les bords du logo se fondent dans le noir de la charte. |
 | Export | FFmpeg | H.264 High, CRF 18, BT.709, AAC 192 kb/s, `faststart` (lecture immédiate en ligne). |
 
 **Pourquoi ce partage MoviePy / FFmpeg ?** Traiter 56 minutes image par image en
@@ -109,6 +110,7 @@ python montage_dian_k_pro.py --preset faster                         # brouillon
 | `--grade` | `luxe` | `luxe`, `subtil` ou `aucun` |
 | `--sharpen` | 0,7 | netteté (0 = désactivée) |
 | `--emblem` / `--emblem-opacity` | `top-left` / 0,9 | position et opacité des médaillons (`off` pour les masquer) |
+| `--logo` | `logo_dian_k_pro.png` | logo de l'outro ; `--logo ""` donne une outro composée (monogramme + « Dian K. Pro ») |
 | `--crf` | 18 | qualité : 16 = master, 18 = haute, 21 = web léger |
 | `--no-loudnorm` | — | conserver le volume d'origine |
 

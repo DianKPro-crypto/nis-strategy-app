@@ -430,21 +430,24 @@ def ease(x: float) -> float:
 
 
 def anim_layer(rgba: Image.Image, center_xy, duration: float, t_in: float, d_in: float,
-               rise: float = 0.0, zoom_from: float = 1.0, shine: tuple | None = None) -> VideoClip:
-    """Calque RGBA qui apparaît en fondu (t_in, d_in), avec montée et zoom doux,
-    et éventuellement un reflet lumineux (shine=(t_debut, durée))."""
+               rise: float = 0.0, zoom_from: float = 1.0, zoom_dur: float | None = None,
+               shine: tuple | None = None, shine_gold: bool = False) -> VideoClip:
+    """Calque RGBA qui apparaît en fondu (t_in, d_in), avec montée et zoom doux
+    (sur zoom_dur secondes, d_in par défaut), et éventuellement un reflet lumineux
+    (shine=(t_debut, durée)) ; shine_gold=True le limite aux surfaces dorées."""
     w, h = rgba.size
-    pad = int(abs(rise) + 0.08 * max(w, h)) + 4
+    pad = int(abs(rise) + max(0.08, abs(zoom_from - 1)) * max(w, h)) + 4
     cw, ch = w + 2 * pad, h + 2 * pad
     yy, xx = np.mgrid[0:ch, 0:cw].astype(np.float32)
     diag = (xx + 0.45 * yy) / (cw + 0.45 * ch)
+    zd = zoom_dur or d_in
     cache: dict = {}
 
     def render(t: float):
         if cache.get("t") == t:
             return cache["v"]
         p = ease((t - t_in) / d_in) if d_in > 0 else 1.0
-        s = zoom_from + (1 - zoom_from) * p
+        s = zoom_from + (1 - zoom_from) * (ease((t - t_in) / zd) if zd > 0 else 1.0)
         dy = rise * (1 - p)
         data = (1 / s, 0, w / 2 - (cw / 2) / s, 0, 1 / s, h / 2 - (ch / 2 + dy) / s)
         out = np.asarray(rgba.transform((cw, ch), Image.AFFINE, data, resample=Image.BICUBIC),
@@ -453,6 +456,10 @@ def anim_layer(rgba: Image.Image, center_xy, duration: float, t_in: float, d_in:
         if shine is not None and shine[0] <= t <= shine[0] + shine[1]:
             c = -0.25 + 1.5 * (t - shine[0]) / shine[1]
             band = np.exp(-(((diag - c) / 0.06) ** 2))[..., None]
+            if shine_gold:  # luminance et dominante dorée : le fond sombre ne s'éclaire pas
+                r, b = rgb[..., 0], rgb[..., 2]
+                gold = np.clip((rgb.mean(-1) - 80) / 90, 0, 1) * np.clip((r - b - 40) / 60, 0, 1)
+                band = band * gold[..., None] * 0.8
             rgb = rgb + band * (255 - rgb) * 0.7
         op = min(max((t - t_in) / d_in, 0.0), 1.0) if d_in > 0 else 1.0
         cache["t"], cache["v"] = t, (rgb.astype(np.uint8), alpha * op)
@@ -551,17 +558,45 @@ def make_cover(args, dj, ind, fdj, fin, W, H, portrait) -> CompositeVideoClip:
     return cover.with_effects([vfx.FadeOut(0.6, final_color=list(BLACK))])
 
 
+def make_logo_outro(path: Path, D: float, W: int, H: int) -> CompositeVideoClip:
+    """Outro avec le logo doré Dian K. Pro : apparition, lent recul de caméra,
+    reflet de lumière sur l'or, fondu au noir. Les bords du logo se fondent dans
+    le noir de la charte, aucun cadre n'est visible."""
+    logo = ImageOps.exif_transpose(Image.open(path)).convert("RGB")
+    s = min(W * 0.96, H * 0.92) / max(logo.size)
+    logo = logo.resize((round(logo.width * s), round(logo.height * s)), Image.LANCZOS)
+    w, h = logo.size
+    # noirs du logo calés sur le noir de la charte (sinon le carré du logo se devine)
+    k = np.array(BLACK, np.float32)
+    rgb = k + np.asarray(logo, np.float32) * (255 - k) / 255
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    f = 0.06 * min(w, h)
+    alpha = (smoothstep(np.minimum(xx, w - 1 - xx) / f) * smoothstep((h - 1 - yy) / f)
+             * smoothstep(yy / (0.14 * h)))  # bord haut plus doux : halo du projecteur
+    rgba = Image.fromarray(np.dstack([np.clip(rgb, 0, 255).astype(np.uint8),
+                                      (alpha * 255).astype(np.uint8)]), "RGBA")
+    layer = anim_layer(rgba, (W / 2, H * 0.48), D, 0.3, 1.3, zoom_from=1.07,
+                       zoom_dur=D - 0.3, shine=(1.9, 1.2), shine_gold=True)
+    outro = CompositeVideoClip([ColorClip((W, H), color=BLACK).with_duration(D), layer],
+                               size=(W, H), bg_color=BLACK).with_duration(D)
+    return outro.with_effects([vfx.FadeOut(0.9, final_color=list(BLACK))])
+
+
 def make_outro(args, W, H, portrait) -> CompositeVideoClip:
     D = args.outro_seconds
+    logo_path = find_file(args.logo, required=False) if args.logo else None
+    if logo_path:
+        return make_logo_outro(logo_path, D, W, H)
+    # Repli sans logo : monogramme (facultatif) + signature composée en Playfair / Inter
     sig = text_image(args.signature, get_font("serif", 132 if portrait else 124, 500),
                      GOLD, tracking=0.02)
     f_tag = get_font("sans", 32, 500, opsz=20)
     tag = text_image(wrap(args.tagline, f_tag, 0.9 * W, 0.26), f_tag, IVORY, tracking=0.26,
                      line_height=1.5)
-    logo_path = find_file(args.logo, required=False) if args.logo else None
+    mono_path = find_file(args.monogram, required=False) if args.monogram else None
     mono = None
-    if logo_path:
-        mono = ImageOps.exif_transpose(Image.open(logo_path)).convert("RGBA")
+    if mono_path:
+        mono = ImageOps.exif_transpose(Image.open(mono_path)).convert("RGBA")
         mh = round(H * (0.15 if portrait else 0.24))
         mono = mono.resize((round(mono.width * mh / mono.height), mh), Image.LANCZOS)
     line_w = round(W * (0.40 if portrait else 0.24))
@@ -769,8 +804,11 @@ def parse_args():
     p.add_argument("--subtitle", default=DEFAULT_SUBTITLE, help="sous-titre de la page de garde")
     p.add_argument("--signature", default=DEFAULT_SIGNATURE, help="texte de l'outro")
     p.add_argument("--tagline", default=DEFAULT_TAGLINE, help="ligne sous la signature")
-    p.add_argument("--logo", default="dk_monogramme.png",
-                   help="monogramme de l'outro (ignoré s'il est absent ; '' pour le désactiver)")
+    p.add_argument("--logo", default="logo_dian_k_pro.png",
+                   help="logo complet de l'outro ; s'il est absent (ou ''), outro composée "
+                        "avec --monogram, --signature et --tagline")
+    p.add_argument("--monogram", default="dk_monogramme.png",
+                   help="monogramme de l'outro composée (facultatif)")
     p.add_argument("--music", default=None, help="musique (Suno) sous la page de garde et l'outro")
     p.add_argument("--cover-seconds", type=float, default=5.0, help="durée de la page de garde")
     p.add_argument("--outro-seconds", type=float, default=5.0, help="durée de l'outro")
