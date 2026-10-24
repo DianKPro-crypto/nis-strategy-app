@@ -1,0 +1,7 @@
+# Rendus et fichiers de travail : livrés à part, jamais versionnés
+rendus/
+*.mp4
+*.mov
+*.log
+.dkpro_*/
+*_vignette.png
