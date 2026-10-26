@@ -1,32 +1,37 @@
 # Rapport de contrôle qualité — SOULEIKA QUEEN
 
 ## Souleika_Queen_Anniversaire_1080x1920.mp4
-- Vidéo : h264 High niveau 42, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5376 images, 179.200 s, couleurs bt709/bt709/bt709
-- Audio : aac LC, 48000 Hz, 2 canaux, 323 kb/s, 179.160 s
-- Conteneur : 179.200 s, 300.1 Mo, débit global 13.4 Mb/s
-- Sonie : -14.5 LUFS intégrés, LRA 5.3 LU, crête vraie -1.1 dBTP, échantillon max 0.725
-- Son présent : 179.18 s décodées ; secondes sous −45 dBFS : aucune
-- Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('179.067', '179.167')]
+- Vidéo : h264 High niveau 42, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5565 images, 185.500 s, couleurs bt709/bt709/bt709
+- Audio : aac LC, 48000 Hz, 2 canaux, 321 kb/s, 185.500 s
+- Conteneur : 185.500 s, 310.6 Mo, débit global 13.4 Mb/s
+- Sonie : -14.5 LUFS intégrés, LRA 5.6 LU, crête vraie -1.2 dBTP, échantillon max 0.724
+- Son présent : 185.51 s décodées ; secondes sous −45 dBFS : [182, 183, 184]
+- Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('185.067', '185.467')]
 - faststart (atome moov avant mdat) : oui
 
 ## Souleika_Queen_Partage.mp4
-- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5376 images, 179.200 s, couleurs bt709/bt709/bt709
-- Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 179.160 s
-- Conteneur : 179.200 s, 73.8 Mo, débit global 3.3 Mb/s
-- Sonie : -14.5 LUFS intégrés, LRA 5.3 LU, crête vraie -1.5 dBTP, échantillon max 0.726
-- Son présent : 179.18 s décodées ; secondes sous −45 dBFS : aucune
-- Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333')]
+- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5565 images, 185.500 s, couleurs bt709/bt709/bt709
+- Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 185.500 s
+- Conteneur : 185.500 s, 76.2 Mo, débit global 3.3 Mb/s
+- Sonie : -14.6 LUFS intégrés, LRA 5.6 LU, crête vraie -1.5 dBTP, échantillon max 0.718
+- Son présent : 185.51 s décodées ; secondes sous −45 dBFS : [182, 183, 184]
+- Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('185.067', '185.467')]
 - faststart (atome moov avant mdat) : oui
 
-## Souleika_Queen_Statut_WhatsApp_1-2.mp4
-- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 2678 images, 89.267 s, couleurs bt709/bt709/bt709
-- Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 89.240 s
-- Conteneur : 89.267 s, 44.3 Mo, débit global 4.0 Mb/s
+## Souleika_Queen_Statut_WhatsApp_1-3.mp4
+- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 1883 images, 62.767 s, couleurs bt709/bt709/bt709
+- Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 62.750 s
+- Conteneur : 62.767 s, 31.2 Mo, débit global 4.0 Mb/s
 
-## Souleika_Queen_Statut_WhatsApp_2-2.mp4
-- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 2698 images, 89.933 s, couleurs bt709/bt709/bt709
-- Audio : aac LC, 48000 Hz, 2 canaux, 164 kb/s, 89.920 s
-- Conteneur : 89.933 s, 49.8 Mo, débit global 4.4 Mb/s
+## Souleika_Queen_Statut_WhatsApp_2-3.mp4
+- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 2083 images, 69.433 s, couleurs bt709/bt709/bt709
+- Audio : aac LC, 48000 Hz, 2 canaux, 164 kb/s, 69.440 s
+- Conteneur : 69.440 s, 36.1 Mo, débit global 4.2 Mb/s
+
+## Souleika_Queen_Statut_WhatsApp_3-3.mp4
+- Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 1599 images, 53.300 s, couleurs bt709/bt709/bt709
+- Audio : aac LC, 48000 Hz, 2 canaux, 163 kb/s, 53.310 s
+- Conteneur : 53.310 s, 30.4 Mo, débit global 4.6 Mb/s
 
 ## Photos utilisées (plans)
 - P00 : 1 plans (S01)
@@ -65,7 +70,7 @@ Photos absentes : aucune
 - T17 [162.25–164.95 s] « Que Dieu te bénisse » : OK
 - T18 [170.05–173.15 s] « Souleika Soultan » : OK
 - T19 [173.45–175.95 s] « Waan ku jeclahay » : OK
-- T20 [176.15–179.20 s] « Je te MOUA… » : OK
-- T21 [177.30–179.20 s] « Dian K. Pro » : OK
+- T20 [176.15–185.50 s] « Je te MOUA… » : OK
+- T21 [179.60–185.50 s] « Dian K. Pro » : OK
 
 ## Planche : 43 vignettes (une par plan + image 0)

@@ -1,7 +1,9 @@
 # SOULEIKA QUEEN — L’amour en lumière
 
 Clip anniversaire (31 octobre) monté par programme à partir des photos et du chant fournis par Dr Dian Sidibé.
-Format vertical 1080 × 1920, 30 i/s, H.264 + AAC, durée calée sur l’enregistrement (179,2 s).
+Format vertical 1080 × 1920, 30 i/s, H.264 + AAC. Durée 185,5 s : le chant complet (179,2 s) puis une fin en douceur
+(queue de réverbération du chant, « Je te MOUA… » tenu, fondu au noir). Réglages de cette fin : `audio_ending` dans
+`config/timeline.json`, rendu par `src/audio_master.py`.
 
 ## Refaire le rendu
 
