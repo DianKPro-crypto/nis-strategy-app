@@ -150,7 +150,8 @@ def storyboard(tl):
         board.paste(Image.open(fpath).convert("RGB"), (x, y))
         d.rectangle([x - 1, y - 1, x + tw, y + th], outline=(214, 183, 119), width=1)
         d.text((x + 2, y + th + 8), f"{sid} · {tc(t)[:5]} · {ph}", font=fl, fill=(245, 239, 229))
-        d.text((x + 2, y + th + 36), sec[:30], font=fl2, fill=(214, 183, 119))
+        lab2 = sec if fl2.getlength(sec) <= tw - 4 else sec[:max(1, int(len(sec) * (tw - 16) / fl2.getlength(sec)))].rstrip(" ,") + "…"
+        d.text((x + 2, y + th + 36), lab2, font=fl2, fill=(214, 183, 119))
     board.save(BOARD, quality=90)
     return items
 
@@ -162,7 +163,7 @@ def timeline_csv(tl):
     lyr = load_json("analysis/lyrics_aligned.json")["lines"]
     with open(CSVF, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f, delimiter=";")
-        w.writerow(["Plan", "Section", "Début (s)", "Fin (s)", "Début (mm:ss.ii)", "Fin (mm:ss.ii)", "Durée (s)",
+        w.writerow(["Plan", "Section", "Début (s)", "Fin (s)", "Début (mm:ss:ii, ii = image)", "Fin (mm:ss:ii)", "Durée (s)",
                     "Photo(s)", "Cadrage zoom début→fin", "Point source début→fin", "Transition d'entrée",
                     "Texte(s) à l'écran [début–fin s]", "Paroles chantées pendant le plan (vérifiées)"])
         for s in tl["shots"]:

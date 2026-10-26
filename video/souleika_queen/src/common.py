@@ -54,8 +54,8 @@ EASE = {
 
 
 def tc(t):
-    """Secondes -> mm:ss.ff (images)."""
+    """Secondes -> code temporel mm:ss:ii (ii = numéro d'image, 30 par seconde)."""
     f = int(round(t * FPS))
     s, ff = divmod(f, FPS)
     m, s = divmod(s, 60)
-    return f"{m:02d}:{s:02d}.{ff:02d}"
+    return f"{m:02d}:{s:02d}:{ff:02d}"
