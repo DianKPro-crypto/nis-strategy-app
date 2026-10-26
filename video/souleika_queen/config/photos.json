@@ -1,94 +1,358 @@
 {
-  "_doc": "Identification visuelle des photos. Coordonnées normalisées (0-1) dans l'image source après correction EXIF. focus = point focal par défaut ; protect = zones à ne jamais couvrir de texte (visage, yeux, bouche, mains importantes, graphisme). Les fichiers dans sources/ sont des copies en lecture seule des envois de Dr Sidibé.",
-  "P00": {
-    "file": "sources/photos/P00_couverture_dian_k_pro.png",
-    "upload": "c653cf03-image.png",
-    "desc": "Page d'accueil : homme en costume dans un téléphone, tendant une bague-fleur rose",
-    "focus": [0.64, 0.30],
-    "protect": {"visage": [0.52, 0.18, 0.77, 0.43], "main_bague": [0.03, 0.26, 0.48, 0.82]}
-  },
-  "P01": {
-    "file": "sources/photos/P01_robe_jaune_SOULEIKA.jpg",
-    "upload": "5c8cae49-image.jpg",
-    "desc": "Robe jaune, fond jaune, grand texte vertical SOULEIKA",
-    "focus": [0.75, 0.30],
-    "protect": {"visage": [0.59, 0.15, 0.93, 0.44], "main": [0.08, 0.24, 0.50, 0.54], "graphisme_SOULEIKA": [0.0, 0.0, 0.42, 1.0]}
-  },
-  "P02": {
-    "file": "sources/photos/P02_tenue_marine_sourire.png",
-    "upload": "82b998b1-image.png",
-    "desc": "Tenue bleu marine, sourire, intérieur lumineux (horizontale)",
-    "focus": [0.47, 0.34],
-    "protect": {"visage": [0.34, 0.03, 0.60, 0.66]}
-  },
-  "P03": {
-    "file": "sources/photos/P03_voile_menthe_lunettes.png",
-    "upload": "9cdc60ea-image.png",
-    "desc": "Voile vert menthe, lunettes, gros plan (carrée)",
-    "focus": [0.52, 0.42],
-    "protect": {"lunettes_yeux": [0.06, 0.02, 0.96, 0.40], "bouche": [0.32, 0.44, 0.66, 0.70]}
-  },
-  "P04": {
-    "file": "sources/photos/P04_robe_pastel_assise.png",
-    "upload": "023b4195-image.png",
-    "desc": "Robe pastel rose et bleu, assise sur une chaise",
-    "focus": [0.45, 0.27],
-    "protect": {"visage": [0.29, 0.13, 0.63, 0.41], "mains": [0.30, 0.52, 0.76, 0.78]}
-  },
-  "P05": {
-    "file": "sources/photos/P05_haut_raye_voiture.jpg",
-    "upload": "32d69532-image.jpg",
-    "desc": "Haut rayé rose, selfie en voiture, ceinture, lumière solaire",
-    "focus": [0.47, 0.32],
-    "protect": {"visage": [0.29, 0.12, 0.65, 0.48]}
-  },
-  "P06": {
-    "file": "sources/photos/P06_tenue_fleurie_violette.png",
-    "upload": "1337cda6-image.png",
-    "desc": "Tenue fleurie violette, expression de baiser (horizontale)",
-    "focus": [0.52, 0.33],
-    "protect": {"visage": [0.38, 0.06, 0.66, 0.64]}
-  },
-  "P07": {
-    "file": "sources/photos/P07_chemise_blanche_contreplongee.png",
-    "upload": "7146abf8-image.png",
-    "desc": "Chemise blanche, baiser en contre-plongée, lunettes sur la tête",
-    "focus": [0.48, 0.55],
-    "protect": {"visage": [0.07, 0.27, 0.87, 0.87]}
-  },
-  "P08": {
-    "file": "sources/photos/P08_tenue_noire_fond_beige.jpg",
-    "upload": "58017947-image.jpg",
-    "desc": "Tenue noire, léger sourire, fond beige (4:3)",
-    "focus": [0.66, 0.38],
-    "protect": {"visage": [0.40, 0.0, 0.96, 0.73]}
-  },
-  "P09": {
-    "file": "sources/photos/P09_miroir_vegetation.png",
-    "upload": "fd21ccbd-image.png",
-    "desc": "Tenue crème, baiser envoyé avec la main, miroir rond entouré de végétation",
-    "focus": [0.585, 0.56],
-    "protect": {"visage": [0.44, 0.41, 0.73, 0.68], "main": [0.47, 0.63, 0.71, 0.74]}
-  },
-  "P10": {
-    "file": "sources/photos/P10_gros_plan_cheveux_longs.jpg",
-    "upload": "e499a0f7-image.jpg",
-    "desc": "Cheveux longs, gros plan allongée (oreiller à motifs rouges)",
-    "focus": [0.45, 0.42],
-    "protect": {"visage": [0.0, 0.08, 0.96, 0.70]}
-  },
-  "P11": {
-    "file": "sources/photos/P11_robe_jaune_horizontale.png",
-    "upload": "d711ab92-image.png",
-    "desc": "Photo supplémentaire : robe jaune, signe de paix, baiser (horizontale)",
-    "focus": [0.62, 0.33],
-    "protect": {"visage": [0.50, 0.03, 0.77, 0.63], "main": [0.07, 0.11, 0.34, 0.80]}
-  },
-  "P12": {
-    "file": "sources/photos/P12_voile_sarcelle_restaurant.jpg",
-    "upload": "f0b7354c-image.jpg",
-    "desc": "Photo supplémentaire : voile bleu sarcelle, main sur la joue, restaurant",
-    "focus": [0.53, 0.38],
-    "protect": {"visage": [0.43, 0.17, 0.64, 0.57], "main": [0.52, 0.38, 0.68, 0.67]}
+ "_doc": "Identification visuelle des photos. Coordonnées normalisées (0-1) dans l'image source après correction EXIF. focus = point focal par défaut ; protect = zones à ne jamais couvrir de texte (visage, yeux, bouche, mains importantes, graphisme). Les fichiers dans sources/ sont des copies en lecture seule des envois de Dr Sidibé.",
+ "P00": {
+  "file": "sources/photos/P00_couverture_dian_k_pro.png",
+  "upload": "c653cf03-image.png",
+  "desc": "Page d'accueil : homme en costume dans un téléphone, tendant une bague-fleur rose",
+  "focus": [
+   0.64,
+   0.3
+  ],
+  "protect": {
+   "visage": [
+    0.52,
+    0.18,
+    0.77,
+    0.43
+   ],
+   "main_bague": [
+    0.03,
+    0.26,
+    0.48,
+    0.82
+   ]
   }
+ },
+ "P01": {
+  "file": "sources/photos/P01_robe_jaune_SOULEIKA.jpg",
+  "upload": "5c8cae49-image.jpg",
+  "desc": "Robe jaune, fond jaune, grand texte vertical SOULEIKA",
+  "focus": [
+   0.75,
+   0.3
+  ],
+  "protect": {
+   "visage": [
+    0.59,
+    0.15,
+    0.93,
+    0.44
+   ],
+   "main": [
+    0.08,
+    0.24,
+    0.5,
+    0.54
+   ],
+   "graphisme_SOULEIKA": [
+    0.0,
+    0.0,
+    0.42,
+    1.0
+   ]
+  }
+ },
+ "P02": {
+  "file": "sources/photos/P02_tenue_marine_sourire.png",
+  "upload": "82b998b1-image.png",
+  "desc": "Tenue bleu marine, sourire, intérieur lumineux (horizontale)",
+  "focus": [
+   0.47,
+   0.34
+  ],
+  "protect": {
+   "visage": [
+    0.34,
+    0.03,
+    0.6,
+    0.66
+   ]
+  }
+ },
+ "P03": {
+  "file": "sources/photos/P03_voile_menthe_lunettes.png",
+  "upload": "9cdc60ea-image.png",
+  "desc": "Voile vert menthe, lunettes, gros plan (carrée)",
+  "focus": [
+   0.52,
+   0.42
+  ],
+  "protect": {
+   "lunettes_yeux": [
+    0.06,
+    0.02,
+    0.96,
+    0.4
+   ],
+   "bouche": [
+    0.32,
+    0.44,
+    0.66,
+    0.7
+   ]
+  }
+ },
+ "P04": {
+  "file": "sources/photos/P04_robe_pastel_assise.png",
+  "upload": "023b4195-image.png",
+  "desc": "Robe pastel rose et bleu, assise sur une chaise",
+  "focus": [
+   0.45,
+   0.27
+  ],
+  "protect": {
+   "visage": [
+    0.29,
+    0.13,
+    0.63,
+    0.41
+   ],
+   "mains": [
+    0.3,
+    0.52,
+    0.76,
+    0.78
+   ]
+  }
+ },
+ "P05": {
+  "file": "sources/photos/P05_haut_raye_voiture.jpg",
+  "upload": "32d69532-image.jpg",
+  "desc": "Haut rayé rose, selfie en voiture, ceinture, lumière solaire",
+  "focus": [
+   0.47,
+   0.32
+  ],
+  "protect": {
+   "visage": [
+    0.29,
+    0.12,
+    0.65,
+    0.48
+   ]
+  }
+ },
+ "P06": {
+  "file": "sources/photos/P06_tenue_fleurie_violette.png",
+  "upload": "1337cda6-image.png",
+  "desc": "Tenue fleurie violette, expression de baiser (horizontale)",
+  "focus": [
+   0.52,
+   0.33
+  ],
+  "protect": {
+   "visage": [
+    0.38,
+    0.06,
+    0.66,
+    0.64
+   ]
+  }
+ },
+ "P07": {
+  "file": "sources/photos/P07_chemise_blanche_contreplongee.png",
+  "upload": "7146abf8-image.png",
+  "desc": "Chemise blanche, baiser en contre-plongée, lunettes sur la tête",
+  "focus": [
+   0.48,
+   0.55
+  ],
+  "protect": {
+   "visage": [
+    0.07,
+    0.27,
+    0.87,
+    0.87
+   ]
+  }
+ },
+ "P08": {
+  "file": "sources/photos/P08_tenue_noire_fond_beige.jpg",
+  "upload": "58017947-image.jpg",
+  "desc": "Tenue noire, léger sourire, fond beige (4:3)",
+  "focus": [
+   0.66,
+   0.38
+  ],
+  "protect": {
+   "visage": [
+    0.4,
+    0.0,
+    0.96,
+    0.73
+   ]
+  }
+ },
+ "P09": {
+  "file": "sources/photos/P09_miroir_vegetation.png",
+  "upload": "fd21ccbd-image.png",
+  "desc": "Tenue crème, baiser envoyé avec la main, miroir rond entouré de végétation",
+  "focus": [
+   0.585,
+   0.56
+  ],
+  "protect": {
+   "visage": [
+    0.44,
+    0.41,
+    0.73,
+    0.68
+   ],
+   "main": [
+    0.47,
+    0.63,
+    0.71,
+    0.74
+   ]
+  }
+ },
+ "P10": {
+  "file": "sources/photos/P10_gros_plan_cheveux_longs.jpg",
+  "upload": "e499a0f7-image.jpg",
+  "desc": "Cheveux longs, gros plan allongée (oreiller à motifs rouges)",
+  "focus": [
+   0.45,
+   0.42
+  ],
+  "protect": {
+   "visage": [
+    0.0,
+    0.08,
+    0.96,
+    0.7
+   ]
+  }
+ },
+ "P11": {
+  "file": "sources/photos/P11_robe_jaune_horizontale.png",
+  "upload": "d711ab92-image.png",
+  "desc": "Photo supplémentaire : robe jaune, signe de paix, baiser (horizontale)",
+  "focus": [
+   0.62,
+   0.33
+  ],
+  "protect": {
+   "visage": [
+    0.5,
+    0.03,
+    0.77,
+    0.63
+   ],
+   "main": [
+    0.07,
+    0.11,
+    0.34,
+    0.8
+   ]
+  }
+ },
+ "P12": {
+  "file": "sources/photos/P12_voile_sarcelle_restaurant.jpg",
+  "upload": "f0b7354c-image.jpg",
+  "desc": "Photo supplémentaire : voile bleu sarcelle, main sur la joue, restaurant",
+  "focus": [
+   0.53,
+   0.38
+  ],
+  "protect": {
+   "visage": [
+    0.43,
+    0.17,
+    0.64,
+    0.57
+   ],
+   "main": [
+    0.52,
+    0.38,
+    0.68,
+    0.67
+   ]
+  }
+ },
+ "P13": {
+  "file": "sources/photos/P13_voile_rose_papillons.png",
+  "upload": "9a7c4bed-image.png",
+  "desc": "Version artistique fournie : voile rose, main sous le menton, envol de papillons (fond bleu-vert)",
+  "focus": [
+   0.36,
+   0.26
+  ],
+  "protect": {
+   "visage": [
+    0.16,
+    0.09,
+    0.53,
+    0.38
+   ],
+   "main": [
+    0.42,
+    0.3,
+    0.61,
+    0.45
+   ]
+  }
+ },
+ "P14": {
+  "file": "sources/photos/P14_rayons_dores.png",
+  "upload": "b328c276-image.png",
+  "desc": "Version artistique fournie : cheveux longs, rayons et particules dorés venant d'en haut",
+  "focus": [
+   0.4,
+   0.45
+  ],
+  "protect": {
+   "visage": [
+    0.21,
+    0.23,
+    0.59,
+    0.67
+   ]
+  }
+ },
+ "P15": {
+  "file": "sources/photos/P15_voile_sarcelle_petales.png",
+  "upload": "eeaa8023-image.png",
+  "desc": "Version artistique fournie : voile sarcelle, main sur la joue, envol de pétales de rose",
+  "focus": [
+   0.38,
+   0.45
+  ],
+  "protect": {
+   "visage": [
+    0.19,
+    0.29,
+    0.53,
+    0.57
+   ],
+   "main": [
+    0.34,
+    0.43,
+    0.57,
+    0.7
+   ]
+  }
+ },
+ "P16": {
+  "file": "sources/photos/P16_robe_jaune_eclats_or.png",
+  "upload": "6b789000-image.png",
+  "desc": "Version artistique fournie : robe jaune, signe de paix, éclats d'or et de cendre (horizontale)",
+  "focus": [
+   0.62,
+   0.33
+  ],
+  "protect": {
+   "visage": [
+    0.49,
+    0.02,
+    0.78,
+    0.64
+   ],
+   "main": [
+    0.06,
+    0.1,
+    0.35,
+    0.82
+   ]
+  }
+ }
 }

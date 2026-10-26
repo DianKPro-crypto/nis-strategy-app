@@ -382,18 +382,18 @@
     1460
    ],
    "anim": "rise",
-   "scrim": 0.4,
+   "scrim": 0.62,
    "sung": 162.2,
    "lines": [
     {
      "text": "Que Dieu te bénisse",
      "style": "display_italic",
-     "size": 80
+     "size": 86
     },
     {
      "text": "chaque jour",
      "style": "display_italic",
-     "size": 80
+     "size": 86
     }
    ]
   },
