@@ -3,7 +3,7 @@
 ## Souleika_Queen_Anniversaire_1080x1920.mp4
 - Vidéo : h264 High niveau 42, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5565 images, 185.500 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 321 kb/s, 185.500 s
-- Conteneur : 185.500 s, 310.6 Mo, débit global 13.4 Mb/s
+- Conteneur : 185.500 s, 317.2 Mo, débit global 13.7 Mb/s
 - Sonie : -14.5 LUFS intégrés, LRA 5.6 LU, crête vraie -1.2 dBTP, échantillon max 0.724
 - Son présent : 185.51 s décodées ; secondes sous −45 dBFS : [182, 183, 184]
 - Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('185.067', '185.467')]
@@ -12,7 +12,7 @@
 ## Souleika_Queen_Partage.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5565 images, 185.500 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 185.500 s
-- Conteneur : 185.500 s, 76.2 Mo, débit global 3.3 Mb/s
+- Conteneur : 185.500 s, 81.2 Mo, débit global 3.5 Mb/s
 - Sonie : -14.6 LUFS intégrés, LRA 5.6 LU, crête vraie -1.5 dBTP, échantillon max 0.718
 - Son présent : 185.51 s décodées ; secondes sous −45 dBFS : [182, 183, 184]
 - Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('185.067', '185.467')]
@@ -21,32 +21,36 @@
 ## Souleika_Queen_Statut_WhatsApp_1-3.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 1883 images, 62.767 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 62.750 s
-- Conteneur : 62.767 s, 31.2 Mo, débit global 4.0 Mb/s
+- Conteneur : 62.767 s, 32.6 Mo, débit global 4.2 Mb/s
 
 ## Souleika_Queen_Statut_WhatsApp_2-3.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 2083 images, 69.433 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 164 kb/s, 69.440 s
-- Conteneur : 69.440 s, 36.1 Mo, débit global 4.2 Mb/s
+- Conteneur : 69.440 s, 37.5 Mo, débit global 4.3 Mb/s
 
 ## Souleika_Queen_Statut_WhatsApp_3-3.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 1599 images, 53.300 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 163 kb/s, 53.310 s
-- Conteneur : 53.310 s, 30.4 Mo, débit global 4.6 Mb/s
+- Conteneur : 53.310 s, 31.3 Mo, débit global 4.7 Mb/s
 
 ## Photos utilisées (plans)
 - P00 : 1 plans (S01)
-- P01 : 4 plans (S02, S09, S28, S40)
-- P02 : 6 plans (S15, S18, S26, S34, S37, S41)
-- P03 : 3 plans (S21, S22, S23)
-- P04 : 5 plans (S07, S10, S31, S35, S42)
-- P05 : 4 plans (S17, S25, S33, S34)
-- P06 : 5 plans (S12, S14, S24, S30, S38)
-- P07 : 3 plans (S19, S27, S36)
-- P08 : 5 plans (S06, S13, S24, S32, S38)
-- P09 : 1 plans (S43)
-- P10 : 2 plans (S08, S20)
-- P11 : 7 plans (S04, S05, S11, S15, S29, S34, S39)
-- P12 : 4 plans (S03, S16, S24, S38)
+- P01 : 4 plans (S02, S10, S27, S37)
+- P02 : 3 plans (S16, S19, S25)
+- P03 : 3 plans (S22, S23, S32)
+- P04 : 3 plans (S08, S17, S32)
+- P05 : 3 plans (S18, S26, S33)
+- P06 : 3 plans (S15, S25, S31)
+- P07 : 3 plans (S20, S35, S36)
+- P08 : 3 plans (S07, S14, S25)
+- P09 : 1 plans (S41)
+- P10 : 3 plans (S09, S21, S32)
+- P11 : 3 plans (S12, S16, S28)
+- P12 : 3 plans (S03, S24, S34)
+- P13 : 2 plans (S11, S38)
+- P14 : 2 plans (S06, S39)
+- P15 : 2 plans (S13, S40)
+- P16 : 4 plans (S04, S05, S29, S30)
 
 Photos absentes : aucune
 
@@ -73,4 +77,4 @@ Photos absentes : aucune
 - T20 [176.15–185.50 s] « Je te MOUA… » : OK
 - T21 [179.60–185.50 s] « Dian K. Pro » : OK
 
-## Planche : 43 vignettes (une par plan + image 0)
+## Planche : 41 vignettes (une par plan + image 0)
