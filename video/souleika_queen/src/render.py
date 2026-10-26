@@ -77,10 +77,16 @@ class Renderer:
 
     @staticmethod
     def _interp(spec, s, t):
-        span = max(1e-6, s["ve"] - s["vs"])
+        end = s.get("cam_end", s["ve"])            # cam_end : mouvement principal terminé avant la fin du plan
+        span = max(1e-6, end - s["vs"])
         e = EASE[s.get("ease", "inOutSine")](clamp((t - s["vs"]) / span))
         z = spec["z0"] * (spec["z1"] / spec["z0"]) ** e
         c = (lerp(spec["c0"][0], spec["c1"][0], e), lerp(spec["c0"][1], spec["c1"][1], e))
+        if "z2" in spec and t > end:                # puis dérive très lente jusqu'à la fin (z2, c2)
+            e2 = EASE["inOutSine"](clamp((t - end) / max(1e-6, s["ve"] - end)))
+            c2 = spec.get("c2", spec["c1"])
+            z = spec["z1"] * (spec["z2"] / spec["z1"]) ** e2
+            c = (lerp(spec["c1"][0], c2[0], e2), lerp(spec["c1"][1], c2[1], e2))
         return z, c
 
     def camera(self, s, t, role=None, p=0.0):

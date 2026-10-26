@@ -5,10 +5,6 @@
  "height": 1920,
  "audio": "sources/audio/SOULEIKA_QUEEN.mp3",
  "audio_gain_db": 1.7,
- "audio_fade_out": [
-  177.9,
-  1.284
- ],
  "sections": {
   "00 Page d'accueil": {
    "grade": "warm",
@@ -1139,7 +1135,7 @@
    "id": "S43",
    "section": "12 Final",
    "start": 169.89,
-   "end": 179.2,
+   "end": 185.5,
    "photo": "P09",
    "z0": 1.35,
    "z1": 0.703,
@@ -1155,8 +1151,15 @@
     "type": "light",
     "dur": 1.0
    },
-   "fade_out": 0.75,
-   "lyrics": "Souleika Soultan, mon étoile, ma joie ! Que le bonheur fleurisse autour de toi ! Souleika…"
+   "fade_out": 2.6,
+   "lyrics": "Souleika Soultan, mon étoile, ma joie ! Que le bonheur fleurisse autour de toi ! Souleika… (puis queue de réverbération)",
+   "cam_end": 179.2,
+   "z2": 0.72,
+   "c2": [
+    0.5,
+    0.5
+   ],
+   "note": "Fin prolongée : « Je te MOUA… » tenu jusqu'au fondu final"
   }
  ],
  "events": [
@@ -1239,5 +1242,20 @@
    "y": 0.62,
    "strength": 0.35
   }
- ]
+ ],
+ "audio_ending": {
+  "_doc": "Fin en douceur (voir src/audio_master.py) : passe-bas progressif et extinction de la musique, queue de réverbération du chant lui-même, silence exact à la dernière image.",
+  "soften_start": 177.9,
+  "soften_amount": 0.75,
+  "lowpass_hz": 1400,
+  "dry_fade_start": 178.0,
+  "dry_fade_end": 179.184,
+  "send_start": 177.4,
+  "send_full": 178.7,
+  "rt60": 6.5,
+  "wet_db": -6.0,
+  "wet_hp_hz": 160,
+  "wet_lp_hz": 6000,
+  "final_fade_start": 183.6
+ }
 }

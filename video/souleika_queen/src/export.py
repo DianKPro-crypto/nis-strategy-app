@@ -24,7 +24,10 @@ MAIN = EXP / "Souleika_Queen_Anniversaire_1080x1920.mp4"
 SHARE = EXP / "Souleika_Queen_Partage.mp4"
 BOARD = EXP / "Souleika_Queen_Storyboard.jpg"
 CSVF = EXP / "Souleika_Queen_Timeline.csv"
-STATUS = [EXP / "Souleika_Queen_Statut_WhatsApp_1-2.mp4", EXP / "Souleika_Queen_Statut_WhatsApp_2-2.mp4"]
+# Statut WhatsApp : 90 s maximum par élément -> découpage sur des articulations musicales
+# (avant la reprise « Souleika Queen », début du solo de kora)
+STATUS_CUTS = [0.0, 62.75, 132.19]
+STATUS = [EXP / f"Souleika_Queen_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
 WORKERS, CHUNKS = 4, 12
 
 
@@ -62,37 +65,32 @@ def render_all(tl):
     print(f"rendu terminé en {time.time() - t0:.0f} s, {n} images")
 
 
-def audio_filter(tl):
-    st, d = tl["audio_fade_out"]
-    return f"volume={tl['audio_gain_db']}dB,afade=t=out:st={st}:d={d}"
-
-
 COLOR = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
 
 
 def encode(tl):
     EXP.mkdir(exist_ok=True)
     src = WORK / "master_lossless.mkv"
-    aud = ROOT / tl["audio"]
+    import audio_master
+    aud = audio_master.build()          # gain mesuré + fin en douceur (queue de réverbération)
     common_v = ["-pix_fmt", "yuv420p", "-r", str(FPS), "-fps_mode", "cfr", *COLOR, "-movflags", "+faststart"]
     run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a",
          "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-tune", "film", "-profile:v", "high", "-level:v", "4.2",
          "-maxrate", "40M", "-bufsize", "60M", *common_v,
-         "-af", audio_filter(tl), "-c:a", "aac", "-b:a", "320k", "-ar", "48000", "-ac", "2", MAIN])
+         "-c:a", "aac", "-b:a", "320k", "-ar", "48000", "-ac", "2", MAIN])
     run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a",
          "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-profile:v", "high", "-level:v", "4.1",
          "-maxrate", "4500k", "-bufsize", "9M", *common_v,
-         "-af", audio_filter(tl), "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2", SHARE])
-    # Déclinaison Statut WhatsApp (préférence Dr Sidibé : 90 s maximum par élément) -> 2 parties
-    cut = 89.24   # temps fort de l'interlude instrumental : chaque partie <= 90 s
+         "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2", SHARE])
     end = total_frames(tl) / FPS
-    for k, (a, b) in enumerate([(0.0, cut), (cut, end)]):
-        af = audio_filter(tl) + f",atrim={a}:{b},asetpts=PTS-STARTPTS,afade=t=in:d=0.25,afade=t=out:st={b - a - 0.3:.3f}:d=0.3"
-        if k == 0:
-            af = f"volume={tl['audio_gain_db']}dB,atrim={a}:{b},asetpts=PTS-STARTPTS,afade=t=out:st={b - a - 0.3:.3f}:d=0.3"
-        run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a",
-             "-vf", f"trim={a}:{b},setpts=PTS-STARTPTS" + (",fade=t=in:d=0.3" if k else f",fade=t=out:st={b - a - 0.3:.3f}:d=0.3"),
-             "-af", af, "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-profile:v", "high", "-level:v", "4.1",
+    bounds = STATUS_CUTS + [end]
+    for k in range(len(STATUS_CUTS)):
+        a, b = bounds[k], bounds[k + 1]
+        last = k == len(STATUS_CUTS) - 1
+        vf = f"trim={a}:{b},setpts=PTS-STARTPTS" + (",fade=t=in:d=0.3" if k else "") + ("" if last else f",fade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+        af = f"atrim={a}:{b},asetpts=PTS-STARTPTS" + (",afade=t=in:d=0.25" if k else "") + ("" if last else f",afade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+        run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a", "-vf", vf, "-af", af,
+             "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-profile:v", "high", "-level:v", "4.1",
              "-maxrate", "5M", "-bufsize", "10M", *common_v, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", STATUS[k]])
 
 

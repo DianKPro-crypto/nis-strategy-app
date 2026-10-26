@@ -1,77 +1,344 @@
 {
-  "_doc": "Paroles réellement chantées, alignées sur l'enregistrement (horodatage des mots par transcription locale faster-whisper small, orthographe rétablie d'après les paroles officielles intégrées au MP3). 'note' signale les écarts avec les paroles de référence.",
-  "audio_duration": 179.184,
-  "differences": [
-    "OUTRO absente : « J'aime ton rire… », « Waan ku jeclahay… », « Je te MOUA… » ne sont pas chantés. L'audio se termine après « Que le bonheur fleurisse autour de toi » et un dernier « Souleika… » (176,1 s), puis 2 s de musique coupée net à 179,18 s.",
-    "Dance break : le couplet « Sou-leï-ka ! / Hambalyo ! » est répété une fois de plus que dans la référence (153,7 s et 155,9 s).",
-    "Refrain 1 : le second « Eh ya ! Eh ya ! » (≈ 81,7 s) n'est pas reconnu par la transcription ; il est déduit de la structure."
-  ],
-  "lines": [
-    {"t": 5.34, "section": "Introduction", "text": "Eh eh… Souleika… Djibouti… Mali…"},
-    {"t": 8.74, "section": "Introduction", "text": "Aujourd’hui, le ciel sourit pour toi…"},
-    {"t": 14.54, "section": "Introduction", "text": "Trente et un octobre…"},
-    {"t": 18.24, "section": "Introduction", "text": "Souleika Soultan… Gacaliso !"},
-    {"t": 24.82, "section": "Introduction", "text": "Dhalasho wacan, mon amour !"},
-    {"t": 29.5, "section": "Instrumental", "text": "(entrée batterie et log drum)"},
-    {"t": 36.82, "section": "Couplet 1", "text": "Sous le soleil de Djibouti qui brille,"},
-    {"t": 39.34, "section": "Couplet 1", "text": "Une étoile rayonne et scintille."},
-    {"t": 41.3, "section": "Couplet 1", "text": "Souleika, ton sourire est ma joie,"},
-    {"t": 43.5, "section": "Couplet 1", "text": "Mon cœur s’éveille quand je pense à toi."},
-    {"t": 45.48, "section": "Couplet 1", "text": "J’aime ta franchise et ta sincérité,"},
-    {"t": 47.56, "section": "Couplet 1", "text": "Ta pudeur, ta grâce et ta dignité."},
-    {"t": 50.02, "section": "Couplet 1", "text": "Quand tu ris, mon univers s’éclaire,"},
-    {"t": 51.84, "section": "Couplet 1", "text": "Ta présence rend mes jours plus légers."},
-    {"t": 53.72, "section": "Pré-refrain", "text": "Souleika… ton nom fait battre mon cœur,"},
-    {"t": 56.96, "section": "Pré-refrain", "text": "Comme la kora qui chante le bonheur."},
-    {"t": 58.7, "section": "Pré-refrain", "text": "De Bamako jusqu’à Djibouti,"},
-    {"t": 60.8, "section": "Pré-refrain", "text": "Mon âme te murmure : Gacaliso !"},
-    {"t": 62.8, "section": "Refrain", "text": "Souleika Queen !"},
-    {"t": 64.66, "section": "Refrain", "text": "Dhalasho wacan, mon amour !"},
-    {"t": 66.92, "section": "Refrain", "text": "Souleika Queen !"},
-    {"t": 68.28, "section": "Refrain", "text": "Que ton bonheur grandisse chaque jour !"},
-    {"t": 71.28, "section": "Refrain", "text": "Souleika ! Souleika !"},
-    {"t": 72.04, "section": "Refrain", "text": "Trente et un octobre, c’est ton jour !"},
-    {"t": 75.56, "section": "Refrain", "text": "Souleika ! Souleika !"},
-    {"t": 76.32, "section": "Refrain", "text": "Je te souhaite mille années d’amour !"},
-    {"t": 78.72, "section": "Refrain", "text": "Eh ya ! Eh ya !"},
-    {"t": 80.06, "section": "Refrain", "text": "Hambalyo, Souleika !"},
-    {"t": 81.7, "section": "Refrain", "text": "Eh ya ! Eh ya !", "note": "déduit"},
-    {"t": 83.24, "section": "Refrain", "text": "Waan ku jeclahay, Gacaliso !"},
-    {"t": 87.38, "section": "Instrumental", "text": "(interlude instrumental)"},
-    {"t": 96.14, "section": "Couplet 2", "text": "D’Ambouli à Balbala,"},
-    {"t": 98.14, "section": "Couplet 2", "text": "Les étoiles semblent danser pour toi."},
-    {"t": 100.36, "section": "Couplet 2", "text": "Aujourd’hui, c’est ta fête, Gacaliso,"},
-    {"t": 102.46, "section": "Couplet 2", "text": "Que la joie accompagne ta vie."},
-    {"t": 104.4, "section": "Couplet 2", "text": "Tu es drôle, tendre et naturelle,"},
-    {"t": 106.84, "section": "Couplet 2", "text": "Ton âme sincère est une merveille."},
-    {"t": 108.92, "section": "Couplet 2", "text": "Même quand nos messages nous réunissent,"},
-    {"t": 111.12, "section": "Couplet 2", "text": "Mon cœur s’emballe et mes yeux sourient."},
-    {"t": 114.1, "section": "Pont spirituel", "text": "Ya Allah… protège Souleika,"},
-    {"t": 117.0, "section": "Pont spirituel", "text": "Que Ta lumière accompagne ses pas."},
-    {"t": 119.18, "section": "Pont spirituel", "text": "Accorde-lui la paix et la santé,"},
-    {"t": 121.14, "section": "Pont spirituel", "text": "Des jours heureux, remplis de sérénité."},
-    {"t": 123.32, "section": "Pont spirituel", "text": "Ce n’est pas un hasard si nos chemins"},
-    {"t": 125.54, "section": "Pont spirituel", "text": "Se sont croisés sous le regard divin."},
-    {"t": 127.56, "section": "Pont spirituel", "text": "La quête d’Allah nous anime tous les deux,"},
-    {"t": 129.76, "section": "Pont spirituel", "text": "Qu’Il nous guide vers ce qui est le mieux."},
-    {"t": 132.19, "section": "Dance break", "text": "(solo de kora)"},
-    {"t": 139.58, "section": "Dance break", "text": "Eh eh ! Souleika Queen !"},
-    {"t": 141.12, "section": "Dance break", "text": "Kora du Mali… fais-la danser !"},
-    {"t": 143.22, "section": "Dance break", "text": "Log drum Amapiano… fais-la vibrer !"},
-    {"t": 145.38, "section": "Dance break", "text": "Sou-leï-ka ! Sou-leï-ka !"},
-    {"t": 147.36, "section": "Dance break", "text": "Dhalasho wacan, Gacaliso !"},
-    {"t": 149.5, "section": "Dance break", "text": "Sou-leï-ka ! Sou-leï-ka !"},
-    {"t": 151.6, "section": "Dance break", "text": "Hambalyo ! Hambalyo !"},
-    {"t": 153.7, "section": "Dance break", "text": "Sou-leï-ka ! Sou-leï-ka !", "note": "répétition absente de la référence"},
-    {"t": 155.9, "section": "Dance break", "text": "Hambalyo ! Hambalyo !", "note": "répétition absente de la référence"},
-    {"t": 157.16, "section": "Refrain final", "text": "Souleika Queen !"},
-    {"t": 158.4, "section": "Refrain final", "text": "Dhalasho wacan, mon amour !"},
-    {"t": 161.14, "section": "Refrain final", "text": "Souleika Queen ! Que Dieu te bénisse chaque jour !"},
-    {"t": 164.76, "section": "Refrain final", "text": "Trente et un octobre, jour de lumière,"},
-    {"t": 167.78, "section": "Refrain final", "text": "Je t’offre mon cœur et mes prières."},
-    {"t": 170.0, "section": "Refrain final", "text": "Souleika Soultan, mon étoile, ma joie,"},
-    {"t": 173.36, "section": "Refrain final", "text": "Que le bonheur fleurisse autour de toi !"},
-    {"t": 176.12, "section": "Fin", "text": "Souleika…"},
-    {"t": 177.3, "section": "Fin", "text": "(fin musicale, coupure de l’enregistrement à 179,18 s)"}
-  ]
+ "_doc": "Paroles réellement chantées, alignées sur l'enregistrement (horodatage des mots par transcription locale faster-whisper small, orthographe rétablie d'après les paroles officielles intégrées au MP3). 'note' signale les écarts avec les paroles de référence.",
+ "audio_duration": 179.184,
+ "differences": [
+  "OUTRO absente : « J'aime ton rire… », « Waan ku jeclahay… », « Je te MOUA… » ne sont pas chantés. L'audio se termine après « Que le bonheur fleurisse autour de toi » et un dernier « Souleika… » (176,1 s), puis 2 s de musique coupée net à 179,18 s.",
+  "Dance break : le couplet « Sou-leï-ka ! / Hambalyo ! » est répété une fois de plus que dans la référence (153,7 s et 155,9 s).",
+  "Refrain 1 : le second « Eh ya ! Eh ya ! » (≈ 81,7 s) n'est pas reconnu par la transcription ; il est déduit de la structure."
+ ],
+ "lines": [
+  {
+   "t": 5.34,
+   "section": "Introduction",
+   "text": "Eh eh… Souleika… Djibouti… Mali…"
+  },
+  {
+   "t": 8.74,
+   "section": "Introduction",
+   "text": "Aujourd’hui, le ciel sourit pour toi…"
+  },
+  {
+   "t": 14.54,
+   "section": "Introduction",
+   "text": "Trente et un octobre…"
+  },
+  {
+   "t": 18.24,
+   "section": "Introduction",
+   "text": "Souleika Soultan… Gacaliso !"
+  },
+  {
+   "t": 24.82,
+   "section": "Introduction",
+   "text": "Dhalasho wacan, mon amour !"
+  },
+  {
+   "t": 29.5,
+   "section": "Instrumental",
+   "text": "(entrée batterie et log drum)"
+  },
+  {
+   "t": 36.82,
+   "section": "Couplet 1",
+   "text": "Sous le soleil de Djibouti qui brille,"
+  },
+  {
+   "t": 39.34,
+   "section": "Couplet 1",
+   "text": "Une étoile rayonne et scintille."
+  },
+  {
+   "t": 41.3,
+   "section": "Couplet 1",
+   "text": "Souleika, ton sourire est ma joie,"
+  },
+  {
+   "t": 43.5,
+   "section": "Couplet 1",
+   "text": "Mon cœur s’éveille quand je pense à toi."
+  },
+  {
+   "t": 45.48,
+   "section": "Couplet 1",
+   "text": "J’aime ta franchise et ta sincérité,"
+  },
+  {
+   "t": 47.56,
+   "section": "Couplet 1",
+   "text": "Ta pudeur, ta grâce et ta dignité."
+  },
+  {
+   "t": 50.02,
+   "section": "Couplet 1",
+   "text": "Quand tu ris, mon univers s’éclaire,"
+  },
+  {
+   "t": 51.84,
+   "section": "Couplet 1",
+   "text": "Ta présence rend mes jours plus légers."
+  },
+  {
+   "t": 53.72,
+   "section": "Pré-refrain",
+   "text": "Souleika… ton nom fait battre mon cœur,"
+  },
+  {
+   "t": 56.96,
+   "section": "Pré-refrain",
+   "text": "Comme la kora qui chante le bonheur."
+  },
+  {
+   "t": 58.7,
+   "section": "Pré-refrain",
+   "text": "De Bamako jusqu’à Djibouti,"
+  },
+  {
+   "t": 60.8,
+   "section": "Pré-refrain",
+   "text": "Mon âme te murmure : Gacaliso !"
+  },
+  {
+   "t": 62.8,
+   "section": "Refrain",
+   "text": "Souleika Queen !"
+  },
+  {
+   "t": 64.66,
+   "section": "Refrain",
+   "text": "Dhalasho wacan, mon amour !"
+  },
+  {
+   "t": 66.92,
+   "section": "Refrain",
+   "text": "Souleika Queen !"
+  },
+  {
+   "t": 68.28,
+   "section": "Refrain",
+   "text": "Que ton bonheur grandisse chaque jour !"
+  },
+  {
+   "t": 71.28,
+   "section": "Refrain",
+   "text": "Souleika ! Souleika !"
+  },
+  {
+   "t": 72.04,
+   "section": "Refrain",
+   "text": "Trente et un octobre, c’est ton jour !"
+  },
+  {
+   "t": 75.56,
+   "section": "Refrain",
+   "text": "Souleika ! Souleika !"
+  },
+  {
+   "t": 76.32,
+   "section": "Refrain",
+   "text": "Je te souhaite mille années d’amour !"
+  },
+  {
+   "t": 78.72,
+   "section": "Refrain",
+   "text": "Eh ya ! Eh ya !"
+  },
+  {
+   "t": 80.06,
+   "section": "Refrain",
+   "text": "Hambalyo, Souleika !"
+  },
+  {
+   "t": 81.7,
+   "section": "Refrain",
+   "text": "Eh ya ! Eh ya !",
+   "note": "déduit"
+  },
+  {
+   "t": 83.24,
+   "section": "Refrain",
+   "text": "Waan ku jeclahay, Gacaliso !"
+  },
+  {
+   "t": 87.38,
+   "section": "Instrumental",
+   "text": "(interlude instrumental)"
+  },
+  {
+   "t": 96.14,
+   "section": "Couplet 2",
+   "text": "D’Ambouli à Balbala,"
+  },
+  {
+   "t": 98.14,
+   "section": "Couplet 2",
+   "text": "Les étoiles semblent danser pour toi."
+  },
+  {
+   "t": 100.36,
+   "section": "Couplet 2",
+   "text": "Aujourd’hui, c’est ta fête, Gacaliso,"
+  },
+  {
+   "t": 102.46,
+   "section": "Couplet 2",
+   "text": "Que la joie accompagne ta vie."
+  },
+  {
+   "t": 104.4,
+   "section": "Couplet 2",
+   "text": "Tu es drôle, tendre et naturelle,"
+  },
+  {
+   "t": 106.84,
+   "section": "Couplet 2",
+   "text": "Ton âme sincère est une merveille."
+  },
+  {
+   "t": 108.92,
+   "section": "Couplet 2",
+   "text": "Même quand nos messages nous réunissent,"
+  },
+  {
+   "t": 111.12,
+   "section": "Couplet 2",
+   "text": "Mon cœur s’emballe et mes yeux sourient."
+  },
+  {
+   "t": 114.1,
+   "section": "Pont spirituel",
+   "text": "Ya Allah… protège Souleika,"
+  },
+  {
+   "t": 117.0,
+   "section": "Pont spirituel",
+   "text": "Que Ta lumière accompagne ses pas."
+  },
+  {
+   "t": 119.18,
+   "section": "Pont spirituel",
+   "text": "Accorde-lui la paix et la santé,"
+  },
+  {
+   "t": 121.14,
+   "section": "Pont spirituel",
+   "text": "Des jours heureux, remplis de sérénité."
+  },
+  {
+   "t": 123.32,
+   "section": "Pont spirituel",
+   "text": "Ce n’est pas un hasard si nos chemins"
+  },
+  {
+   "t": 125.54,
+   "section": "Pont spirituel",
+   "text": "Se sont croisés sous le regard divin."
+  },
+  {
+   "t": 127.56,
+   "section": "Pont spirituel",
+   "text": "La quête d’Allah nous anime tous les deux,"
+  },
+  {
+   "t": 129.76,
+   "section": "Pont spirituel",
+   "text": "Qu’Il nous guide vers ce qui est le mieux."
+  },
+  {
+   "t": 132.19,
+   "section": "Dance break",
+   "text": "(solo de kora)"
+  },
+  {
+   "t": 139.58,
+   "section": "Dance break",
+   "text": "Eh eh ! Souleika Queen !"
+  },
+  {
+   "t": 141.12,
+   "section": "Dance break",
+   "text": "Kora du Mali… fais-la danser !"
+  },
+  {
+   "t": 143.22,
+   "section": "Dance break",
+   "text": "Log drum Amapiano… fais-la vibrer !"
+  },
+  {
+   "t": 145.38,
+   "section": "Dance break",
+   "text": "Sou-leï-ka ! Sou-leï-ka !"
+  },
+  {
+   "t": 147.36,
+   "section": "Dance break",
+   "text": "Dhalasho wacan, Gacaliso !"
+  },
+  {
+   "t": 149.5,
+   "section": "Dance break",
+   "text": "Sou-leï-ka ! Sou-leï-ka !"
+  },
+  {
+   "t": 151.6,
+   "section": "Dance break",
+   "text": "Hambalyo ! Hambalyo !"
+  },
+  {
+   "t": 153.7,
+   "section": "Dance break",
+   "text": "Sou-leï-ka ! Sou-leï-ka !",
+   "note": "répétition absente de la référence"
+  },
+  {
+   "t": 155.9,
+   "section": "Dance break",
+   "text": "Hambalyo ! Hambalyo !",
+   "note": "répétition absente de la référence"
+  },
+  {
+   "t": 157.16,
+   "section": "Refrain final",
+   "text": "Souleika Queen !"
+  },
+  {
+   "t": 158.4,
+   "section": "Refrain final",
+   "text": "Dhalasho wacan, mon amour !"
+  },
+  {
+   "t": 161.14,
+   "section": "Refrain final",
+   "text": "Souleika Queen ! Que Dieu te bénisse chaque jour !"
+  },
+  {
+   "t": 164.76,
+   "section": "Refrain final",
+   "text": "Trente et un octobre, jour de lumière,"
+  },
+  {
+   "t": 167.78,
+   "section": "Refrain final",
+   "text": "Je t’offre mon cœur et mes prières."
+  },
+  {
+   "t": 170.0,
+   "section": "Refrain final",
+   "text": "Souleika Soultan, mon étoile, ma joie,"
+  },
+  {
+   "t": 173.36,
+   "section": "Refrain final",
+   "text": "Que le bonheur fleurisse autour de toi !"
+  },
+  {
+   "t": 176.12,
+   "section": "Fin",
+   "text": "Souleika…"
+  },
+  {
+   "t": 177.3,
+   "section": "Fin",
+   "text": "(fin musicale : passe-bas et extinction, queue de réverbération jusqu’à 185,5 s)"
+  }
+ ]
 }
