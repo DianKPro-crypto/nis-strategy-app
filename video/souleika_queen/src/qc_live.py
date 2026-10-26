@@ -26,16 +26,15 @@ def motion(t0, t1, box):
     return float(np.median(d[4:]))
 
 
-def peaks_vs_beats(t0, t1, box, beats):
-    """Pics de luminosité d'une zone comparés aux temps de la musique."""
+def peaks_vs_beats(t0, t1, box, beats, thr=2.5):
+    """Montées de lumière d'une zone (hausse brusque d'une image à l'autre) comparées aux temps de la musique."""
     f = frames(t0, t1)
     x0, y0, x1, y1 = (int(box[0] * SW), int(box[1] * SH), int(box[2] * SW), int(box[3] * SH))
     lum = f[:, y0:y1, x0:x1].mean(axis=(1, 2))
-    lum = lum - np.convolve(lum, np.ones(9) / 9, mode="same")          # retire la dérive lente
-    pk = [i for i in range(2, len(lum) - 2) if lum[i] == lum[i - 2:i + 3].max() and lum[i] > 0.25 * lum.max()]
-    times = [t0 + i / FPS for i in pk]
-    bs = [b for b in beats if t0 + 0.1 < b < t1 - 0.1]
-    err = [min(abs(t - b) for t in times) for b in bs] if times else []
+    rise = np.diff(lum)
+    times = [t0 + (i + 1) / FPS for i in range(len(rise)) if rise[i] > thr and (i == 0 or rise[i - 1] <= thr)]
+    bs = [b for b in beats if t0 + 0.05 < b < t1 - 0.05]
+    err = [min(abs(t - b) for t in times) for b in bs] if times else [9.9 for _ in bs]
     return times, bs, err
 
 
@@ -60,13 +59,15 @@ def main():
         a, b = s["start"] + 0.5, s["end"] - 0.5
         lines.append(f"- {label} [{a:.1f}–{b:.1f} s] : {motion(a, b, box):.2f}")
     lines += ["", "## Calage sur les temps de la musique"]
-    for label, a, b, box in [("Pulsation des rayons dorés P14 (haut du cadre)", 37.3, 41.2, (0.25, 0.0, 0.75, 0.18)),
-                             ("Explosions d'or P16 (« Log drum… fais-la vibrer »)", 143.55, 145.3, (0.0, 0.0, 0.5, 1.0))]:
+    for label, a, b, box in [("Respiration de la lumière P14 (« une étoile rayonne et scintille »)", 37.3, 41.2, (0.25, 0.0, 0.75, 0.18)),
+                             ("Lueurs d'or P16 (entrée du groove, plan serré)", 33.9, 36.7, (0.0, 0.0, 0.3, 1.0)),
+                             ("Lueurs d'or P16 (« Log drum Amapiano »)", 143.55, 144.38, (0.0, 0.0, 0.3, 1.0)),
+                             ("Lueurs d'or P16 (« …fais-la vibrer », gros plan main)", 144.5, 145.3, (0.3, 0.0, 1.0, 1.0)),
+                             ("Respiration de la lumière P14 (« jour de lumière »)", 165.4, 167.6, (0.25, 0.0, 0.75, 0.18))]:
         times, bs, err = peaks_vs_beats(a, b, box, beats)
-        if err:
-            ok = sum(e <= 1.5 / FPS for e in err)
-            lines.append(f"- {label} : {len(times)} pics de lumière pour {len(bs)} temps ; "
-                         f"{ok}/{len(bs)} temps ont un pic à ±1,5 image ; écart médian {np.median(err) * 1000:.0f} ms")
+        ok = sum(e <= 1.5 / FPS for e in err)
+        lines.append(f"- {label} [{a:.1f}–{b:.1f} s] : {len(times)} montées de lumière, {len(bs)} temps ; "
+                     f"{ok}/{len(bs)} temps accompagnés d'une montée à ±1,5 image (écart médian {np.median(err) * 1000:.0f} ms)")
     (ROOT / "analysis" / "qc_live.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines))
 

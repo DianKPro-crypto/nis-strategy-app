@@ -150,6 +150,13 @@ class Live:
         _, since = self.beat_info(t)
         return math.exp(-since / decay)
 
+    def accent(self, t, decay=0.28, strong=1.0, weak=0.4):
+        """Pulsation pondérée : temps fort de mesure (indices ≡ 1 mod 4, cf. entrée du groove) plus marqué."""
+        i = int(np.searchsorted(self.beats, t, side="right")) - 1
+        if i < 0:
+            return 0.0
+        return (strong if i % 4 == 1 else weak) * math.exp(-(t - self.beats[i]) / decay)
+
 
 def _key_sprites(src, boxes, alpha_fn, pad=6):
     out = []
@@ -303,7 +310,13 @@ class LumiereDoree(Live):
         # 1. rayons venus d'en haut
         sx, sy = self.xy(0.50, -0.06)
         swell = sum(math.exp(-max(0.0, t - te) / 1.4) * _smooth((t - te + 0.3) / 0.3) for te in self.swells)
-        inten = 0.10 + 0.11 * self.pulse(t, 0.25) + 0.28 * swell
+        beat = self.accent(t)
+        inten = 0.16 + 0.32 * beat + 0.30 * swell
+        # halo : la lumière au-dessus d'elle « respire » sur les temps (gain doux, jamais un flash)
+        hx, hy = self.xy(0.50, 0.02)
+        halo = np.exp(-(((self.qx - hx) / (0.55 * self.ph.w * self.s)) ** 2 + ((self.qy - hy) / (0.30 * self.ph.h * self.s)) ** 2))
+        gain = cv2.resize((halo * (0.15 * beat + 0.12 * swell)).astype(np.float32), (W, H), interpolation=cv2.INTER_CUBIC)
+        img *= 1 + gain[..., None] * np.float32([1.0, 0.92, 0.75])
         ang = np.arctan2(self.qx - sx, self.qy - sy)
         rays = (0.5 + 0.5 * np.sin(31 * ang + 0.7 * t)) ** 3 + 0.7 * (0.5 + 0.5 * np.sin(17 * ang - 0.45 * t + 1.7)) ** 2
         r = np.sqrt((self.qx - sx) ** 2 + (self.qy - sy) ** 2)
@@ -315,16 +328,16 @@ class LumiereDoree(Live):
         core = np.zeros((H, W), np.uint8)
         for k, (u0, v0, v1) in enumerate(((0.06, 0.30, 0.98), (0.14, 0.45, 1.02), (0.88, 0.28, 0.95), (0.95, 0.50, 1.02))):
             ss = np.linspace(0, 1, 60)
-            uu = u0 + 0.05 * np.sin(2 * np.pi * (1.1 * ss + 0.07 * t + k * 0.3)) + 0.025 * np.sin(2 * np.pi * (2.3 * ss - 0.11 * t + k))
+            uu = u0 + 0.06 * np.sin(2 * np.pi * (1.1 * ss + 0.13 * t + k * 0.3)) + 0.03 * np.sin(2 * np.pi * (2.3 * ss - 0.19 * t + k))
             vv = v0 + (v1 - v0) * ss
             pts = np.stack([uu * self.ph.w * self.s + self.tx, vv * self.ph.h * self.s + self.ty], 1)
             cv2.polylines(core, [np.round(pts * 4).astype(np.int32)], False, 200, 2, cv2.LINE_AA, shift=2)
         c = core.astype(np.float32) / 255
         glow = cv2.resize(cv2.GaussianBlur(cv2.resize(c, (W // 4, H // 4), interpolation=cv2.INTER_AREA), (0, 0), 3), (W, H))
-        w = (0.22 * cv2.GaussianBlur(c, (0, 0), 1.0) + 1.6 * glow) * (0.7 + 0.3 * self.pulse(t, 0.3))
-        img += w[..., None] * GOLD * 0.55
+        w = (0.22 * cv2.GaussianBlur(c, (0, 0), 1.0) + 1.6 * glow) * (0.65 + 0.6 * beat)
+        img += w[..., None] * GOLD * 0.85
         # 3. étincelles qui montent dans le halo
-        for i in range(48):
+        for i in range(70):
             P = 2.2 + 2.6 * _hash(i, 51)
             age = (t + P * _hash(i, 52)) % P
             n = math.floor((t + P * _hash(i, 52)) / P)
@@ -427,6 +440,17 @@ class EclatsOr(Live):
             else:
                 put(img, GLINT, self.dot, x, y, self.s * 0.7, self.s * 0.7, 0, a, add=True)
         # explosions d'or : sur chaque temps du plan, et en grand sur l'entrée du groove et « fais-la vibrer »
+        beat = self.accent(t, decay=0.25, strong=1.0, weak=0.6)
+        for (gu, gv) in ((0.50, 0.30), (0.22, 0.42)):                        # chevelure et main
+            gx, gy = self.xy(gu, gv)
+            rr = 0.16 * self.ph.w * self.s
+            y0, y1 = int(max(0, gy - 2 * rr)), int(min(H, gy + 2 * rr))
+            x0, x1 = int(max(0, gx - 2 * rr)), int(min(W, gx + 2 * rr))
+            if beat > 0.02 and x1 > x0 and y1 > y0:
+                yy, xx = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+                g = np.exp(-((xx - gx) ** 2 + (yy - gy) ** 2) / (2 * rr * rr)) * 0.30 * beat
+                reg = img[y0:y1, x0:x1]
+                reg[:] = 1 - (1 - reg) * (1 - g[..., None] * GOLD)
         bursts = [(b, 18, 1.0) for b in self.beats if t - 1.3 <= b <= t]
         bursts += [(te, 46, 1.6) for te in self.explosions if t - 1.6 <= te <= t]
         for b, cnt, power in bursts:
@@ -445,7 +469,7 @@ class EclatsOr(Live):
                 x, y = self.xy(u, v)
                 a = (1 - _smooth(age / (0.9 * power))) * self.guard(x, y)
                 spr = self.star if _hash(b, j, 94) < 0.4 else self.dot
-                put(img, GLINT, spr, x, y, self.s * 1.1, self.s * 1.1, 0.5 * age, a, add=True)
+                put(img, GLINT, spr, x, y, self.s * 1.5, self.s * 1.5, 0.5 * age, a, add=True)
 
 
 KINDS = {"papillons": Papillons, "petales": Petales, "lumiere_doree": LumiereDoree, "eclats_or": EclatsOr}
