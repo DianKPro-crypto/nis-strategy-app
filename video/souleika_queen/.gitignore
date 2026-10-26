@@ -1,0 +1,6 @@
+# Médias personnels : jamais dans Git (photos, chant, rendus)
+sources/
+work/
+exports/*.mp4
+exports/*.jpg
+__pycache__/

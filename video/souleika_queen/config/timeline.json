@@ -1,0 +1,1243 @@
+{
+ "_doc": "Timeline du clip. Temps en secondes absolues, calés sur l'analyse réelle du chant (analysis/). Caméra : z = zoom relatif au cadrage plein écran (1 = l'image couvre le cadre ; <1 = image entière visible sur fond flouté issu de la même photo), c = point source (0-1) placé au point a du cadre. z0/c0 au début du plan, z1/c1 à la fin. trans = transition d'entrée centrée sur 'start' (cut, dissolve, light, zoom). punch = léger recul d'impact sur une coupe rythmique.",
+ "fps": 30,
+ "width": 1080,
+ "height": 1920,
+ "audio": "sources/audio/SOULEIKA_QUEEN.mp3",
+ "audio_gain_db": 1.7,
+ "audio_fade_out": [
+  177.9,
+  1.284
+ ],
+ "sections": {
+  "00 Page d'accueil": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.5,
+    "leaks": 0.3,
+    "bloom": 0.25
+   }
+  },
+  "01 Introduction": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.45,
+    "leaks": 0.42,
+    "bloom": 0.25
+   }
+  },
+  "01b Entrée du groove": {
+   "grade": "gold",
+   "fx": {
+    "particles": 0.5,
+    "leaks": 0.35,
+    "bloom": 0.25
+   }
+  },
+  "02-03 Ton sourire, ta grâce": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.35,
+    "leaks": 0.25,
+    "bloom": 0.2
+   }
+  },
+  "04 Gacaliso": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.4,
+    "leaks": 0.3,
+    "bloom": 0.22
+   }
+  },
+  "05-06 Souleika Queen, Hambalyo": {
+   "grade": "gold",
+   "fx": {
+    "particles": 0.7,
+    "leaks": 0.35,
+    "bloom": 0.3
+   }
+  },
+  "06b Interlude": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.45,
+    "leaks": 0.3,
+    "bloom": 0.22
+   }
+  },
+  "07-08 Naturelle, complicité": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.4,
+    "leaks": 0.28,
+    "bloom": 0.22
+   }
+  },
+  "09 Paix et lumière": {
+   "grade": "mint",
+   "fx": {
+    "particles": 0.14,
+    "leaks": 0.0,
+    "bloom": 0.3,
+    "rays": 0.17,
+    "ptint": "mint"
+   }
+  },
+  "10 Kora x Amapiano": {
+   "grade": "gold",
+   "fx": {
+    "particles": 0.6,
+    "leaks": 0.3,
+    "bloom": 0.25
+   }
+  },
+  "11 Jour de lumière": {
+   "grade": "gold",
+   "fx": {
+    "particles": 0.8,
+    "leaks": 0.4,
+    "bloom": 0.3
+   }
+  },
+  "12 Final": {
+   "grade": "warm",
+   "fx": {
+    "particles": 0.5,
+    "leaks": 0.35,
+    "bloom": 0.3
+   }
+  }
+ },
+ "shots": [
+  {
+   "id": "S01",
+   "section": "00 Page d'accueil",
+   "start": 0.0,
+   "end": 4.71,
+   "photo": "P00",
+   "z0": 0.75,
+   "z1": 0.775,
+   "c0": [
+    0.5,
+    1.0
+   ],
+   "c1": [
+    0.5,
+    1.0
+   ],
+   "a": [
+    0.5,
+    1.0
+   ],
+   "fade_out": 0.9,
+   "note": "Vignette : titre complet visible dès l'image 0"
+  },
+  {
+   "id": "S02",
+   "section": "01 Introduction",
+   "start": 4.71,
+   "end": 18.2,
+   "photo": "P01",
+   "z0": 1.0,
+   "z1": 1.04,
+   "c0": [
+    0.58,
+    0.42
+   ],
+   "c1": [
+    0.62,
+    0.38
+   ],
+   "fade_in": 2.6,
+   "reveal": true,
+   "lyrics": "Eh eh… Souleika… Djibouti… Mali… Aujourd'hui le ciel sourit pour toi… Trente et un octobre…"
+  },
+  {
+   "id": "S03",
+   "section": "01 Introduction",
+   "start": 18.2,
+   "end": 29.5,
+   "photo": "P12",
+   "z0": 1.0,
+   "z1": 1.06,
+   "c0": [
+    0.53,
+    0.4
+   ],
+   "c1": [
+    0.54,
+    0.4
+   ],
+   "trans": {
+    "type": "light",
+    "dur": 0.8
+   },
+   "lyrics": "Souleika Soultan… Gacaliso ! Dhalasho wacan, mon amour !"
+  },
+  {
+   "id": "S04",
+   "section": "01b Entrée du groove",
+   "start": 29.5,
+   "end": 33.51,
+   "photo": "P11",
+   "z0": 0.4,
+   "z1": 0.43,
+   "c0": [
+    0.47,
+    0.5
+   ],
+   "c1": [
+    0.52,
+    0.5
+   ],
+   "a": [
+    0.5,
+    0.42
+   ],
+   "trans": {
+    "type": "zoom",
+    "dur": 0.7
+   },
+   "lyrics": "(entrée de la batterie et du log drum)"
+  },
+  {
+   "id": "S05",
+   "section": "01b Entrée du groove",
+   "start": 33.51,
+   "end": 36.87,
+   "photo": "P11",
+   "z0": 1.0,
+   "z1": 1.04,
+   "c0": [
+    0.63,
+    0.34
+   ],
+   "c1": [
+    0.64,
+    0.34
+   ],
+   "punch": true
+  },
+  {
+   "id": "S06",
+   "section": "02-03 Ton sourire, ta grâce",
+   "start": 36.87,
+   "end": 45.81,
+   "photo": "P08",
+   "z0": 0.7,
+   "z1": 0.76,
+   "c0": [
+    0.67,
+    0.0
+   ],
+   "c1": [
+    0.68,
+    0.0
+   ],
+   "trans": {
+    "type": "light",
+    "dur": 0.8
+   },
+   "lyrics": "Sous le soleil de Djibouti… Souleika, ton sourire est ma joie, mon cœur s'éveille…",
+   "a": [
+    0.5,
+    0.0
+   ]
+  },
+  {
+   "id": "S07",
+   "section": "02-03 Ton sourire, ta grâce",
+   "start": 45.81,
+   "end": 53.66,
+   "photo": "P04",
+   "z0": 1.0,
+   "z1": 1.12,
+   "c0": [
+    0.47,
+    0.5
+   ],
+   "c1": [
+    0.46,
+    0.4
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.7
+   },
+   "lyrics": "J'aime ta franchise et ta sincérité, ta pudeur, ta grâce et ta dignité…"
+  },
+  {
+   "id": "S08",
+   "section": "04 Gacaliso",
+   "start": 53.66,
+   "end": 63.8,
+   "photo": "P10",
+   "exposure": 0.22,
+   "z0": 1.0,
+   "z1": 1.035,
+   "c0": [
+    0.47,
+    0.5
+   ],
+   "c1": [
+    0.45,
+    0.5
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.8
+   },
+   "lyrics": "Souleika… ton nom fait battre mon cœur… De Bamako jusqu'à Djibouti… Gacaliso !"
+  },
+  {
+   "id": "S09",
+   "section": "05-06 Souleika Queen, Hambalyo",
+   "start": 63.8,
+   "end": 67.82,
+   "photo": "P01",
+   "z0": 1.08,
+   "z1": 1.0,
+   "c0": [
+    0.62,
+    0.42
+   ],
+   "c1": [
+    0.6,
+    0.45
+   ],
+   "trans": {
+    "type": "zoom",
+    "dur": 0.7
+   },
+   "lyrics": "Souleika Queen ! Dhalasho wacan, mon amour !"
+  },
+  {
+   "id": "S10",
+   "section": "05-06 Souleika Queen, Hambalyo",
+   "start": 67.82,
+   "end": 72.1,
+   "photo": "P04",
+   "z0": 1.35,
+   "z1": 1.29,
+   "c0": [
+    0.46,
+    0.33
+   ],
+   "c1": [
+    0.47,
+    0.34
+   ],
+   "punch": true,
+   "lyrics": "Souleika Queen ! Que ton bonheur grandisse chaque jour !"
+  },
+  {
+   "id": "S11",
+   "section": "05-06 Souleika Queen, Hambalyo",
+   "start": 72.1,
+   "end": 76.36,
+   "photo": "P11",
+   "z0": 1.0,
+   "z1": 1.05,
+   "c0": [
+    0.63,
+    0.34
+   ],
+   "c1": [
+    0.62,
+    0.33
+   ],
+   "punch": true,
+   "lyrics": "Souleika ! Trente et un octobre, c'est ton jour !"
+  },
+  {
+   "id": "S12",
+   "section": "05-06 Souleika Queen, Hambalyo",
+   "start": 76.36,
+   "end": 80.14,
+   "photo": "P06",
+   "z0": 1.0,
+   "z1": 1.05,
+   "c0": [
+    0.52,
+    0.35
+   ],
+   "c1": [
+    0.52,
+    0.34
+   ],
+   "punch": true,
+   "lyrics": "Souleika ! Je te souhaite mille années d'amour !"
+  },
+  {
+   "id": "S13",
+   "section": "05-06 Souleika Queen, Hambalyo",
+   "start": 80.14,
+   "end": 83.36,
+   "photo": "P08",
+   "z0": 0.8,
+   "z1": 0.84,
+   "c0": [
+    0.69,
+    0.0
+   ],
+   "c1": [
+    0.7,
+    0.0
+   ],
+   "punch": true,
+   "lyrics": "Eh ya ! Hambalyo, Souleika !",
+   "a": [
+    0.5,
+    0.0
+   ]
+  },
+  {
+   "id": "S14",
+   "section": "05-06 Souleika Queen, Hambalyo",
+   "start": 83.36,
+   "end": 87.38,
+   "photo": "P06",
+   "z0": 0.42,
+   "z1": 0.45,
+   "c0": [
+    0.5,
+    0.5
+   ],
+   "c1": [
+    0.51,
+    0.5
+   ],
+   "a": [
+    0.5,
+    0.43
+   ],
+   "punch": true,
+   "lyrics": "Eh ya ! Waan ku jeclahay, Gacaliso !"
+  },
+  {
+   "id": "S15",
+   "section": "06b Interlude",
+   "start": 87.38,
+   "end": 91.66,
+   "layout": "bands",
+   "trans": {
+    "type": "light",
+    "dur": 0.6
+   },
+   "bands": [
+    {
+     "photo": "P02",
+     "z0": 1.0,
+     "z1": 1.06,
+     "c0": [
+      0.45,
+      0.5
+     ],
+     "c1": [
+      0.49,
+      0.5
+     ],
+     "t_in": 87.38,
+     "from": "left"
+    },
+    {
+     "photo": "P11",
+     "z0": 0.9,
+     "z1": 0.95,
+     "c0": [
+      0.45,
+      0.5
+     ],
+     "c1": [
+      0.41,
+      0.5
+     ],
+     "t_in": 87.77,
+     "from": "right"
+    }
+   ],
+   "lyrics": "(interlude instrumental)"
+  },
+  {
+   "id": "S16",
+   "section": "06b Interlude",
+   "start": 91.66,
+   "end": 96.21,
+   "photo": "P12",
+   "z0": 1.25,
+   "z1": 1.14,
+   "c0": [
+    0.54,
+    0.38
+   ],
+   "c1": [
+    0.53,
+    0.4
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.5
+   }
+  },
+  {
+   "id": "S17",
+   "section": "07-08 Naturelle, complicité",
+   "start": 96.21,
+   "end": 104.52,
+   "photo": "P05",
+   "z0": 1.12,
+   "z1": 1.12,
+   "c0": [
+    0.4,
+    0.44
+   ],
+   "c1": [
+    0.56,
+    0.44
+   ],
+   "ease": "linear",
+   "trans": {
+    "type": "light",
+    "dur": 0.7
+   },
+   "lyrics": "D'Ambouli à Balbala… Aujourd'hui c'est ta fête, Gacaliso…"
+  },
+  {
+   "id": "S18",
+   "section": "07-08 Naturelle, complicité",
+   "start": 104.52,
+   "end": 108.81,
+   "photo": "P02",
+   "z0": 1.0,
+   "z1": 1.05,
+   "c0": [
+    0.47,
+    0.34
+   ],
+   "c1": [
+    0.48,
+    0.34
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.5
+   },
+   "lyrics": "Tu es drôle, tendre et naturelle, ton âme sincère est une merveille"
+  },
+  {
+   "id": "S19",
+   "section": "07-08 Naturelle, complicité",
+   "start": 108.81,
+   "end": 111.47,
+   "photo": "P07",
+   "z0": 1.0,
+   "z1": 1.025,
+   "c0": [
+    0.48,
+    0.52
+   ],
+   "c1": [
+    0.48,
+    0.53
+   ],
+   "punch": true,
+   "lyrics": "Même quand nos messages nous réunissent"
+  },
+  {
+   "id": "S20",
+   "section": "07-08 Naturelle, complicité",
+   "start": 111.47,
+   "end": 114.16,
+   "photo": "P10",
+   "exposure": 0.22,
+   "z0": 1.1,
+   "z1": 1.17,
+   "c0": [
+    0.6,
+    0.36
+   ],
+   "c1": [
+    0.62,
+    0.34
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.6
+   },
+   "lyrics": "Mon cœur s'emballe et mes yeux sourient"
+  },
+  {
+   "id": "S21",
+   "section": "09 Paix et lumière",
+   "start": 114.16,
+   "end": 119.5,
+   "photo": "P03",
+   "z0": 0.58,
+   "z1": 0.6,
+   "c0": [
+    0.515,
+    0.5
+   ],
+   "c1": [
+    0.515,
+    0.5
+   ],
+   "a": [
+    0.5,
+    0.47
+   ],
+   "trans": {
+    "type": "light",
+    "dur": 1.2
+   },
+   "lyrics": "Ya Allah… protège Souleika, que Ta lumière accompagne ses pas"
+  },
+  {
+   "id": "S22",
+   "section": "09 Paix et lumière",
+   "start": 119.5,
+   "end": 125.42,
+   "photo": "P03",
+   "z0": 0.6,
+   "z1": 0.62,
+   "c0": [
+    0.515,
+    0.42
+   ],
+   "c1": [
+    0.515,
+    0.4
+   ],
+   "a": [
+    0.5,
+    0.4
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 1.0
+   },
+   "lyrics": "Accorde-lui la paix et la santé, des jours heureux, remplis de sérénité"
+  },
+  {
+   "id": "S23",
+   "section": "09 Paix et lumière",
+   "start": 125.42,
+   "end": 132.19,
+   "photo": "P03",
+   "z0": 0.6,
+   "z1": 0.57,
+   "c0": [
+    0.515,
+    0.55
+   ],
+   "c1": [
+    0.515,
+    0.55
+   ],
+   "a": [
+    0.5,
+    0.46
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 1.0
+   },
+   "lyrics": "…sous le regard divin. Qu'Il nous guide vers ce qui est le mieux."
+  },
+  {
+   "id": "S24",
+   "section": "10 Kora x Amapiano",
+   "start": 132.19,
+   "end": 137.06,
+   "layout": "bands",
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.8
+   },
+   "bands": [
+    {
+     "photo": "P12",
+     "z0": 1.0,
+     "z1": 1.05,
+     "c0": [
+      0.53,
+      0.37
+     ],
+     "c1": [
+      0.55,
+      0.37
+     ],
+     "t_in": 132.19,
+     "from": "left",
+     "slide": 0.7
+    },
+    {
+     "photo": "P06",
+     "z0": 1.0,
+     "z1": 1.05,
+     "c0": [
+      0.52,
+      0.5
+     ],
+     "c1": [
+      0.48,
+      0.5
+     ],
+     "t_in": 133.18,
+     "from": "right",
+     "slide": 0.7
+    },
+    {
+     "photo": "P08",
+     "z0": 1.0,
+     "z1": 1.05,
+     "c0": [
+      0.66,
+      0.37
+     ],
+     "c1": [
+      0.68,
+      0.37
+     ],
+     "t_in": 134.25,
+     "from": "left",
+     "slide": 0.7
+    }
+   ],
+   "lyrics": "(solo de kora)"
+  },
+  {
+   "id": "S25",
+   "section": "10 Kora x Amapiano",
+   "start": 137.06,
+   "end": 138.0,
+   "photo": "P05",
+   "z0": 1.05,
+   "z1": 1.08,
+   "c0": [
+    0.47,
+    0.32
+   ],
+   "c1": [
+    0.47,
+    0.32
+   ],
+   "punch": true
+  },
+  {
+   "id": "S26",
+   "section": "10 Kora x Amapiano",
+   "start": 138.0,
+   "end": 139.06,
+   "photo": "P02",
+   "z0": 1.0,
+   "z1": 1.03,
+   "c0": [
+    0.47,
+    0.34
+   ],
+   "c1": [
+    0.47,
+    0.34
+   ],
+   "punch": true
+  },
+  {
+   "id": "S27",
+   "section": "10 Kora x Amapiano",
+   "start": 139.06,
+   "end": 140.14,
+   "photo": "P07",
+   "z0": 1.0,
+   "z1": 1.02,
+   "c0": [
+    0.48,
+    0.55
+   ],
+   "c1": [
+    0.48,
+    0.55
+   ],
+   "punch": true,
+   "lyrics": "Eh eh ! Souleika Queen !"
+  },
+  {
+   "id": "S28",
+   "section": "10 Kora x Amapiano",
+   "start": 140.14,
+   "end": 141.36,
+   "photo": "P01",
+   "z0": 1.0,
+   "z1": 1.03,
+   "c0": [
+    0.6,
+    0.45
+   ],
+   "c1": [
+    0.6,
+    0.45
+   ],
+   "punch": true
+  },
+  {
+   "id": "S29",
+   "section": "10 Kora x Amapiano",
+   "start": 141.36,
+   "end": 142.28,
+   "photo": "P11",
+   "z0": 1.0,
+   "z1": 1.03,
+   "c0": [
+    0.63,
+    0.34
+   ],
+   "c1": [
+    0.63,
+    0.34
+   ],
+   "punch": true,
+   "lyrics": "Kora du Mali… fais-la danser !"
+  },
+  {
+   "id": "S30",
+   "section": "10 Kora x Amapiano",
+   "start": 142.28,
+   "end": 143.49,
+   "photo": "P06",
+   "z0": 1.0,
+   "z1": 1.03,
+   "c0": [
+    0.52,
+    0.34
+   ],
+   "c1": [
+    0.52,
+    0.34
+   ],
+   "punch": true
+  },
+  {
+   "id": "S31",
+   "section": "10 Kora x Amapiano",
+   "start": 143.49,
+   "end": 144.42,
+   "photo": "P04",
+   "z0": 1.3,
+   "z1": 1.33,
+   "c0": [
+    0.46,
+    0.33
+   ],
+   "c1": [
+    0.46,
+    0.33
+   ],
+   "punch": true,
+   "lyrics": "Log drum Amapiano… fais-la vibrer !"
+  },
+  {
+   "id": "S32",
+   "section": "10 Kora x Amapiano",
+   "start": 144.42,
+   "end": 145.38,
+   "photo": "P08",
+   "z0": 0.8,
+   "z1": 0.82,
+   "c0": [
+    0.69,
+    0.0
+   ],
+   "c1": [
+    0.69,
+    0.0
+   ],
+   "punch": true,
+   "a": [
+    0.5,
+    0.0
+   ]
+  },
+  {
+   "id": "S33",
+   "section": "10 Kora x Amapiano",
+   "start": 145.38,
+   "end": 147.36,
+   "photo": "P05",
+   "z0": 1.12,
+   "z1": 1.16,
+   "c0": [
+    0.5,
+    0.45
+   ],
+   "c1": [
+    0.5,
+    0.45
+   ],
+   "punch": true,
+   "lyrics": "Sou-leï-ka ! Sou-leï-ka !"
+  },
+  {
+   "id": "S34",
+   "section": "10 Kora x Amapiano",
+   "start": 147.36,
+   "end": 149.25,
+   "layout": "bands",
+   "bands": [
+    {
+     "photo": "P11",
+     "z0": 0.92,
+     "z1": 0.96,
+     "c0": [
+      0.43,
+      0.5
+     ],
+     "c1": [
+      0.45,
+      0.5
+     ],
+     "t_in": 147.36,
+     "from": "left",
+     "slide": 0.3
+    },
+    {
+     "photo": "P05",
+     "z0": 0.96,
+     "z1": 1.0,
+     "c0": [
+      0.47,
+      0.3
+     ],
+     "c1": [
+      0.47,
+      0.3
+     ],
+     "t_in": 147.77,
+     "from": "right",
+     "slide": 0.3
+    },
+    {
+     "photo": "P02",
+     "z0": 1.0,
+     "z1": 1.04,
+     "c0": [
+      0.47,
+      0.5
+     ],
+     "c1": [
+      0.47,
+      0.5
+     ],
+     "t_in": 148.18,
+     "from": "left",
+     "slide": 0.3
+    }
+   ],
+   "lyrics": "Dhalasho wacan, Gacaliso !"
+  },
+  {
+   "id": "S35",
+   "section": "10 Kora x Amapiano",
+   "start": 149.25,
+   "end": 150.31,
+   "photo": "P04",
+   "z0": 1.0,
+   "z1": 1.03,
+   "c0": [
+    0.46,
+    0.45
+   ],
+   "c1": [
+    0.46,
+    0.45
+   ],
+   "punch": true,
+   "lyrics": "Sou-leï-ka ! Sou-leï-ka !"
+  },
+  {
+   "id": "S36",
+   "section": "10 Kora x Amapiano",
+   "start": 150.31,
+   "end": 151.6,
+   "photo": "P07",
+   "z0": 1.0,
+   "z1": 1.03,
+   "c0": [
+    0.48,
+    0.52
+   ],
+   "c1": [
+    0.48,
+    0.52
+   ],
+   "punch": true
+  },
+  {
+   "id": "S37",
+   "section": "10 Kora x Amapiano",
+   "start": 151.6,
+   "end": 153.52,
+   "photo": "P02",
+   "z0": 1.0,
+   "z1": 1.05,
+   "c0": [
+    0.47,
+    0.34
+   ],
+   "c1": [
+    0.47,
+    0.34
+   ],
+   "punch": true,
+   "lyrics": "Hambalyo ! Hambalyo !"
+  },
+  {
+   "id": "S38",
+   "section": "10 Kora x Amapiano",
+   "start": 153.52,
+   "end": 155.66,
+   "layout": "bands",
+   "bands": [
+    {
+     "photo": "P06",
+     "z0": 1.0,
+     "z1": 1.04,
+     "c0": [
+      0.5,
+      0.5
+     ],
+     "c1": [
+      0.53,
+      0.5
+     ],
+     "t_in": 153.52,
+     "from": "right",
+     "slide": 0.3
+    },
+    {
+     "photo": "P12",
+     "z0": 1.0,
+     "z1": 1.04,
+     "c0": [
+      0.53,
+      0.37
+     ],
+     "c1": [
+      0.53,
+      0.37
+     ],
+     "t_in": 154.21,
+     "from": "left",
+     "slide": 0.3
+    },
+    {
+     "photo": "P08",
+     "z0": 1.0,
+     "z1": 1.04,
+     "c0": [
+      0.68,
+      0.37
+     ],
+     "c1": [
+      0.66,
+      0.37
+     ],
+     "t_in": 154.6,
+     "from": "right",
+     "slide": 0.3
+    }
+   ],
+   "lyrics": "Sou-leï-ka ! Sou-leï-ka !"
+  },
+  {
+   "id": "S39",
+   "section": "10 Kora x Amapiano",
+   "start": 155.66,
+   "end": 157.03,
+   "photo": "P11",
+   "z0": 0.4,
+   "z1": 0.42,
+   "c0": [
+    0.48,
+    0.5
+   ],
+   "c1": [
+    0.48,
+    0.5
+   ],
+   "a": [
+    0.5,
+    0.5
+   ],
+   "punch": true,
+   "lyrics": "Hambalyo ! Hambalyo !"
+  },
+  {
+   "id": "S40",
+   "section": "11 Jour de lumière",
+   "start": 157.03,
+   "end": 161.31,
+   "photo": "P01",
+   "z0": 1.07,
+   "z1": 1.0,
+   "c0": [
+    0.62,
+    0.42
+   ],
+   "c1": [
+    0.6,
+    0.45
+   ],
+   "trans": {
+    "type": "zoom",
+    "dur": 0.7
+   },
+   "lyrics": "Souleika Queen ! Dhalasho wacan, mon amour !"
+  },
+  {
+   "id": "S41",
+   "section": "11 Jour de lumière",
+   "start": 161.31,
+   "end": 165.07,
+   "photo": "P02",
+   "z0": 1.0,
+   "z1": 1.05,
+   "c0": [
+    0.47,
+    0.34
+   ],
+   "c1": [
+    0.46,
+    0.34
+   ],
+   "punch": true,
+   "lyrics": "Souleika Queen ! Que Dieu te bénisse chaque jour !"
+  },
+  {
+   "id": "S42",
+   "section": "11 Jour de lumière",
+   "start": 165.07,
+   "end": 169.89,
+   "photo": "P04",
+   "z0": 1.12,
+   "z1": 1.0,
+   "c0": [
+    0.46,
+    0.4
+   ],
+   "c1": [
+    0.47,
+    0.5
+   ],
+   "trans": {
+    "type": "dissolve",
+    "dur": 0.5
+   },
+   "lyrics": "Trente et un octobre, jour de lumière, je t'offre mon cœur et mes prières"
+  },
+  {
+   "id": "S43",
+   "section": "12 Final",
+   "start": 169.89,
+   "end": 179.2,
+   "photo": "P09",
+   "z0": 1.35,
+   "z1": 0.703,
+   "c0": [
+    0.585,
+    0.56
+   ],
+   "c1": [
+    0.5,
+    0.5
+   ],
+   "trans": {
+    "type": "light",
+    "dur": 1.0
+   },
+   "fade_out": 0.75,
+   "lyrics": "Souleika Soultan, mon étoile, ma joie ! Que le bonheur fleurisse autour de toi ! Souleika…"
+  }
+ ],
+ "events": [
+  {
+   "type": "flare",
+   "t": 0.35,
+   "dur": 2.2,
+   "y": 0.235,
+   "strength": 0.45
+  },
+  {
+   "type": "burst",
+   "t": 29.5,
+   "n": 30
+  },
+  {
+   "type": "flash",
+   "t": 29.5,
+   "strength": 0.16,
+   "decay": 0.35
+  },
+  {
+   "type": "flare",
+   "t": 29.35,
+   "dur": 1.0,
+   "y": 0.42,
+   "strength": 0.6
+  },
+  {
+   "type": "burst",
+   "t": 63.8,
+   "n": 46
+  },
+  {
+   "type": "flash",
+   "t": 63.8,
+   "strength": 0.2,
+   "decay": 0.4
+  },
+  {
+   "type": "flare",
+   "t": 63.62,
+   "dur": 1.1,
+   "y": 0.5,
+   "strength": 0.7
+  },
+  {
+   "type": "burst",
+   "t": 137.06,
+   "n": 26
+  },
+  {
+   "type": "flash",
+   "t": 137.06,
+   "strength": 0.12,
+   "decay": 0.3
+  },
+  {
+   "type": "burst",
+   "t": 157.03,
+   "n": 46
+  },
+  {
+   "type": "flash",
+   "t": 157.03,
+   "strength": 0.2,
+   "decay": 0.4
+  },
+  {
+   "type": "flare",
+   "t": 156.85,
+   "dur": 1.1,
+   "y": 0.5,
+   "strength": 0.7
+  },
+  {
+   "type": "flare",
+   "t": 169.5,
+   "dur": 1.6,
+   "y": 0.62,
+   "strength": 0.35
+  }
+ ]
+}

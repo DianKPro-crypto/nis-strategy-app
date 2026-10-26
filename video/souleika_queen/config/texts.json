@@ -1,0 +1,482 @@
+{
+ "_doc": "Textes à l'écran. pos = centre du bloc en pixels (cadre 1080x1920). Zone de sécurité : x 86-994, y 230-1574. Styles : display (Playfair 700, or), display_italic (Playfair italique, or), serif (Playfair 500, ivoire), caption (Inter SemiBold capitales espacées, ivoire). delay = décalage d'apparition d'une ligne. times = apparition mot à mot (segments séparés par |). 'sung' = moment réellement chanté (vérifié par transcription).",
+ "blocks": [
+  {
+   "id": "T01",
+   "start": 0.0,
+   "end": 4.45,
+   "pos": [
+    540,
+    470
+   ],
+   "anim": "static",
+   "shine": 0.55,
+   "scrim": 0.55,
+   "lines": [
+    {
+     "text": "31 octobre",
+     "style": "caption",
+     "size": 40,
+     "tracking": 0.34,
+     "rules": true
+    },
+    {
+     "text": "Souleika",
+     "style": "display",
+     "size": 186
+    },
+    {
+     "text": "QUEEN",
+     "style": "display",
+     "size": 66,
+     "tracking": 0.42,
+     "weight": 500
+    },
+    {
+     "text": "L’amour en lumière",
+     "style": "display_italic",
+     "size": 58,
+     "color": "ivory"
+    }
+   ],
+   "note": "Page de garde : visible dès la première image (vignette)"
+  },
+  {
+   "id": "T02",
+   "start": 14.55,
+   "end": 18.0,
+   "pos": [
+    742,
+    1392
+   ],
+   "anim": "rise",
+   "scrim": 0.62,
+   "sung": 14.54,
+   "lines": [
+    {
+     "text": "31",
+     "style": "display",
+     "size": 176
+    },
+    {
+     "text": "octobre",
+     "style": "caption",
+     "size": 46,
+     "tracking": 0.36,
+     "delay": 0.9
+    }
+   ]
+  },
+  {
+   "id": "T03",
+   "start": 18.35,
+   "end": 23.7,
+   "pos": [
+    540,
+    1478
+   ],
+   "anim": "rise",
+   "scrim": 0.5,
+   "sung": 18.24,
+   "shine": 1.2,
+   "lines": [
+    {
+     "text": "Souleika Soultan",
+     "style": "display",
+     "size": 90
+    }
+   ]
+  },
+  {
+   "id": "T04",
+   "start": 24.85,
+   "end": 28.95,
+   "pos": [
+    540,
+    1482
+   ],
+   "anim": "rise",
+   "scrim": 0.5,
+   "sung": 24.82,
+   "lines": [
+    {
+     "text": "Dhalasho wacan",
+     "style": "display_italic",
+     "size": 96
+    },
+    {
+     "text": "mon amour",
+     "style": "caption",
+     "size": 40,
+     "tracking": 0.36,
+     "delay": 1.9
+    }
+   ]
+  },
+  {
+   "id": "T05",
+   "start": 30.0,
+   "end": 33.35,
+   "pos": [
+    540,
+    1335
+   ],
+   "anim": "rise",
+   "scrim": 0.35,
+   "shine": 0.9,
+   "lines": [
+    {
+     "text": "L’amour en lumière",
+     "style": "display_italic",
+     "size": 100
+    }
+   ],
+   "note": "Titre du film à l'entrée du groove"
+  },
+  {
+   "id": "T06",
+   "start": 58.65,
+   "end": 61.75,
+   "pos": [
+    540,
+    1450
+   ],
+   "anim": "track",
+   "scrim": 0.45,
+   "route": true,
+   "sung": 58.7,
+   "lines": [
+    {
+     "text": "Bamako · Djibouti",
+     "style": "caption",
+     "size": 46,
+     "tracking": 0.3
+    }
+   ]
+  },
+  {
+   "id": "T07",
+   "start": 61.95,
+   "end": 63.7,
+   "pos": [
+    540,
+    1478
+   ],
+   "anim": "rise",
+   "scrim": 0.45,
+   "sung": 62.0,
+   "speed": 1.6,
+   "lines": [
+    {
+     "text": "Gacaliso",
+     "style": "display_italic",
+     "size": 124
+    }
+   ]
+  },
+  {
+   "id": "T08",
+   "start": 63.9,
+   "end": 67.62,
+   "pos": [
+    742,
+    1330
+   ],
+   "anim": "rise",
+   "scrim": 0.6,
+   "shine": 0.8,
+   "sung": 63.62,
+   "lines": [
+    {
+     "text": "Souleika",
+     "style": "display",
+     "size": 104
+    },
+    {
+     "text": "Queen",
+     "style": "display_italic",
+     "size": 136,
+     "delay": 0.25
+    }
+   ]
+  },
+  {
+   "id": "T09",
+   "start": 80.2,
+   "end": 83.2,
+   "pos": [
+    540,
+    1478
+   ],
+   "anim": "rise",
+   "scrim": 0.4,
+   "sung": 80.06,
+   "lines": [
+    {
+     "text": "Hambalyo",
+     "style": "display_italic",
+     "size": 130
+    }
+   ]
+  },
+  {
+   "id": "T10",
+   "start": 83.45,
+   "end": 87.2,
+   "pos": [
+    540,
+    1362
+   ],
+   "anim": "rise",
+   "scrim": 0.35,
+   "sung": 83.24,
+   "lines": [
+    {
+     "text": "Waan ku jeclahay",
+     "style": "display_italic",
+     "size": 96
+    }
+   ]
+  },
+  {
+   "id": "T11",
+   "start": 96.35,
+   "end": 100.3,
+   "pos": [
+    540,
+    1465
+   ],
+   "anim": "rise",
+   "scrim": 0.5,
+   "sung": 96.14,
+   "lines": [
+    {
+     "text": "D’Ambouli à Balbala",
+     "style": "display_italic",
+     "size": 88
+    }
+   ]
+  },
+  {
+   "id": "T12",
+   "start": 109.1,
+   "end": 111.3,
+   "pos": [
+    540,
+    330
+   ],
+   "anim": "rise",
+   "scrim": 0.4,
+   "sung": 109.66,
+   "lines": [
+    {
+     "text": "Gacaliso",
+     "style": "display_italic",
+     "size": 92
+    }
+   ],
+   "note": "Apparition discrète sur l'évocation des messages"
+  },
+  {
+   "id": "T13",
+   "start": 120.1,
+   "end": 125.9,
+   "pos": [
+    540,
+    1497
+   ],
+   "anim": "rise",
+   "scrim": 0.3,
+   "sung": 120.16,
+   "lines": [
+    {
+     "text": "Paix| · |Santé| · |Sérénité",
+     "style": "display_italic",
+     "size": 80,
+     "times": [
+      120.1,
+      120.4,
+      120.65,
+      122.3,
+      122.6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "T14",
+   "start": 145.42,
+   "end": 147.25,
+   "pos": [
+    540,
+    1470
+   ],
+   "anim": "rise",
+   "scrim": 0.45,
+   "sung": 145.38,
+   "speed": 1.6,
+   "lines": [
+    {
+     "text": "Souleika !",
+     "style": "display",
+     "size": 128
+    }
+   ]
+  },
+  {
+   "id": "T15",
+   "start": 151.65,
+   "end": 153.45,
+   "pos": [
+    540,
+    1462
+   ],
+   "anim": "rise",
+   "scrim": 0.4,
+   "sung": 151.6,
+   "speed": 1.6,
+   "lines": [
+    {
+     "text": "Hambalyo !",
+     "style": "display",
+     "size": 128
+    }
+   ]
+  },
+  {
+   "id": "T16",
+   "start": 158.45,
+   "end": 161.15,
+   "pos": [
+    742,
+    1330
+   ],
+   "anim": "rise",
+   "scrim": 0.6,
+   "sung": 158.4,
+   "lines": [
+    {
+     "text": "Dhalasho",
+     "style": "display_italic",
+     "size": 88
+    },
+    {
+     "text": "wacan,",
+     "style": "display_italic",
+     "size": 88
+    },
+    {
+     "text": "Souleika",
+     "style": "display",
+     "size": 96,
+     "delay": 0.35
+    }
+   ]
+  },
+  {
+   "id": "T17",
+   "start": 162.25,
+   "end": 164.95,
+   "pos": [
+    540,
+    1460
+   ],
+   "anim": "rise",
+   "scrim": 0.4,
+   "sung": 162.2,
+   "lines": [
+    {
+     "text": "Que Dieu te bénisse",
+     "style": "display_italic",
+     "size": 80
+    },
+    {
+     "text": "chaque jour",
+     "style": "display_italic",
+     "size": 80
+    }
+   ]
+  },
+  {
+   "id": "T18",
+   "start": 170.05,
+   "end": 173.15,
+   "pos": [
+    520,
+    1500
+   ],
+   "anim": "rise",
+   "scrim": 0.45,
+   "sung": 170.0,
+   "shine": 1.0,
+   "lines": [
+    {
+     "text": "Souleika Soultan",
+     "style": "display_italic",
+     "size": 88,
+     "heart": true
+    }
+   ]
+  },
+  {
+   "id": "T19",
+   "start": 173.45,
+   "end": 175.95,
+   "pos": [
+    540,
+    1492
+   ],
+   "anim": "rise",
+   "scrim": 0.45,
+   "lines": [
+    {
+     "text": "Waan ku jeclahay",
+     "style": "display_italic",
+     "size": 92
+    }
+   ],
+   "note": "Dédicace finale : non chantée dans l'enregistrement (outro absente), affichée pendant la dernière phrase"
+  },
+  {
+   "id": "T20",
+   "start": 176.15,
+   "end": 179.2,
+   "pos": [
+    540,
+    1408
+   ],
+   "anim": "rise",
+   "scrim": 0.45,
+   "fade_out": 0.0,
+   "lines": [
+    {
+     "text": "Je te MOUA…",
+     "style": "display_italic",
+     "size": 104
+    }
+   ],
+   "note": "Dédicace finale : non chantée dans l'enregistrement, affichée sur le dernier « Souleika… » et la fin musicale"
+  },
+  {
+   "id": "T21",
+   "start": 177.3,
+   "end": 179.2,
+   "pos": [
+    540,
+    1532
+   ],
+   "anim": "fade",
+   "scrim": 0.0,
+   "signature": true,
+   "fade_out": 0.0,
+   "lines": [
+    {
+     "text": "Dian K. Pro",
+     "style": "caption",
+     "size": 32,
+     "tracking": 0.32
+    }
+   ]
+  }
+ ]
+}
