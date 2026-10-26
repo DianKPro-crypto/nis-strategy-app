@@ -219,7 +219,7 @@
   {
    "section": "02-03 Ton sourire, ta grâce",
    "start": 36.87,
-   "end": 41.02,
+   "end": 41.55,
    "photo": "P14",
    "z0": 1.0,
    "z1": 1.06,
@@ -240,7 +240,7 @@
   },
   {
    "section": "02-03 Ton sourire, ta grâce",
-   "start": 41.02,
+   "start": 41.55,
    "end": 45.81,
    "photo": "P08",
    "z0": 0.72,
@@ -259,7 +259,7 @@
    ],
    "trans": {
     "type": "dissolve",
-    "dur": 0.6
+    "dur": 0.5
    },
    "lyrics": "Souleika, ton sourire est ma joie, mon cœur s'éveille quand je pense à toi",
    "id": "S07"

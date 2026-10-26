@@ -40,11 +40,15 @@ def total_frames(tl):
     return int(round(tl["shots"][-1]["end"] * FPS))
 
 
-def render_all(tl):
+def render_all(tl, only=None):
+    """Rendu parallèle par segments ; only = numéros de segments à recalculer (les autres sont réutilisés)."""
     n = total_frames(tl)
     (WORK / "chunks").mkdir(parents=True, exist_ok=True)
     bounds = np.linspace(0, n, CHUNKS + 1).astype(int)
     jobs = [(i, bounds[i], bounds[i + 1]) for i in range(CHUNKS)]
+    if only is not None:
+        missing = [i for i in range(CHUNKS) if i not in only and not (WORK / "chunks" / f"c{i:02d}.mkv").exists()]
+        assert not missing, f"segments absents à recalculer aussi : {missing}"
     t0 = time.time()
 
     def job(j):
@@ -56,7 +60,8 @@ def render_all(tl):
         return out
 
     with ThreadPoolExecutor(WORKERS) as ex:
-        outs = list(ex.map(job, jobs))
+        list(ex.map(job, [j for j in jobs if only is None or j[0] in only]))
+    outs = [WORK / "chunks" / f"c{i:02d}.mkv" for i in range(CHUNKS)]
     with open(WORK / "chunks" / "list.txt", "w") as f:
         for o in outs:
             f.write(f"file '{o.name}'\n")
@@ -271,10 +276,11 @@ def qc(tl, items):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encode", action="store_true", help="ne pas re-rendre les images")
+    ap.add_argument("--segments", nargs="*", type=int, help="ne recalculer que ces segments (0-11)")
     args = ap.parse_args()
     tl = load_json("config/timeline.json")
     if not args.encode:
-        render_all(tl)
+        render_all(tl, args.segments)
     encode(tl)
     items = storyboard(tl)
     timeline_csv(tl)

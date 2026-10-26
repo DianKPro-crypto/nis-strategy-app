@@ -14,6 +14,7 @@ import cv2
 import numpy as np
 
 import fx
+import livefx
 from common import EASE, FPS, H, ROOT, SAFE, W, clamp, lerp, load_json, rgb, tc
 from photos import Photo
 from textfx import TextBlock
@@ -56,6 +57,7 @@ class Renderer:
                 m = max(zs) * cover * (1.06 if s.get("punch") else 1.0) * (1.25 if s["trans"]["type"] == "zoom" else 1.0)
                 need[pid] = max(need.get(pid, 0), m)
         self.photos = {pid: Photo(pid, pcfg[pid], m) for pid, m in sorted(need.items())}
+        self.live = livefx.build(self.photos, pcfg, self.beats)     # effets animés des photos artistiques
 
         self.particles = fx.Particles()
         self.events = self.tl.get("events", [])
@@ -128,7 +130,12 @@ class Renderer:
                 img[y + 2:y + BAND_GAP - 2] = np.float32([1.0, 0.92, 0.72])
         else:
             z, c, a = self.camera(s, t, role, p)
-            u8, _ = self.photos[s["photo"]].render(W, H, z, c, a, tint=tint)
+            u8, tr = self.photos[s["photo"]].render(W, H, z, c, a, tint=tint)
+            live = self.live.get(s["photo"])
+            if live:
+                f = u8.astype(np.float32) * (1 / 255)
+                live.draw(f, t, tr)
+                u8 = (np.clip(f, 0, 1) * 255 + 0.5).astype(np.uint8)
             img = fx.apply_grade(u8, s["grade"], exposure)
         if role in ("zoom_out", "zoom_in"):
             strength = p * p if role == "zoom_out" else (1 - p) ** 2

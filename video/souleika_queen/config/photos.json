@@ -290,6 +290,93 @@
     0.61,
     0.45
    ]
+  },
+  "live": {
+   "type": "papillons",
+   "_doc": "Envols synchronisés sur « grandisse » (69,32 s) et « bénisse » (163,24 s) ; battements d'ailes : 2 par temps.",
+   "nets": [
+    [
+     847,
+     530,
+     107,
+     117
+    ],
+    [
+     760,
+     75,
+     96,
+     88
+    ],
+    [
+     779,
+     232,
+     104,
+     89
+    ],
+    [
+     867,
+     728,
+     98,
+     83
+    ],
+    [
+     889,
+     1194,
+     57,
+     101
+    ],
+    [
+     848,
+     363,
+     53,
+     94
+    ]
+   ],
+   "flous": [
+    [
+     936,
+     1354,
+     55,
+     91
+    ],
+    [
+     774,
+     1222,
+     86,
+     63
+    ],
+    [
+     698,
+     1390,
+     86,
+     63
+    ]
+   ],
+   "courant": [
+    [
+     0.6,
+     0.95
+    ],
+    [
+     0.68,
+     0.65
+    ],
+    [
+     0.8,
+     0.35
+    ],
+    [
+     0.95,
+     0.05
+    ]
+   ],
+   "envols": [
+    69.32,
+    163.24
+   ],
+   "garde": {
+    "main": 0.4
+   }
   }
  },
  "P14": {
@@ -306,6 +393,16 @@
     0.23,
     0.59,
     0.67
+   ]
+  },
+  "live": {
+   "type": "lumiere_doree",
+   "_doc": "Rayons pulsés sur les temps ; étoiles sur « scintille » (40,52 s) ; montée de lumière sur « lumière » (167,38 s).",
+   "scintille": [
+    40.52
+   ],
+   "lumiere": [
+    167.38
    ]
   }
  },
@@ -330,6 +427,104 @@
     0.57,
     0.7
    ]
+  },
+  "live": {
+   "type": "petales",
+   "_doc": "Pétales le long du courant ; vague vers la caméra sur « mille » (77,38 s) et « cœur » (168,74 s).",
+   "petales": [
+    [
+     802,
+     49,
+     78,
+     55
+    ],
+    [
+     426,
+     263,
+     69,
+     61
+    ],
+    [
+     809,
+     110,
+     66,
+     50
+    ],
+    [
+     506,
+     387,
+     47,
+     52
+    ],
+    [
+     408,
+     112,
+     51,
+     38
+    ],
+    [
+     347,
+     47,
+     38,
+     46
+    ],
+    [
+     684,
+     356,
+     38,
+     43
+    ],
+    [
+     760,
+     103,
+     34,
+     45
+    ],
+    [
+     676,
+     107,
+     41,
+     34
+    ],
+    [
+     951,
+     199,
+     28,
+     44
+    ],
+    [
+     440,
+     34,
+     27,
+     41
+    ]
+   ],
+   "courant": [
+    [
+     0.42,
+     0.95
+    ],
+    [
+     0.55,
+     0.72
+    ],
+    [
+     0.7,
+     0.48
+    ],
+    [
+     0.86,
+     0.26
+    ],
+    [
+     1.05,
+     0.05
+    ]
+   ],
+   "vers_camera": [
+    77.38,
+    168.74
+   ]
   }
  },
  "P16": {
@@ -353,6 +548,25 @@
     0.35,
     0.82
    ]
+  },
+  "live": {
+   "type": "eclats_or",
+   "_doc": "Poussière d'or vers la gauche, explosions sur chaque temps ; grandes explosions à l'entrée du groove (29,5 s) et sur « Log drum Amapiano » (143,49 s) ; cendres et fumée à droite.",
+   "explosions": [
+    29.5,
+    143.49
+   ],
+   "zones": {
+    "visage": [
+     0.52,
+     0.05,
+     0.76,
+     0.6
+    ]
+   },
+   "garde": {
+    "main": 0.25
+   }
   }
  }
 }
