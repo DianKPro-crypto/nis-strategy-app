@@ -3,7 +3,7 @@
 ## Souleika_Queen_Anniversaire_1080x1920.mp4
 - Vidéo : h264 High niveau 42, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5565 images, 185.500 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 321 kb/s, 185.500 s
-- Conteneur : 185.500 s, 317.2 Mo, débit global 13.7 Mb/s
+- Conteneur : 185.500 s, 319.2 Mo, débit global 13.8 Mb/s
 - Sonie : -14.5 LUFS intégrés, LRA 5.6 LU, crête vraie -1.2 dBTP, échantillon max 0.724
 - Son présent : 185.51 s décodées ; secondes sous −45 dBFS : [182, 183, 184]
 - Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('185.067', '185.467')]
@@ -12,7 +12,7 @@
 ## Souleika_Queen_Partage.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 5565 images, 185.500 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 185.500 s
-- Conteneur : 185.500 s, 81.2 Mo, débit global 3.5 Mb/s
+- Conteneur : 185.500 s, 81.6 Mo, débit global 3.5 Mb/s
 - Sonie : -14.6 LUFS intégrés, LRA 5.6 LU, crête vraie -1.5 dBTP, échantillon max 0.718
 - Son présent : 185.51 s décodées ; secondes sous −45 dBFS : [182, 183, 184]
 - Images noires détectées (fondus attendus seulement) : [('4.56667', '5.13333'), ('185.067', '185.467')]
@@ -21,7 +21,7 @@
 ## Souleika_Queen_Statut_WhatsApp_1-3.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 1883 images, 62.767 s, couleurs bt709/bt709/bt709
 - Audio : aac LC, 48000 Hz, 2 canaux, 165 kb/s, 62.750 s
-- Conteneur : 62.767 s, 32.6 Mo, débit global 4.2 Mb/s
+- Conteneur : 62.767 s, 32.7 Mo, débit global 4.2 Mb/s
 
 ## Souleika_Queen_Statut_WhatsApp_2-3.mp4
 - Vidéo : h264 High niveau 41, 1080×1920, yuv420p, 30/1 (moy. 30/1), 2083 images, 69.433 s, couleurs bt709/bt709/bt709
