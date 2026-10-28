@@ -8,37 +8,8 @@ import math
 import cv2
 import numpy as np
 
-from common import EASE, H, W, clamp, rgb
-from livefx import _dot, _hash, _smooth, _star, put
-
-LUMA = np.float32([0.2126, 0.7152, 0.0722])
-
-
-def screen(a, b):
-    return 1 - (1 - a) * (1 - np.clip(b, 0, 1))
-
-
-def add(img, spr, cx, cy, col, alpha):
-    """Ajout lumineux d'un sprite centré (sans rotation)."""
-    if alpha <= 0.004:
-        return
-    h, w = spr.shape
-    x0, y0 = int(round(cx - w / 2)), int(round(cy - h / 2))
-    X0, Y0, X1, Y1 = max(0, x0), max(0, y0), min(W, x0 + w), min(H, y0 + h)
-    if X1 <= X0 or Y1 <= Y0:
-        return
-    img[Y0:Y1, X0:X1] += spr[Y0 - y0:Y1 - y0, X0 - x0:X1 - x0, None] * (col * alpha)
-
-
-def guard(boxes, x, y, r=0.0, ramp=90.0):
-    f = 1.0
-    for x0, y0, x1, y1, st in boxes:
-        dx = max(x0 - x, 0, x - x1)
-        dy = max(y0 - y, 0, y - y1)
-        d = math.hypot(dx, dy) - r
-        f = min(f, 1 - st * (1 - _smooth(d / ramp)))
-    return f
-
+from common import clamp
+from livefx import _dot, _hash, _star, put
 
 def _bokeh(r):
     """Disque de bokeh : remplissage doux, liseré plus lumineux, léger halo."""
@@ -72,15 +43,6 @@ def _halo(r):
     yy, xx = np.mgrid[0:n, 0:n].astype(np.float32) - n // 2
     d2 = xx * xx + yy * yy
     a = np.exp(-d2 / (2 * (r * 0.55) ** 2))
-    return (a / a.max()).astype(np.float32)
-
-
-def _lantern(r):
-    """Cœur lumineux d'une lanterne (forme légèrement allongée)."""
-    n = int(r * 3) // 2 * 2 + 1
-    yy, xx = np.mgrid[0:n, 0:n].astype(np.float32) - n // 2
-    d2 = (xx / 0.75) ** 2 + (yy / 1.0) ** 2
-    a = np.exp(-d2 / (2 * (r * 0.42) ** 2))
     return (a / a.max()).astype(np.float32)
 
 
