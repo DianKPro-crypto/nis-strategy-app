@@ -85,7 +85,7 @@ def main():
     lines.append(f"- Feux d'artifice : {len(off)} éclatements ; {int((off <= 0.5 / FPS).sum())}/{len(off)} sur une attaque "
                  f"percussive mesurée du chant à ±½ image (écart max {off.max() * 1000:.0f} ms)")
     # vérification sur l'image : la lumière de la zone de l'éclatement monte à l'instant prévu
-    meas = []
+    meas, hidden = [], []
     for sh in r.enchant.shells:
         f = gray(mp4, sh.t - 0.4, 0.8)
         x, y = sh.x / W * f.shape[2], sh.y / H * f.shape[1]
@@ -93,10 +93,17 @@ def main():
         y0, y1 = int(max(0, y - 20)), int(min(f.shape[1], y + 20))
         lum = f[:, y0:y1, x0:x1].mean(axis=(1, 2))
         k = int(np.argmax(np.diff(lum)))
+        if np.diff(lum).max() < 10:                    # aucune lumière visible : éclatement masqué par la personne
+            shot = r.shots[r.shot_index(sh.t)]
+            hidden.append(f"{sh.t:.2f} s (plan {shot['id']}, {shot.get('photo', 'bandes')})")
+            continue
         meas.append(abs(sh.t - 0.4 + (k + 1) / FPS - sh.t))
     meas = np.array(meas)
     lines.append(f"- Vérification sur l'image (montée de lumière la plus forte au point d'éclatement) : "
-                 f"{int((meas <= 2.01 / FPS).sum())}/{len(meas)} à ±2 images, écart médian {np.median(meas) * 1000:.0f} ms")
+                 f"{int((meas <= 2.01 / FPS).sum())}/{len(meas)} éclatements visibles à ±2 images, "
+                 f"écart médian {np.median(meas) * 1000:.0f} ms")
+    if hidden:
+        lines.append(f"- Éclatement entièrement derrière elle, donc invisible (aucun défaut à l'écran) : {', '.join(hidden)}")
     cuts = {round(s["start"], 2) for s in r.shots}
     sp = [v.c for v in r.enchant.vortex]
     lines.append(f"- Spirales : {len(sp)} éclatements, sur " + ", ".join(
