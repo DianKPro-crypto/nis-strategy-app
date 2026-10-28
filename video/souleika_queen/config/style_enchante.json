@@ -1,5 +1,5 @@
 {
- "_doc": "Version « Nuit enchantée » : même montage, mêmes paroles, même son. La personne garde ses pixels d'origine ; le décor change de lumière selon la séquence (nuit étoilée, crépuscule, heure dorée, bal royal, clair de lune, aurore) et la magie se place derrière puis devant elle. Couleurs riches et noirs profonds : aucun voile laiteux. Inspirée du langage visuel des grandes romances de cinéma, sans aucun logo ni élément de marque.",
+ "_doc": "Version « Nuit enchantée » : même montage, mêmes paroles, même son. La personne garde ses pixels d'origine ; le décor change de lumière selon la séquence (nuit étoilée, crépuscule, heure dorée, bal royal, clair de lune, aurore, jardin de nuit) et la magie se place derrière puis devant elle. Couleurs riches et noirs profonds : aucun voile laiteux. Inspirée du langage visuel des grandes romances de cinéma, sans aucun logo ni élément de marque.",
  "nom": "enchante",
  "titre": "SOULEIKA QUEEN — Nuit enchantée",
  "sorties": {
@@ -267,8 +267,8 @@
  },
  "feux": [
   {
-   "_doc": "Entrée du groove (29,50 s)",
-   "t": 29.5,
+   "_doc": "Entrée du groove : chaque éclatement tombe sur une attaque percussive mesurée (analysis/audio_analysis.json : accents ou temps affinés)",
+   "t": 29.498,
    "x": 0.24,
    "y": 0.12,
    "type": "pivoine",
@@ -276,7 +276,7 @@
    "n": 170
   },
   {
-   "t": 30.04,
+   "t": 30.291,
    "x": 0.78,
    "y": 0.09,
    "type": "pivoine",
@@ -285,7 +285,7 @@
    "taille": 0.9
   },
   {
-   "t": 30.57,
+   "t": 30.83,
    "x": 0.52,
    "y": 0.06,
    "type": "anneau",
@@ -304,7 +304,7 @@
    "taille": 1.1
   },
   {
-   "t": 64.33,
+   "t": 64.219,
    "x": 0.93,
    "y": 0.24,
    "type": "pivoine",
@@ -313,7 +313,7 @@
    "taille": 0.85
   },
   {
-   "t": 64.87,
+   "t": 64.598,
    "x": 0.6,
    "y": 0.05,
    "type": "anneau",
@@ -322,7 +322,7 @@
    "taille": 0.8
   },
   {
-   "t": 65.94,
+   "t": 65.95,
    "x": 0.84,
    "y": 0.1,
    "type": "saule",
@@ -332,7 +332,7 @@
   },
   {
    "_doc": "« Waan ku jeclahay » (83,45 s) : cœurs",
-   "t": 83.45,
+   "t": 83.36,
    "x": 0.22,
    "y": 0.13,
    "type": "coeur",
@@ -341,7 +341,7 @@
    "taille": 0.75
   },
   {
-   "t": 85.6,
+   "t": 85.635,
    "x": 0.8,
    "y": 0.11,
    "type": "coeur",
@@ -351,7 +351,7 @@
   },
   {
    "_doc": "Solo kora × amapiano (137,06 s)",
-   "t": 137.06,
+   "t": 137.063,
    "x": 0.18,
    "y": 0.11,
    "type": "pivoine",
@@ -359,7 +359,7 @@
    "n": 170
   },
   {
-   "t": 137.6,
+   "t": 137.607,
    "x": 0.84,
    "y": 0.09,
    "type": "pivoine",
@@ -368,7 +368,7 @@
    "taille": 0.95
   },
   {
-   "t": 138.13,
+   "t": 138.146,
    "x": 0.5,
    "y": 0.05,
    "type": "anneau",
@@ -378,7 +378,7 @@
   },
   {
    "_doc": "« Souleika ! » (145,42 s)",
-   "t": 145.38,
+   "t": 145.644,
    "x": 0.2,
    "y": 0.14,
    "type": "pivoine",
@@ -387,7 +387,7 @@
    "taille": 0.85
   },
   {
-   "t": 145.92,
+   "t": 146.018,
    "x": 0.8,
    "y": 0.12,
    "type": "pivoine",
@@ -397,7 +397,7 @@
   },
   {
    "_doc": "« Hambalyo ! » (151,65 s)",
-   "t": 151.6,
+   "t": 152.064,
    "x": 0.2,
    "y": 0.08,
    "type": "pivoine",
@@ -406,7 +406,7 @@
    "taille": 0.85
   },
   {
-   "t": 152.14,
+   "t": 152.468,
    "x": 0.82,
    "y": 0.1,
    "type": "anneau",
@@ -416,7 +416,7 @@
   },
   {
    "_doc": "Refrain final, jour de lumière (157,03 s)",
-   "t": 157.03,
+   "t": 157.028,
    "x": 0.74,
    "y": 0.08,
    "type": "pivoine",
@@ -425,7 +425,7 @@
    "taille": 1.1
   },
   {
-   "t": 157.56,
+   "t": 157.567,
    "x": 0.93,
    "y": 0.25,
    "type": "pivoine",
@@ -434,7 +434,7 @@
    "taille": 0.85
   },
   {
-   "t": 158.1,
+   "t": 158.096,
    "x": 0.6,
    "y": 0.04,
    "type": "anneau",
@@ -443,7 +443,7 @@
    "taille": 0.8
   },
   {
-   "t": 158.63,
+   "t": 158.639,
    "x": 0.82,
    "y": 0.11,
    "type": "saule",
@@ -453,7 +453,7 @@
   },
   {
    "_doc": "Final, pluie d'or douce avant « Waan ku jeclahay »",
-   "t": 172.9,
+   "t": 173.102,
    "x": 0.5,
    "y": 0.1,
    "type": "saule",

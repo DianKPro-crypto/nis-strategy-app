@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 
 import fx
-from common import BAND_GAP, EASE, FPS, H, W, clamp, rgb
+from common import BAND_GAP, EASE, FPS, H, W, clamp, load_json, rgb
 from dream import Comet, _bokeh, _heart
 from livefx import _hash, _smooth, _star, put
 from photos import _ramp, place
@@ -381,6 +381,8 @@ class Enchant:
         self.photo_world = st.get("mondes_photos", {})
         self.beats = R.beats
         self.down = set(range(1, len(self.beats), 4))
+        an = load_json("analysis/audio_analysis.json")
+        self.hits = sorted(set(an["accents"]) | set(an["beats_refined"]))     # attaques percussives mesurées
         self._plates = {}
         self.vignette = fx.make_vignette(st["finition"]["vignette"])
         self.grain = fx.make_grain(sigma=0.010 * st["finition"]["grain"])
@@ -408,10 +410,10 @@ class Enchant:
         self.cuts = [s["start"] for s in R.shots if s.get("punch") and s["trans"]["type"] == "cut"]
 
     # ---------------------------------------------------------------- temps
-    def snap(self, t, tol=0.12):
-        """Recale un instant sur le temps mesuré le plus proche (feux d'artifice synchronisés)."""
-        i = bisect.bisect_left(self.beats, t)
-        best = min((b for b in self.beats[max(0, i - 1):i + 1]), key=lambda b: abs(b - t), default=t)
+    def snap(self, t, tol=0.06):
+        """Recale un instant sur l'attaque percussive mesurée la plus proche (accents ou temps affinés)."""
+        i = bisect.bisect_left(self.hits, t)
+        best = min(self.hits[max(0, i - 1):i + 1], key=lambda b: abs(b - t), default=t)
         return best if abs(best - t) <= tol else t
 
     def accent(self, t):

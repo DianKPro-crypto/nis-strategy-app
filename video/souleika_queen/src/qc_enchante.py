@@ -79,12 +79,11 @@ def main():
     lines += ["", "## Calage", f"- Coupes franches : {len(errs)} coupes, {int((errs <= 1.01 / FPS).sum())}/{len(errs)} "
               f"à l'image près (écart max {errs.max() * 1000:.0f} ms)"]
 
-    # 2b. feux d'artifice : instant d'éclatement recalé sur le temps mesuré le plus proche
-    beats = np.array(r.beats)
-    off = [abs(beats[np.argmin(abs(beats - sh.t))] - sh.t) for sh in r.enchant.shells]
-    moved = [abs(sh.t - f["t"]) for sh, f in zip(r.enchant.shells, st["feux"])]
-    lines.append(f"- Feux d'artifice : {len(off)} éclatements, tous sur un temps mesuré du chant "
-                 f"(écart max {max(off) * 1000:.0f} ms ; recalage max par rapport à la configuration {max(moved) * 1000:.0f} ms)")
+    # 2b. feux d'artifice : chaque éclatement sur une attaque percussive mesurée (accents ou temps affinés)
+    hits = np.array(r.enchant.hits)
+    off = np.array([abs(hits[np.argmin(abs(hits - sh.t))] - sh.t) for sh in r.enchant.shells])
+    lines.append(f"- Feux d'artifice : {len(off)} éclatements ; {int((off <= 0.5 / FPS).sum())}/{len(off)} sur une attaque "
+                 f"percussive mesurée du chant à ±½ image (écart max {off.max() * 1000:.0f} ms)")
     # vérification sur l'image : la lumière de la zone de l'éclatement monte à l'instant prévu
     meas = []
     for sh in r.enchant.shells:
