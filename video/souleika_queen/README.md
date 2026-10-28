@@ -10,13 +10,35 @@ Format vertical 1080 × 1920, 30 i/s, H.264 + AAC. Durée 185,5 s : le chant com
 | Version | Commande | Sorties |
 |---|---|---|
 | Actuelle (« L'amour en lumière ») | `python3 src/export.py` | `exports/` |
-| Rêve (« Il était une fois… ») | `python3 src/export.py --style reve` | `exports/reve/` |
+| Nuit enchantée (« Il était une fois… ») | `python3 src/matte.py` puis `python3 src/export.py --style enchante` | `exports/enchante/` |
 
-La version rêve reprend exactement le même montage, les mêmes paroles et le même son. Seuls la lumière, les couleurs,
-les transitions, la typographie et la magie changent. Tout se règle dans `config/style_reve.json` :
-diffusion lumineuse et bords oniriques, palette par séquence (bokeh, cœurs, étoiles), transitions (fondu de rêve,
-micro-fondu lumineux sur le temps, transition magique), traînées de poussière d'étoiles, lanternes du pont spirituel,
-textes révélés à la baguette. Moteur : `src/dream.py`.
+La version « Nuit enchantée » reprend exactement le même montage, les mêmes paroles et le même son. Elle remplace la
+première version rêve (pastel), jugée décolorée.
+
+**Ce qui change.** Chaque photo est séparée en deux calques par un détourage local (`src/matte.py`, modèle
+BiRefNet-portrait exécuté sur cette machine, aucune photo envoyée à l'extérieur) :
+
+- La personne garde ses pixels d'origine. Seul son étalonnage change, comme dans la version actuelle.
+- Le décor change de lumière selon la séquence (nuit étoilée, crépuscule, heure dorée, bal royal, clair de lune,
+  aurore, jardin de nuit) : profondeur de champ, lampes réelles devenues bokeh, couleurs riches et noirs profonds.
+- La magie se place **derrière** elle : feux d'artifice éclatant sur les temps, lanternes célestes, étoiles,
+  rayons de contre-jour.
+- Elle passe aussi **devant** elle, pour la profondeur : spirales d'étincelles autour du buste, gerbes sur les
+  coupes, cœur d'étoiles du baiser final. Ces éléments s'effacent toujours à l'approche des visages et des mains.
+- Le décor glisse moins vite qu'elle, ce qui crée un effet de profondeur. Chaque calque ne subit qu'une échelle et
+  une translation : aucune déformation.
+
+Les objets à garder tels quels au premier plan (téléphone de la page d'accueil, bandeau « SOULEIKA ») sont déclarés
+dans `config/photos.json` (`garder`).
+
+Tout se règle dans `config/style_enchante.json` : mondes (lumière du décor), feux (instant, position, type),
+spirales, lanternes, étoiles filantes, cœurs, parallaxe, finition. Moteur : `src/enchant.py`.
+
+Contrôles propres à cette version :
+
+- `python3 src/qc_enchante.py` : couleurs et contraste face à la version actuelle, calage des coupes, des feux
+  et des spirales.
+- `python3 src/compare.py` : planche avant/après.
 
 ## Refaire le rendu
 
@@ -45,7 +67,7 @@ Vérifications rapides après modification :
 
 ```bash
 python3 src/render.py --qc                    # textes : zone de sécurité, aucun texte sur visage/yeux/bouche/mains
-python3 src/render.py --stills 0 64.2 121     # images de contrôle dans work/stills/ (ajouter --style reve)
+python3 src/render.py --stills 0 64.2 121     # images de contrôle dans work/stills/ (ajouter --style enchante)
 bash src/control.sh                           # extrait de contrôle de 34 s avec le son (work/controle.mp4)
 ```
 
@@ -53,7 +75,8 @@ bash src/control.sh                           # extrait de contrôle de 34 s ave
 
 ```
 config/    photos.json (identification, points focaux, zones protégées) · timeline.json (plans) · texts.json (textes)
-src/       render.py (moteur) · photos.py (cadrage) · fx.py (lumière, étalonnage) · textfx.py (typographie)
+src/       render.py (moteur) · photos.py (cadrage, calques) · fx.py (lumière, étalonnage) · textfx.py (typographie)
+           enchant.py, matte.py, dream.py (version Nuit enchantée) · livefx.py (effets des photos artistiques)
            export.py (chaîne complète) · analyze_audio.py, refine_beats.py, transcribe.py (analyse du chant)
 analysis/  analyse rythmique, transcription locale, paroles alignées, rapport de contrôle qualité
 assets/    polices (Playfair Display, Inter — licence OFL) et monogramme DK

@@ -2,7 +2,8 @@
 
 Usage :
   python3 src/export.py                      tout refaire (rendu + exports + contrôles), version actuelle
-  python3 src/export.py --style reve         idem pour la version rêve (config/style_reve.json, exports/reve/)
+  python3 src/export.py --style enchante     idem pour la version « Nuit enchantée » (config/style_enchante.json,
+                                             exports/enchante/ ; détourage préalable : python3 src/matte.py)
   python3 src/export.py --encode             ré-encoder et refaire les livrables sans re-rendre les images
   python3 src/export.py --segments 1 2       ne recalculer que ces segments (0-11)
 """
@@ -33,7 +34,8 @@ class Out:
     def __init__(self, style=None):
         self.style = style
         if style:
-            so = load_json(f"config/style_{style}.json")["sorties"]
+            st = load_json(f"config/style_{style}.json")
+            so = st["sorties"]
             self.exp, pre, self.chunks = ROOT / so["dossier"], so["prefixe"], ROOT / so["segments"]
             self.main = self.exp / f"{pre}_1080x1920.mp4"
             self.share = self.exp / f"{pre}_Partage.mp4"
@@ -41,7 +43,7 @@ class Out:
             self.csv = self.exp / f"{pre}_Timeline.csv"
             self.status = [self.exp / f"{pre}_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
             self.report = ROOT / "analysis" / f"qc_report_{style}.md"
-            self.title = "SOULEIKA QUEEN — Version rêve"
+            self.title = st["titre"]
         else:
             self.exp, self.chunks = ROOT / "exports", WORK / "chunks"
             self.main = self.exp / "Souleika_Queen_Anniversaire_1080x1920.mp4"
@@ -201,7 +203,8 @@ def timeline_csv(tl, out, texts=None):
                 zoom = f"{s['z0']:.3f}→{s['z1']:.3f}"
                 pt = f"({s['c0'][0]:.2f}, {s['c0'][1]:.2f})→({s['c1'][0]:.2f}, {s['c1'][1]:.2f})"
             tr = s.get("trans", {"type": "cut"})
-            names = {"reve": "fondu de rêve", "magie": "transition magique", "eclat": "micro-fondu lumineux sur le temps"}
+            names = {"reve": "fondu de mise au point", "magie": "transition magique", "light": "fondu lumineux",
+                     "dissolve": "fondu enchaîné", "zoom": "traversée"}
             trs = "coupe" if tr["type"] == "cut" or tr.get("dur", 0) == 0 else f"{names.get(tr['type'], tr['type'])} {tr['dur']:.2f} s"
             if s.get("punch"):
                 trs += " + impact"
@@ -296,7 +299,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encode", action="store_true", help="ne pas re-rendre les images")
     ap.add_argument("--segments", nargs="*", type=int, help="ne recalculer que ces segments (0-11)")
-    ap.add_argument("--style", help="variante de style (ex. reve)")
+    ap.add_argument("--style", help="variante de style (ex. enchante)")
     args = ap.parse_args()
     out = Out(args.style)
     tl = load_json("config/timeline.json")

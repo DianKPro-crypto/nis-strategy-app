@@ -62,18 +62,21 @@ class Photo:
         self.focus = cfg.get("focus", [0.5, 0.5])
         self.protect = cfg.get("protect", {})
         k = clamp(max_scale * 1.02, 1.0, 3.2)
-        if k > 1.05:
-            m = cv2.resize(self.src, (round(self.w * k), round(self.h * k)), interpolation=cv2.INTER_LANCZOS4)
-            # accentuation douce après agrandissement (texture de peau préservée)
-            f = m.astype(np.float32)
-            blur = cv2.GaussianBlur(f, (0, 0), 0.9 * k)
-            m = np.clip(f + 0.32 * (f - blur), 0, 255).astype(np.uint8)
-        else:
-            k, m = 1.0, self.src
-        self.levels = [(k, m)]
+        if k <= 1.05:
+            k = 1.0
+        self.levels = [(k, self._master(self.src, k))]
         while self.levels[-1][0] > 0.3:
             pk, pm = self.levels[-1]
             self.levels.append((pk / 2, cv2.resize(pm, (pm.shape[1] // 2, pm.shape[0] // 2), interpolation=cv2.INTER_AREA)))
+
+    def _master(self, img, k):
+        if k == 1.0:
+            return img
+        m = cv2.resize(img, (round(self.w * k), round(self.h * k)), interpolation=cv2.INTER_LANCZOS4)
+        # accentuation douce après agrandissement (texture de peau préservée)
+        f = m.astype(np.float32)
+        blur = cv2.GaussianBlur(f, (0, 0), 0.9 * k)
+        return np.clip(f + 0.32 * (f - blur), 0, 255).astype(np.uint8)
 
     def level_for(self, s):
         best = self.levels[0]
@@ -121,6 +124,72 @@ class Photo:
             bg = self.background(cw, ch, s, tx, ty, tint) * 255
             fg = np.clip(bg + (fg.astype(np.float32) - bg) * a, 0, 255).astype(np.uint8)
         return fg, (s, tx, ty)
+
+    # ------------------------------------------------------------ version « Nuit enchantée » : deux calques
+    def load_layers(self):
+        """Personne et décor séparés (src/matte.py). La personne garde ses pixels d'origine (seuls les bords
+        semi-transparents perdent le reflet de l'ancien décor) ; les zones « garder » (graphisme de la photo)
+        restent au premier plan, telles quelles."""
+        d = ROOT / "work" / "mattes"
+        a = cv2.imread(str(d / f"{self.id}_alpha.png"), cv2.IMREAD_GRAYSCALE)
+        if a is None or a.shape != (self.h, self.w):
+            raise SystemExit(f"{self.id} : masque absent ou périmé — lancer python3 src/matte.py")
+        fg = cv2.cvtColor(cv2.imread(str(d / f"{self.id}_fg.png")), cv2.COLOR_BGR2RGB)
+        self.plate = cv2.cvtColor(cv2.imread(str(d / f"{self.id}_plate.png")), cv2.COLOR_BGR2RGB)
+        keep = np.zeros((self.h, self.w), np.uint8)
+        for g in self.cfg.get("garder", []):          # rectangle [x0, y0, x1, y1] ou {"poly": [...], "arrondi": r}
+            if isinstance(g, dict):
+                pts = np.round(np.float32(g["poly"]) * (self.w, self.h) * 4).astype(np.int32)
+                cv2.fillPoly(keep, [pts], 255, lineType=cv2.LINE_AA, shift=2)
+                r = int(g.get("arrondi", 0) * self.w)
+                if r > 1:                              # coins arrondis (objet réel : téléphone…)
+                    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
+                    keep = cv2.morphologyEx(keep, cv2.MORPH_OPEN, k)
+            else:
+                x0, y0, x1, y1 = g
+                keep[round(y0 * self.h):round(y1 * self.h), round(x0 * self.w):round(x1 * self.w)] = 255
+        person = a
+        if keep.any():
+            a = np.maximum(a, keep)
+            kf = (keep.astype(np.float32) / 255)[..., None]
+            fg = (self.src * kf + fg * (1 - kf) + 0.5).astype(np.uint8)
+        self.alpha = a.astype(np.float32) / 255
+        k = self.levels[0][0]
+        up = (lambda m: m) if k == 1.0 else \
+            (lambda m: cv2.resize(m, (round(self.w * k), round(self.h * k)), interpolation=cv2.INTER_CUBIC))
+        # (échelle, couleurs, masque complet, masque de la personne seule ou None)
+        self.layer_levels = [(k, self._master(fg, k), up(a), up(person) if keep.any() else None)]
+        while self.layer_levels[-1][0] > 0.3:
+            pk, pm, pa, pp = self.layer_levels[-1]
+            size = (pm.shape[1] // 2, pm.shape[0] // 2)
+            self.layer_levels.append((pk / 2, cv2.resize(pm, size, interpolation=cv2.INTER_AREA),
+                                      cv2.resize(pa, size, interpolation=cv2.INTER_AREA),
+                                      None if pp is None else cv2.resize(pp, size, interpolation=cv2.INTER_AREA)))
+
+    def render_layers(self, cw, ch, zoom, center, anchor=(0.5, 0.5)):
+        """Calque de la personne : (couleurs uint8, masque float32 0-1, transformation (s, tx, ty),
+        masque de la personne seule — sans les objets gardés — ou None)."""
+        s, tx, ty, dw, dh = place(self.w, self.h, cw, ch, zoom, center, anchor)
+        best = self.layer_levels[0]
+        for lv in self.layer_levels:
+            if lv[0] >= s:
+                best = lv
+        lk, lm, la, lp = best
+        r = s / lk
+        A = np.float32([[r, 0, tx + 0.5 * r - 0.5], [0, r, ty + 0.5 * r - 0.5]])
+        fg = cv2.warpAffine(lm, A, (cw, ch), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+        ramp = None
+        if not (tx <= 0 and ty <= 0 and tx + dw >= cw and ty + dh >= ch):     # bords de la photo dans le champ
+            feather = clamp(0.10 * min(dw, dh), 40, 150)
+            ramp = _ramp(ch, ty, ty + dh, feather)[:, None] * _ramp(cw, tx, tx + dw, feather)[None, :]
+
+        def warp(m):
+            if m is None:
+                return None
+            o = cv2.warpAffine(m, A, (cw, ch), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+            o = o.astype(np.float32) * (1 / 255)
+            return o if ramp is None else o * ramp
+        return fg, warp(la), (s, tx, ty), warp(lp)
 
     def protected_boxes(self, transform, offset=(0, 0)):
         """Zones protégées projetées dans le cadre (pixels)."""

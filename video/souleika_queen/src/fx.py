@@ -18,13 +18,11 @@ GRADES = {
     "gold": dict(exposure=0.03, contrast=0.13, warmth=0.70, sat=1.06, lift=(0.020, 0.024, 0.040)),
     "mint": dict(exposure=0.10, contrast=0.04, warmth=-0.05, sat=0.93, lift=(0.030, 0.052, 0.046),
                  gain=(0.985, 1.0, 0.985)),
-    # version rêve : pastel or rosé, contraste adouci (courbe inversée), ombres lavande laiteuses
-    "reve": dict(exposure=0.07, contrast=-0.06, warmth=0.42, sat=0.96, lift=(0.060, 0.042, 0.074),
-                 gain=(1.0, 0.978, 0.968)),
-    "reve_or": dict(exposure=0.09, contrast=-0.03, warmth=0.62, sat=1.0, lift=(0.058, 0.040, 0.060),
-                    gain=(1.0, 0.975, 0.955)),
-    "reve_nuit": dict(exposure=0.05, contrast=-0.05, warmth=0.12, sat=0.93, lift=(0.050, 0.044, 0.090),
-                      gain=(0.985, 0.975, 1.0)),
+    # version « Nuit enchantée » (personne seule) : peau lumineuse, couleurs riches, noirs profonds
+    "conte": dict(exposure=0.05, contrast=0.14, warmth=0.42, sat=1.07, lift=(0.008, 0.012, 0.030),
+                  gain=(1.0, 0.99, 0.98)),
+    "conte_or": dict(exposure=0.06, contrast=0.15, warmth=0.55, sat=1.08, lift=(0.010, 0.012, 0.026)),
+    "conte_menthe": dict(exposure=0.07, contrast=0.11, warmth=0.18, sat=1.05, lift=(0.008, 0.022, 0.026)),
 }
 _LUTS = {}
 
@@ -139,7 +137,7 @@ class Particles:
         reg += spr[sy0:sy1, sx0:sx1, None] * (col * a)
 
     def draw(self, img, t, density, tint="gold"):
-        base = np.float32(rgb({"gold": "#EBD39C", "reve": "#FFE1D6"}.get(tint, "#EAF4EC")))
+        base = np.float32(rgb({"gold": "#EBD39C"}.get(tint, "#EAF4EC")))
         warm = np.float32([1.0, 0.86, 0.62])
         if density > 0.01:
             for q in self.p:
@@ -169,7 +167,7 @@ _ly, _lx = np.mgrid[0:_LH, 0:_LW].astype(np.float32)
 
 def light_leaks(t, intensity, palette=None):
     """Fuites de lumière chaudes qui dérivent lentement sur les bords (fusion écran).
-    palette : trois couleurs (version rêve : pêche, rose, lavande)."""
+    palette : trois couleurs (par défaut : ambre, or, cuivre)."""
     if intensity <= 0.01:
         return None
     c = palette or [(1.0, 0.62, 0.26), (1.0, 0.74, 0.42), (1.0, 0.55, 0.38)]
@@ -245,6 +243,15 @@ def flare(img, t, ev):
         g = np.exp(-(gx ** 2 + gy ** 2) / (2 * 42.0 ** 2)) * env * 0.9
         img[gy0:gy1, gx0:gx1] = screen(img[gy0:gy1, gx0:gx1], g[..., None] * col)
     return img
+
+
+def defocus(img, sigma):
+    """Flou de mise au point (calculé à demi-résolution)."""
+    if sigma < 0.6:
+        return img
+    half = cv2.resize(img, (W // 2, H // 2), interpolation=cv2.INTER_AREA)
+    half = cv2.GaussianBlur(half, (0, 0), sigma / 2)
+    return cv2.resize(half, (W, H), interpolation=cv2.INTER_LINEAR)
 
 
 def zoom_blur(img, strength, center=(0.5, 0.5)):

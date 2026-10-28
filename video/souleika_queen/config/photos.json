@@ -21,7 +21,31 @@
     0.48,
     0.82
    ]
-  }
+  },
+  "garder": [
+   {
+    "poly": [
+     [
+      0.395,
+      0.083
+     ],
+     [
+      0.877,
+      0.075
+     ],
+     [
+      0.768,
+      0.937
+     ],
+     [
+      0.279,
+      0.897
+     ]
+    ],
+    "arrondi": 0.035,
+    "_doc": "téléphone entier (avec l'image de Dian K. Pro) : objet réel, gardé tel quel au premier plan"
+   }
+  ]
  },
  "P01": {
   "file": "sources/photos/P01_robe_jaune_SOULEIKA.jpg",
@@ -50,7 +74,15 @@
     0.42,
     1.0
    ]
-  }
+  },
+  "garder": [
+   [
+    0.0,
+    0.0,
+    0.417,
+    1.0
+   ]
+  ]
  },
  "P02": {
   "file": "sources/photos/P02_tenue_marine_sourire.png",

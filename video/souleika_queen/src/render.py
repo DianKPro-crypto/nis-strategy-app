@@ -15,12 +15,10 @@ import numpy as np
 
 import fx
 import livefx
-from common import EASE, FPS, H, ROOT, SAFE, W, clamp, lerp, load_json, rgb, tc
-from dream import Dream
+from common import BAND_GAP, EASE, FPS, H, ROOT, SAFE, W, clamp, lerp, load_json, rgb, tc
+from enchant import Enchant
 from photos import Photo, place
 from textfx import TextBlock
-
-BAND_GAP = 6
 
 
 class Renderer:
@@ -61,6 +59,9 @@ class Renderer:
                 m = max(zs) * cover * (1.06 if s.get("punch") else 1.0) * (1.25 if s["trans"]["type"] == "zoom" else 1.0)
                 need[pid] = max(need.get(pid, 0), m)
         self.photos = {pid: Photo(pid, pcfg[pid], m) for pid, m in sorted(need.items())}
+        if self.style:                                   # version « Nuit enchantée » : personne et décor séparés
+            for ph in self.photos.values():
+                ph.load_layers()
         self.live = livefx.build(self.photos, pcfg, self.beats)     # effets animés des photos artistiques
 
         self.particles = fx.Particles()
@@ -68,20 +69,18 @@ class Renderer:
         for k, ev in enumerate(self.events):
             if ev["type"] == "burst":
                 self.particles.add_burst(ev["t"], ev["n"], seed=100 + k)
-        dif = self.style["diffusion"] if self.style else None
-        self.vignette = fx.make_vignette(dif["vignette"]) if dif else fx.make_vignette()
-        self.grain = fx.make_grain(sigma=0.010 * (dif["grain"] if dif else 1.0))
+        self.vignette = fx.make_vignette()
+        self.grain = fx.make_grain()
         look = {"palette": self.style["textes"]["palette"], "halo": True} if self.style else None
         self.texts = [TextBlock(b, self.beats, look) for b in tcfg["blocks"]]
-        self.dream = Dream(self.style, list(sections)) if self.style else None
+        self.enchant = Enchant(self) if self.style else None
 
-    # ------------------------------------------------------------------ variante de style (version rêve)
+    # ------------------------------------------------------------------ variante de style (Nuit enchantée)
     def _apply_style(self, shots, sections, tcfg):
         st = self.style
         gm = st["etalonnage"]
         for name, sec in sections.items():
             sec["grade"] = gm["sections"].get(name, gm["defaut"])
-            sec["fx"] = {**sec["fx"], "bloom": sec["fx"].get("bloom", 0.22) * st["diffusion"]["bloom"], "ptint": "reve"}
         tr = st["transitions"]
         for i, s in enumerate(shots):
             if i == 0:
@@ -95,7 +94,8 @@ class Renderer:
                 s["trans"] = {"type": m["type"], "dur": min(m["max"], t["dur"] * m["facteur"])}
             elif t["type"] == "zoom":
                 s["trans"] = {"type": tr["zoom"]["type"], "dur": tr["zoom"]["dur"]}
-            s["punch"] = False
+            if not tr.get("garder_punch"):
+                s["punch"] = False
         o = st.get("ouverture")
         for i, s in enumerate(shots):
             if o and s["id"] == o["plan"]:
@@ -216,11 +216,6 @@ class Renderer:
         if role in ("zoom_out", "zoom_in"):
             strength = p * p if role == "zoom_out" else (1 - p) ** 2
             img = fx.zoom_blur(img, strength)
-        base = role.split(":")[0] if role else None
-        if base in ("reve", "magie", "eclat"):        # fondu de rêve : la mise au point glisse d'une image à l'autre
-            e = p * p * (3 - 2 * p)
-            amt = {"reve": 7.0, "magie": 9.0, "eclat": 2.5}[base]
-            img = defocus(img, amt * (e if role.endswith(":out") else 1 - e))
         return img
 
     # ------------------------------------------------------------------ image complète
@@ -270,6 +265,8 @@ class Renderer:
         return out
 
     def frame(self, t):
+        if self.enchant:
+            return self.enchant.frame(t)
         lays = self.layers(t)
         img = None
         for s, w, role, p in lays:
@@ -282,22 +279,12 @@ class Renderer:
 
         # lumière de transition (« light ») : montée chaude et douce, jamais un flash blanc
         boost = 0.0
-        glow_extra = 0.0
         for s, w, role, p in lays:
-            base = role.split(":")[0] if role else None
-            if base == "light":
+            if role and role.split(":")[0] == "light":
                 boost = max(boost, 0.20 * math.sin(math.pi * p))
-            elif base == "reve":
-                boost = max(boost, 0.10 * math.sin(math.pi * p))
-                glow_extra = max(glow_extra, 0.18 * math.sin(math.pi * p))
-            elif base == "magie":
-                boost = max(boost, 0.12 * math.sin(math.pi * p))
-                glow_extra = max(glow_extra, 0.28 * math.sin(math.pi * p))
-        if self.dream and cur["trans"]["type"] == "eclat" and 0 <= t - cur["start"] < 0.9:
-            glow_extra += self.style["diffusion"]["pulsation_coupes"] * math.exp(-(t - cur["start"]) / 0.22)
         for ev in self.events:
-            if ev["type"] == "flash" and 0 <= t - ev["t"] < 1.2:     # version rêve : éclairs adoucis
-                boost += ev["strength"] * (0.4 if self.dream else 1.0) * math.exp(-(t - ev["t"]) / ev["decay"])
+            if ev["type"] == "flash" and 0 <= t - ev["t"] < 1.2:
+                boost += ev["strength"] * math.exp(-(t - ev["t"]) / ev["decay"])
         leaks = prm["leaks"]
         if cur.get("reveal"):
             leaks += 0.55 * (1 - clamp((t - cur["start"]) / 5.0))
@@ -305,28 +292,18 @@ class Renderer:
             img = img * (1 + boost * np.float32([1.0, 0.9, 0.72]))
             leaks += boost * 0.8
 
-        L = fx.light_leaks(t, leaks, self.style["fuites"] if self.dream else None)
+        L = fx.light_leaks(t, leaks)
         if L is not None:
             img = fx.screen(img, L)
-        R = fx.god_rays(t, prm["rays"], self.style["rayons_pont"] if self.dream else None)
+        R = fx.god_rays(t, prm["rays"])
         if R is not None:
             img = fx.screen(img, R)
         img = fx.bloom(img, prm["bloom"])
-        if self.dream:
-            dens, pal = self.dream.params(lays)
-            boxes = self.guard_boxes(lays, t)
-            self.dream.lights(img, t, dens, pal, boxes)
-            if cur.get("fade_out"):                   # la fin se dissout dans la lumière avant le noir
-                u = clamp((t - (cur["end"] - cur["fade_out"])) / cur["fade_out"])
-                glow_extra += 0.5 * math.sin(math.pi * min(1.0, u * 1.3))
-            img = self.dream.diffuse(img, glow_extra)
         for ev in self.events:
             if ev["type"] == "flare":
                 img = fx.flare(img, t, ev)
         img *= self.vignette
         self.particles.draw(img, t, prm["particles"], prm["ptint"])
-        if self.dream:
-            self.dream.sparkles(img, t, dens, boxes, self.transforms(lays, t))
         img = np.clip(img, 0, 1)
         for tb in self.texts:
             tb.draw(img, t)
@@ -367,15 +344,6 @@ class Renderer:
         return report
 
 
-def defocus(img, sigma):
-    """Flou de mise au point (calculé à demi-résolution)."""
-    if sigma < 0.6:
-        return img
-    half = cv2.resize(img, (W // 2, H // 2), interpolation=cv2.INTER_AREA)
-    half = cv2.GaussianBlur(half, (0, 0), sigma / 2)
-    return cv2.resize(half, (W, H), interpolation=cv2.INTER_LINEAR)
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stills", nargs="*", type=float)
@@ -383,7 +351,7 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--qc", action="store_true")
     ap.add_argument("--dir", default="work/stills")
-    ap.add_argument("--style", help="variante de style (ex. reve : config/style_reve.json)")
+    ap.add_argument("--style", help="variante de style (ex. enchante : config/style_enchante.json)")
     args = ap.parse_args()
     r = Renderer(args.style)
     if args.qc:

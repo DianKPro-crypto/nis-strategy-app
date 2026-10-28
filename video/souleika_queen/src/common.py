@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 W, H = 1080, 1920
 FPS = 30
+BAND_GAP = 6          # filet doré entre les bandes des plans « bands »
 
 # Zone de sécurité (8 % côtés, 12 % haut, 18 % bas)
 SAFE = (int(W * 0.08), int(H * 0.12), int(W * 0.92), int(H * 0.82))
