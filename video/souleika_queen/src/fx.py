@@ -18,6 +18,13 @@ GRADES = {
     "gold": dict(exposure=0.03, contrast=0.13, warmth=0.70, sat=1.06, lift=(0.020, 0.024, 0.040)),
     "mint": dict(exposure=0.10, contrast=0.04, warmth=-0.05, sat=0.93, lift=(0.030, 0.052, 0.046),
                  gain=(0.985, 1.0, 0.985)),
+    # version rêve : pastel or rosé, contraste adouci (courbe inversée), ombres lavande laiteuses
+    "reve": dict(exposure=0.07, contrast=-0.06, warmth=0.42, sat=0.96, lift=(0.060, 0.042, 0.074),
+                 gain=(1.0, 0.978, 0.968)),
+    "reve_or": dict(exposure=0.09, contrast=-0.03, warmth=0.62, sat=1.0, lift=(0.058, 0.040, 0.060),
+                    gain=(1.0, 0.975, 0.955)),
+    "reve_nuit": dict(exposure=0.05, contrast=-0.05, warmth=0.12, sat=0.93, lift=(0.050, 0.044, 0.090),
+                      gain=(0.985, 0.975, 1.0)),
 }
 _LUTS = {}
 
@@ -132,7 +139,7 @@ class Particles:
         reg += spr[sy0:sy1, sx0:sx1, None] * (col * a)
 
     def draw(self, img, t, density, tint="gold"):
-        base = np.float32(rgb("#EBD39C") if tint == "gold" else rgb("#EAF4EC"))
+        base = np.float32(rgb({"gold": "#EBD39C", "reve": "#FFE1D6"}.get(tint, "#EAF4EC")))
         warm = np.float32([1.0, 0.86, 0.62])
         if density > 0.01:
             for q in self.p:
@@ -160,14 +167,16 @@ _LW, _LH = W // 8, H // 8
 _ly, _lx = np.mgrid[0:_LH, 0:_LW].astype(np.float32)
 
 
-def light_leaks(t, intensity):
-    """Fuites de lumière chaudes qui dérivent lentement sur les bords (fusion écran)."""
+def light_leaks(t, intensity, palette=None):
+    """Fuites de lumière chaudes qui dérivent lentement sur les bords (fusion écran).
+    palette : trois couleurs (version rêve : pêche, rose, lavande)."""
     if intensity <= 0.01:
         return None
+    c = palette or [(1.0, 0.62, 0.26), (1.0, 0.74, 0.42), (1.0, 0.55, 0.38)]
     blobs = [
-        ((-0.08 + 0.10 * math.sin(0.11 * t), 0.18 + 0.22 * math.sin(0.07 * t + 1.0)), 0.42, (1.0, 0.62, 0.26), 0.55),
-        ((1.06 + 0.08 * math.sin(0.09 * t + 2.0), 0.72 + 0.18 * math.sin(0.06 * t + 2.5)), 0.46, (1.0, 0.74, 0.42), 0.45),
-        ((0.5 + 0.45 * math.sin(0.05 * t + 4.0), -0.10 + 0.05 * math.sin(0.13 * t)), 0.38, (1.0, 0.55, 0.38), 0.25),
+        ((-0.08 + 0.10 * math.sin(0.11 * t), 0.18 + 0.22 * math.sin(0.07 * t + 1.0)), 0.42, c[0], 0.55),
+        ((1.06 + 0.08 * math.sin(0.09 * t + 2.0), 0.72 + 0.18 * math.sin(0.06 * t + 2.5)), 0.46, c[1], 0.45),
+        ((0.5 + 0.45 * math.sin(0.05 * t + 4.0), -0.10 + 0.05 * math.sin(0.13 * t)), 0.38, c[2], 0.25),
     ]
     acc = np.zeros((_LH, _LW, 3), np.float32)
     for (bx, by), rad, col, amp in blobs:
@@ -176,7 +185,7 @@ def light_leaks(t, intensity):
     return cv2.resize(acc * intensity, (W, H), interpolation=cv2.INTER_CUBIC)
 
 
-def god_rays(t, intensity):
+def god_rays(t, intensity, color=None):
     """Rayons de lumière très doux venant du haut (séquence spirituelle)."""
     if intensity <= 0.01:
         return None
@@ -187,7 +196,7 @@ def god_rays(t, intensity):
     rays += 0.6 * (0.5 + 0.5 * np.sin(11 * ang + 0.11 * t + 2.0))
     rays *= np.exp(-r * 1.25) * (0.75 + 0.25 * math.sin(0.6 * t))
     rays = cv2.GaussianBlur(rays.astype(np.float32), (0, 0), 1.6)
-    col = np.float32(rgb("#FFF8E8")) * 0.85 + np.float32(rgb("mint")) * 0.15
+    col = np.float32(color) if color is not None else np.float32(rgb("#FFF8E8")) * 0.85 + np.float32(rgb("mint")) * 0.15
     return cv2.resize(rays[..., None] * col * intensity, (W, H), interpolation=cv2.INTER_CUBIC)
 
 

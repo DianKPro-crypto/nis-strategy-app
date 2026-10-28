@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from common import EASE, ROOT, clamp, rgb
+from livefx import _dot, _hash, _star, put
 
 FONT_DIR = ROOT / "assets" / "fonts"
 FONTS = {
@@ -22,6 +23,8 @@ FONTS = {
 }
 DEFAULT_WEIGHT = {"display": 700, "display_italic": 500, "serif": 500, "caption": 600}
 GOLD_STOPS = [(0.0, rgb("#FBEFD2")), (0.45, rgb("#E4C886")), (1.0, rgb("#B88E4A"))]
+ROSE_STOPS = [(0.0, rgb("#FFF7EE")), (0.45, rgb("#F6D6B4")), (1.0, rgb("#DCA486"))]   # version rêve : or rosé
+GLOW = np.float32([1.0, 0.84, 0.74])
 IVORY_STOPS = [(0.0, rgb("#FFFBF4")), (1.0, rgb("#EDE3D2"))]
 SHINE = np.float32(rgb("#FFF8E6"))
 _font_cache = {}
@@ -73,7 +76,9 @@ def heart_sprite(size):
 
 
 class TextBlock:
-    def __init__(self, cfg, beats=None):
+    def __init__(self, cfg, beats=None, look=None):
+        """look (version rêve) : {"palette": "or_rose", "halo": True} ; anim « baguette » disponible."""
+        self.look = look or {}
         self.cfg = cfg
         self.id = cfg["id"]
         self.start, self.end = cfg["start"], cfg["end"]
@@ -107,7 +112,8 @@ class TextBlock:
             asc, desc = f.getmetrics()
             baseline = y + lh / 2 + (asc - desc) / 2 - (0.06 * size if ln["style"] != "caption" else 0)
             x_left = cx - width / 2
-            stops = IVORY_STOPS if (ln["style"] in ("caption", "serif") or ln.get("color") == "ivory") else GOLD_STOPS
+            gold = ROSE_STOPS if self.look.get("palette") == "or_rose" else GOLD_STOPS
+            stops = IVORY_STOPS if (ln["style"] in ("caption", "serif") or ln.get("color") == "ivory") else gold
             grad_top = baseline - size * 0.78
             grad = gradient(stops, int(size * 1.05) + 2)
             seg_times = ln.get("times")
@@ -137,11 +143,16 @@ class TextBlock:
                     shm = Image.fromarray((a * 255).astype(np.uint8)).crop((-sp, -sp, a.shape[1] + sp, a.shape[0] + sp))
                     shm = shm.filter(ImageFilter.GaussianBlur(size * 0.055 + 1.5))
                     sh = np.asarray(shm, np.float32) / 255
+                    gl, gp = None, 0
+                    if self.look.get("halo"):
+                        gp = int(size * 0.32) + 4
+                        glm = Image.fromarray((a * 255).astype(np.uint8)).crop((-gp, -gp, a.shape[1] + gp, a.shape[0] + gp))
+                        gl = np.asarray(glm.filter(ImageFilter.GaussianBlur(size * 0.13 + 2)), np.float32) / 255
                     t_in = self.start + delay
                     if seg_times:
                         t_in = seg_times[si]
-                    self.glyphs.append(dict(x=gx0, y=gy0, col=col, a=a, sh=sh, sp=sp, order=order,
-                                            t_in=t_in, line=li, cx=gx0 + a.shape[1] / 2, size=size))
+                    self.glyphs.append(dict(x=gx0, y=gy0, col=col, a=a, sh=sh, sp=sp, gl=gl, gp=gp, order=order,
+                                            t_in=t_in, line=li, cx=gx0 + a.shape[1] / 2, size=size, base=baseline))
                     order += 1
             if ln.get("rules"):
                 for side in (-1, 1):
@@ -152,7 +163,8 @@ class TextBlock:
                     a[:, : L // 5] *= np.linspace(0, 1, L // 5)[None] if side < 0 else 1
                     a[:, -(L // 5):] *= np.linspace(1, 0, L // 5)[None] if side > 0 else 1
                     self.glyphs.append(dict(x=xx, y=yy, col=np.float32(rgb("gold")), a=a, sh=np.zeros((2, L), np.float32),
-                                            sp=0, order=order, t_in=self.start + delay, line=li, cx=xx + L / 2, size=size))
+                                            sp=0, gl=None, gp=0, order=order, t_in=self.start + delay, line=li,
+                                            cx=xx + L / 2, size=size, base=baseline))
                     order += 1
             if ln.get("heart"):
                 hs = int(size * 0.5)
@@ -160,6 +172,12 @@ class TextBlock:
                 heart = dict(x=int(cx + width / 2 + size * 0.28), y=int(baseline - size * 0.62), col=hc, a=ha, size=hs)
             y += lh
         self.n = order
+        # lignes (pour l'animation « baguette ») : étendue, ligne de base, taille, instant d'apparition
+        self.lines = {}
+        for g in self.glyphs:
+            L = self.lines.setdefault(g["line"], dict(x0=1e9, x1=-1e9, base=g["base"], size=g["size"], t_in=g["t_in"]))
+            L["x0"], L["x1"] = min(L["x0"], g["x"]), max(L["x1"], g["x"] + g["a"].shape[1])
+            L["t_in"] = min(L["t_in"], g["t_in"])
         xs = [g["x"] for g in self.glyphs] + [g["x"] + g["a"].shape[1] for g in self.glyphs]
         ys = [g["y"] for g in self.glyphs] + [g["y"] + g["a"].shape[0] for g in self.glyphs]
         self.bbox = [min(xs), min(ys), max(xs), max(ys)]
@@ -254,11 +272,48 @@ class TextBlock:
             k = 0.45 * (1 - e)
             line_cx = self.cfg["pos"][0]
             return min(1.0, p * 1.8), 0.0, (g["cx"] - line_cx) * k
+        if self.anim == "wand":
+            # baguette : une étincelle parcourt la ligne et fait naître les lettres sur son passage
+            L = self.lines[g["line"]]
+            head = self._wand_head(L, t)[0]
+            p = clamp((head - g["cx"] + 30) / 70)
+            e = p * p * (3 - 2 * p)
+            return e, (1 - e) * g["size"] * 0.10, 0.0
         # rise : apparition lettre à lettre
         t0 = g["t_in"] + g["order_in_line"] * (0.034 / sp)
         p = clamp((t - t0) / (0.62 / sp))
         e = EASE["outCubic"](p)
         return min(1.0, p * 1.7), (1 - e) * g["size"] * 0.32, 0.0
+
+    def _wand_head(self, L, t):
+        dur = (0.55 + 0.45 * min(1.0, (L["x1"] - L["x0"]) / 700)) / self.speed
+        prog = clamp((t - L["t_in"]) / dur)
+        head = L["x0"] - 40 + (L["x1"] - L["x0"] + 80) * EASE["inOutSine"](prog)
+        return head, prog, dur
+
+    def _glitter(self, img, t, A):
+        """Paillettes semées par la baguette le long de chaque ligne, puis tête étincelante."""
+        for li, L in self.lines.items():
+            head, prog, dur = self._wand_head(L, t)
+            if t < L["t_in"] or t > L["t_in"] + dur + 1.0:
+                continue
+            span = L["x1"] - L["x0"] + 80
+            K = int(12 + (L["x1"] - L["x0"]) / 32)
+            for k in range(K):
+                xk = L["x0"] - 20 + (L["x1"] - L["x0"] + 40) * _hash(li, k, 41.3)
+                yk = L["base"] - L["size"] * (0.05 + 0.75 * _hash(li, k, 42.7))
+                te = L["t_in"] + dur * clamp((xk - (L["x0"] - 40)) / span)
+                age = t - te
+                if not 0 <= age <= 0.9:
+                    continue
+                tw = 0.55 + 0.45 * math.sin(17 * t + 6.28 * _hash(li, k, 43.1))
+                a = (1 - age / 0.9) ** 1.5 * tw * A
+                star = _hash(li, k, 44.9) < 0.35
+                sc = 0.55 + 0.5 * _hash(li, k, 45.5)
+                put(img, np.float32([1.0, 0.96, 0.9]) if star else GLOW, _STAR if star else _DOT,
+                    xk + (_hash(li, k, 46) - 0.5) * 20 * age, yk + 24 * age, sc, sc, age * 3, a, add=True)
+            if 0 < prog < 1:
+                put(img, np.float32([1.0, 0.97, 0.92]), _STAR, head, L["base"] - L["size"] * 0.38, 1.5, 1.5, 3 * t, A, add=True)
 
     def draw(self, img, t, global_alpha=1.0):
         if not self.active(t):
@@ -296,7 +351,9 @@ class TextBlock:
             x = int(round(g["x"] + dx))
             y = int(round(g["y"] + dy + drift))
             if g["sp"]:
-                blend(img, x - g["sp"], y - g["sp"], black, g["sh"] * (0.62 * a))
+                blend(img, x - g["sp"], y - g["sp"], black, g["sh"] * ((0.48 if self.look else 0.62) * a))
+            if g.get("gl") is not None:
+                _add_glow(img, x - g["gp"], y - g["gp"], g["gl"], 0.45 * a)
             col = g["col"]
             if shine_pos is not None and col.ndim == 3:
                 hh, ww = g["a"].shape
@@ -336,6 +393,22 @@ class TextBlock:
             s = self.sig
             p = EASE["inOutSine"](clamp((t - self.start) / 0.9))
             blend(img, s["x"], s["y"], s["col"], s["a"] * p * A)
+        if self.anim == "wand":
+            self._glitter(img, t, A)
+
+
+_STAR = _star(6.0)
+_DOT = _dot(2.4)
+
+
+def _add_glow(img, x, y, a, k):
+    """Halo lumineux chaud autour des lettres (version rêve)."""
+    h, w = a.shape
+    H_, W_ = img.shape[:2]
+    x0, y0, x1, y1 = max(0, x), max(0, y), min(W_, x + w), min(H_, y + h)
+    if x1 <= x0 or y1 <= y0:
+        return
+    img[y0:y1, x0:x1] += a[y0 - y:y1 - y, x0 - x:x1 - x, None] * (GLOW * k)
 
 
 def _dot(img, x, y, r, A):

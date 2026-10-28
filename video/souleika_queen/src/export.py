@@ -1,8 +1,10 @@
 """Chaîne complète : rendu parallèle sans perte -> encodages finaux -> planche, timeline CSV, contrôle qualité.
 
 Usage :
-  python3 src/export.py            tout refaire (rendu + exports + contrôles)
-  python3 src/export.py --encode   ré-encoder et refaire les livrables sans re-rendre les images
+  python3 src/export.py                      tout refaire (rendu + exports + contrôles), version actuelle
+  python3 src/export.py --style reve         idem pour la version rêve (config/style_reve.json, exports/reve/)
+  python3 src/export.py --encode             ré-encoder et refaire les livrables sans re-rendre les images
+  python3 src/export.py --segments 1 2       ne recalculer que ces segments (0-11)
 """
 import argparse
 import csv
@@ -18,17 +20,38 @@ from PIL import Image, ImageDraw, ImageFont
 
 from common import FPS, H, ROOT, W, load_json, tc
 
-EXP = ROOT / "exports"
 WORK = ROOT / "work"
-MAIN = EXP / "Souleika_Queen_Anniversaire_1080x1920.mp4"
-SHARE = EXP / "Souleika_Queen_Partage.mp4"
-BOARD = EXP / "Souleika_Queen_Storyboard.jpg"
-CSVF = EXP / "Souleika_Queen_Timeline.csv"
 # Statut WhatsApp : 90 s maximum par élément -> découpage sur des articulations musicales
 # (avant la reprise « Souleika Queen », début du solo de kora)
 STATUS_CUTS = [0.0, 62.75, 132.19]
-STATUS = [EXP / f"Souleika_Queen_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
 WORKERS, CHUNKS = 4, 12
+
+
+class Out:
+    """Chemins de sortie d'une version (actuelle ou variante de style)."""
+
+    def __init__(self, style=None):
+        self.style = style
+        if style:
+            so = load_json(f"config/style_{style}.json")["sorties"]
+            self.exp, pre, self.chunks = ROOT / so["dossier"], so["prefixe"], ROOT / so["segments"]
+            self.main = self.exp / f"{pre}_1080x1920.mp4"
+            self.share = self.exp / f"{pre}_Partage.mp4"
+            self.board = self.exp / f"{pre}_Storyboard.jpg"
+            self.csv = self.exp / f"{pre}_Timeline.csv"
+            self.status = [self.exp / f"{pre}_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
+            self.report = ROOT / "analysis" / f"qc_report_{style}.md"
+            self.title = "SOULEIKA QUEEN — Version rêve"
+        else:
+            self.exp, self.chunks = ROOT / "exports", WORK / "chunks"
+            self.main = self.exp / "Souleika_Queen_Anniversaire_1080x1920.mp4"
+            self.share = self.exp / "Souleika_Queen_Partage.mp4"
+            self.board = self.exp / "Souleika_Queen_Storyboard.jpg"
+            self.csv = self.exp / "Souleika_Queen_Timeline.csv"
+            self.status = [self.exp / f"Souleika_Queen_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
+            self.report = ROOT / "analysis" / "qc_report.md"
+            self.title = "SOULEIKA QUEEN — L’amour en lumière"
+        self.list = self.chunks / "list.txt"
 
 
 def run(cmd, **kw):
@@ -40,53 +63,51 @@ def total_frames(tl):
     return int(round(tl["shots"][-1]["end"] * FPS))
 
 
-def render_all(tl, only=None):
+def render_all(tl, out, only=None):
     """Rendu parallèle par segments ; only = numéros de segments à recalculer (les autres sont réutilisés)."""
     n = total_frames(tl)
-    (WORK / "chunks").mkdir(parents=True, exist_ok=True)
+    out.chunks.mkdir(parents=True, exist_ok=True)
     bounds = np.linspace(0, n, CHUNKS + 1).astype(int)
     jobs = [(i, bounds[i], bounds[i + 1]) for i in range(CHUNKS)]
     if only is not None:
-        missing = [i for i in range(CHUNKS) if i not in only and not (WORK / "chunks" / f"c{i:02d}.mkv").exists()]
+        missing = [i for i in range(CHUNKS) if i not in only and not (out.chunks / f"c{i:02d}.mkv").exists()]
         assert not missing, f"segments absents à recalculer aussi : {missing}"
     t0 = time.time()
 
     def job(j):
         i, a, b = j
-        out = WORK / "chunks" / f"c{i:02d}.mkv"
-        subprocess.run([sys.executable, str(ROOT / "src" / "render.py"), "--range", str(a), str(b), "--out", str(out.relative_to(ROOT))],
-                       check=True, cwd=ROOT, stderr=subprocess.DEVNULL)
+        dst = out.chunks / f"c{i:02d}.mkv"
+        cmd = [sys.executable, str(ROOT / "src" / "render.py"), "--range", str(a), str(b), "--out", str(dst.relative_to(ROOT))]
+        if out.style:
+            cmd += ["--style", out.style]
+        subprocess.run(cmd, check=True, cwd=ROOT, stderr=subprocess.DEVNULL)
         print(f"  segment {i:02d} [{a}-{b}] terminé ({time.time() - t0:.0f} s)", flush=True)
-        return out
 
     with ThreadPoolExecutor(WORKERS) as ex:
         list(ex.map(job, [j for j in jobs if only is None or j[0] in only]))
-    outs = [WORK / "chunks" / f"c{i:02d}.mkv" for i in range(CHUNKS)]
-    with open(WORK / "chunks" / "list.txt", "w") as f:
-        for o in outs:
-            f.write(f"file '{o.name}'\n")
-    run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", WORK / "chunks" / "list.txt", "-c", "copy",
-         WORK / "master_lossless.mkv"])
+    with open(out.list, "w") as f:                   # les encodages lisent les segments à la suite (pas de copie maître)
+        for i in range(CHUNKS):
+            f.write(f"file 'c{i:02d}.mkv'\n")
     print(f"rendu terminé en {time.time() - t0:.0f} s, {n} images")
 
 
 COLOR = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
 
 
-def encode(tl):
-    EXP.mkdir(exist_ok=True)
-    src = WORK / "master_lossless.mkv"
+def encode(tl, out):
+    out.exp.mkdir(parents=True, exist_ok=True)
+    src = ["-f", "concat", "-safe", "0", "-i", out.list]
     import audio_master
     aud = audio_master.build()          # gain mesuré + fin en douceur (queue de réverbération)
     common_v = ["-pix_fmt", "yuv420p", "-r", str(FPS), "-fps_mode", "cfr", *COLOR, "-movflags", "+faststart"]
-    run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a",
+    run(["ffmpeg", "-v", "error", "-y", *src, "-i", aud, "-map", "0:v", "-map", "1:a",
          "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-tune", "film", "-profile:v", "high", "-level:v", "4.2",
          "-maxrate", "40M", "-bufsize", "60M", *common_v,
-         "-c:a", "aac", "-b:a", "320k", "-ar", "48000", "-ac", "2", MAIN])
-    run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a",
+         "-c:a", "aac", "-b:a", "320k", "-ar", "48000", "-ac", "2", out.main])
+    run(["ffmpeg", "-v", "error", "-y", *src, "-i", aud, "-map", "0:v", "-map", "1:a",
          "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-profile:v", "high", "-level:v", "4.1",
          "-maxrate", "4500k", "-bufsize", "9M", *common_v,
-         "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2", SHARE])
+         "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2", out.share])
     end = total_frames(tl) / FPS
     bounds = STATUS_CUTS + [end]
     for k in range(len(STATUS_CUTS)):
@@ -94,9 +115,9 @@ def encode(tl):
         last = k == len(STATUS_CUTS) - 1
         vf = f"trim={a}:{b},setpts=PTS-STARTPTS" + (",fade=t=in:d=0.3" if k else "") + ("" if last else f",fade=t=out:st={b - a - 0.3:.3f}:d=0.3")
         af = f"atrim={a}:{b},asetpts=PTS-STARTPTS" + (",afade=t=in:d=0.25" if k else "") + ("" if last else f",afade=t=out:st={b - a - 0.3:.3f}:d=0.3")
-        run(["ffmpeg", "-v", "error", "-y", "-i", src, "-i", aud, "-map", "0:v", "-map", "1:a", "-vf", vf, "-af", af,
+        run(["ffmpeg", "-v", "error", "-y", *src, "-i", aud, "-map", "0:v", "-map", "1:a", "-vf", vf, "-af", af,
              "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-profile:v", "high", "-level:v", "4.1",
-             "-maxrate", "5M", "-bufsize", "10M", *common_v, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", STATUS[k]])
+             "-maxrate", "5M", "-bufsize", "10M", *common_v, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", out.status[k]])
 
 
 # ---------------------------------------------------------------------- planche de contrôle
@@ -117,7 +138,7 @@ def board_times(tl):
     return out
 
 
-def storyboard(tl):
+def storyboard(tl, out):
     items = board_times(tl)
     frames = [int(round(t * FPS)) for t, *_ in items]
     tmp = WORK / "board"
@@ -125,7 +146,7 @@ def storyboard(tl):
     for f in tmp.glob("*.png"):
         f.unlink()
     sel = "+".join(f"eq(n\\,{f})" for f in frames)
-    run(["ffmpeg", "-v", "error", "-y", "-i", MAIN, "-vf", f"select='{sel}',scale=240:427", "-fps_mode", "passthrough",
+    run(["ffmpeg", "-v", "error", "-y", "-i", out.main, "-vf", f"select='{sel}',scale=240:427", "-fps_mode", "passthrough",
          tmp / "f%03d.png"])
     files = sorted(tmp.glob("f*.png"))
     assert len(files) == len(items), (len(files), len(items))
@@ -143,8 +164,8 @@ def storyboard(tl):
     fs = ImageFont.truetype(str(fdir / "Inter-Medium.otf"), 22)
     fl = ImageFont.truetype(str(fdir / "Inter-SemiBold.otf"), 19)
     fl2 = ImageFont.truetype(str(fdir / "Inter-Medium.otf"), 17)
-    d.text((gap + 6, 30), "SOULEIKA QUEEN — L’amour en lumière", font=ft, fill=(214, 183, 119))
-    d.text((gap + 8, 100), f"Planche de contrôle · images extraites du montage final ({MAIN.name}) · 1080×1920 · 30 i/s · "
+    d.text((gap + 6, 30), out.title, font=ft, fill=(214, 183, 119))
+    d.text((gap + 8, 100), f"Planche de contrôle · images extraites du montage final ({out.main.name}) · 1080×1920 · 30 i/s · "
            f"{len(items)} plans", font=fs, fill=(245, 239, 229))
     for k, ((t, sid, sec, ph), fpath) in enumerate(zip(items, files)):
         r, c = divmod(k, cols)
@@ -155,16 +176,16 @@ def storyboard(tl):
         d.text((x + 2, y + th + 8), f"{sid} · {tc(t)[:5]} · {ph}", font=fl, fill=(245, 239, 229))
         lab2 = sec if fl2.getlength(sec) <= tw - 4 else sec[:max(1, int(len(sec) * (tw - 16) / fl2.getlength(sec)))].rstrip(" ,") + "…"
         d.text((x + 2, y + th + 36), lab2, font=fl2, fill=(214, 183, 119))
-    board.save(BOARD, quality=90)
+    board.save(out.board, quality=90)
     return items
 
 
 # ---------------------------------------------------------------------- timeline CSV
 
-def timeline_csv(tl):
-    texts = load_json("config/texts.json")["blocks"]
+def timeline_csv(tl, out, texts=None):
+    texts = texts or load_json("config/texts.json")["blocks"]
     lyr = load_json("analysis/lyrics_aligned.json")["lines"]
-    with open(CSVF, "w", newline="", encoding="utf-8-sig") as f:
+    with open(out.csv, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f, delimiter=";")
         w.writerow(["Plan", "Section", "Début (s)", "Fin (s)", "Début (mm:ss:ii, ii = image)", "Fin (mm:ss:ii)", "Durée (s)",
                     "Photo(s)", "Cadrage zoom début→fin", "Point source début→fin", "Transition d'entrée",
@@ -180,7 +201,8 @@ def timeline_csv(tl):
                 zoom = f"{s['z0']:.3f}→{s['z1']:.3f}"
                 pt = f"({s['c0'][0]:.2f}, {s['c0'][1]:.2f})→({s['c1'][0]:.2f}, {s['c1'][1]:.2f})"
             tr = s.get("trans", {"type": "cut"})
-            trs = "coupe" if tr["type"] == "cut" else f"{tr['type']} {tr['dur']:.1f} s"
+            names = {"reve": "fondu de rêve", "magie": "transition magique", "eclat": "micro-fondu lumineux sur le temps"}
+            trs = "coupe" if tr["type"] == "cut" or tr.get("dur", 0) == 0 else f"{names.get(tr['type'], tr['type'])} {tr['dur']:.2f} s"
             if s.get("punch"):
                 trs += " + impact"
             if s.get("fade_in"):
@@ -226,9 +248,9 @@ def black_segments(path):
     return re.findall(r"black_start:([\d.]+) black_end:([\d.]+)", err)
 
 
-def qc(tl, items):
-    lines = ["# Rapport de contrôle qualité — SOULEIKA QUEEN", ""]
-    for path in [MAIN, SHARE, *STATUS]:
+def qc(tl, items, out, r):
+    lines = [f"# Rapport de contrôle qualité — {out.title}", ""]
+    for path in [out.main, out.share, *out.status]:
         p = probe(path)
         v = next(s for s in p["streams"] if s["codec_type"] == "video")
         a = next(s for s in p["streams"] if s["codec_type"] == "audio")
@@ -240,7 +262,7 @@ def qc(tl, items):
                   f"- Audio : {a['codec_name']} {a.get('profile')}, {a['sample_rate']} Hz, {a['channels']} canaux, "
                   f"{int(a.get('bit_rate', 0)) // 1000} kb/s, {float(a['duration']):.3f} s",
                   f"- Conteneur : {float(p['format']['duration']):.3f} s, {size:.1f} Mo, débit global {int(p['format']['bit_rate']) / 1e6:.1f} Mb/s"]
-        if path in (MAIN, SHARE):
+        if path in (out.main, out.share):
             i, lra, tp = loudness(path)
             adur, silent, peak = audio_presence(path, float(p["format"]["duration"]))
             lines.append(f"- Sonie : {i:.1f} LUFS intégrés, LRA {lra:.1f} LU, crête vraie {tp:.1f} dBTP, échantillon max {peak:.3f}")
@@ -257,19 +279,16 @@ def qc(tl, items):
         for x in ph:
             used.setdefault(x, []).append(s["id"])
     lines += ["## Photos utilisées (plans)", *[f"- {k} : {len(v)} plans ({', '.join(v)})" for k, v in sorted(used.items())], ""]
-    missing = [f"P{i:02d}" for i in range(0, 13) if f"P{i:02d}" not in used]
+    missing = [k for k in load_json("config/photos.json") if k.startswith("P") and k not in used]
     lines.append(f"Photos absentes : {missing if missing else 'aucune'}")
     lines.append("")
     # textes
-    sys.path.insert(0, str(ROOT / "src"))
-    from render import Renderer
-    r = Renderer()
     lines.append("## Textes : zone de sécurité et recouvrement visages / yeux / bouches / mains / graphisme")
     for tid, txt, a, b, issues in r.qc_texts():
         lines.append(f"- {tid} [{a:.2f}–{b:.2f} s] « {txt.replace('|', '')} » : {'OK' if not issues else '; '.join(issues)}")
     lines.append("")
     lines.append(f"## Planche : {len(items)} vignettes (une par plan + image 0)")
-    (ROOT / "analysis" / "qc_report.md").write_text("\n".join(lines), encoding="utf-8")
+    out.report.write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
 
 
@@ -277,14 +296,20 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encode", action="store_true", help="ne pas re-rendre les images")
     ap.add_argument("--segments", nargs="*", type=int, help="ne recalculer que ces segments (0-11)")
+    ap.add_argument("--style", help="variante de style (ex. reve)")
     args = ap.parse_args()
+    out = Out(args.style)
     tl = load_json("config/timeline.json")
     if not args.encode:
-        render_all(tl, args.segments)
-    encode(tl)
-    items = storyboard(tl)
-    timeline_csv(tl)
-    qc(tl, items)
+        render_all(tl, out, args.segments)
+    encode(tl, out)
+    sys.path.insert(0, str(ROOT / "src"))
+    from render import Renderer
+    r = Renderer(args.style)                        # timeline et textes tels que rendus (style appliqué)
+    tl_styled = dict(tl, shots=r.shots)
+    items = storyboard(tl_styled, out)
+    timeline_csv(tl_styled, out, [tb.cfg for tb in r.texts])
+    qc(tl_styled, items, out, r)
 
 
 if __name__ == "__main__":

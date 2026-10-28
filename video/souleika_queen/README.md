@@ -5,6 +5,19 @@ Format vertical 1080 × 1920, 30 i/s, H.264 + AAC. Durée 185,5 s : le chant com
 (queue de réverbération du chant, « Je te MOUA… » tenu, fondu au noir). Réglages de cette fin : `audio_ending` dans
 `config/timeline.json`, rendu par `src/audio_master.py`.
 
+## Deux versions
+
+| Version | Commande | Sorties |
+|---|---|---|
+| Actuelle (« L'amour en lumière ») | `python3 src/export.py` | `exports/` |
+| Rêve (« Il était une fois… ») | `python3 src/export.py --style reve` | `exports/reve/` |
+
+La version rêve reprend exactement le même montage, les mêmes paroles et le même son. Seuls la lumière, les couleurs,
+les transitions, la typographie et la magie changent. Tout se règle dans `config/style_reve.json` :
+diffusion lumineuse et bords oniriques, palette par séquence (bokeh, cœurs, étoiles), transitions (fondu de rêve,
+micro-fondu lumineux sur le temps, transition magique), traînées de poussière d'étoiles, lanternes du pont spirituel,
+textes révélés à la baguette. Moteur : `src/dream.py`.
+
 ## Refaire le rendu
 
 ```bash
@@ -32,7 +45,7 @@ Vérifications rapides après modification :
 
 ```bash
 python3 src/render.py --qc                    # textes : zone de sécurité, aucun texte sur visage/yeux/bouche/mains
-python3 src/render.py --stills 0 64.2 121     # images de contrôle dans work/stills/
+python3 src/render.py --stills 0 64.2 121     # images de contrôle dans work/stills/ (ajouter --style reve)
 bash src/control.sh                           # extrait de contrôle de 34 s avec le son (work/controle.mp4)
 ```
 

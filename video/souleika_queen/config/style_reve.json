@@ -1,0 +1,391 @@
+{
+ "_doc": "Version rêve « Il était une fois… » : même montage, mêmes paroles, même son. Seuls la lumière, les couleurs, les transitions, la typographie et la magie changent. Inspirée du langage visuel des grandes romances de cinéma, sans aucun logo ni élément de marque.",
+ "nom": "reve",
+ "sorties": {
+  "dossier": "exports/reve",
+  "prefixe": "Souleika_Queen_Reve",
+  "segments": "work/chunks_reve"
+ },
+ "etalonnage": {
+  "defaut": "reve",
+  "sections": {
+   "01b Entrée du groove": "reve_or",
+   "05-06 Souleika Queen, Hambalyo": "reve_or",
+   "10 Kora x Amapiano": "reve_or",
+   "11 Jour de lumière": "reve_or",
+   "09 Paix et lumière": "reve_nuit"
+  }
+ },
+ "transitions": {
+  "_doc": "coupe → fondu de rêve (mise au point qui glisse + halo) ; coupe rythmée → micro-fondu lumineux et pulsation sur le temps ; zoom → transition magique.",
+  "coupe": {
+   "type": "reve",
+   "dur": 0.5
+  },
+  "coupe_rythmee": {
+   "type": "eclat",
+   "dur": 0.24
+  },
+  "dissolve": {
+   "type": "reve",
+   "facteur": 1.4,
+   "max": 1.4
+  },
+  "light": {
+   "type": "reve",
+   "facteur": 1.3,
+   "max": 1.6
+  },
+  "zoom": {
+   "type": "magie",
+   "dur": 0.6
+  }
+ },
+ "ouverture": {
+  "_doc": "La page d'accueil se dissout dans la lumière et la première image en naît (au lieu d'un passage au noir).",
+  "plan": "S02",
+  "transition": {
+   "type": "magie",
+   "dur": 1.6
+  }
+ },
+ "diffusion": {
+  "halo": 0.4,
+  "voile": 0.1,
+  "bords": 0.45,
+  "vignette": 0.12,
+  "grain": 0.6,
+  "bloom": 0.5,
+  "pulsation_coupes": 0.3
+ },
+ "fuites": [
+  [
+   1.0,
+   0.7,
+   0.55
+  ],
+  [
+   1.0,
+   0.64,
+   0.74
+  ],
+  [
+   0.84,
+   0.72,
+   1.0
+  ]
+ ],
+ "sections": {
+  "00 Page d'accueil": {
+   "bokeh": 0.55,
+   "etoiles": 0.9,
+   "coeurs": 0.1,
+   "palette": [
+    "#FFD9A8",
+    "#FFE9C2",
+    "#FFC9B5",
+    "#F6D2E6"
+   ]
+  },
+  "01 Introduction": {
+   "bokeh": 0.6,
+   "etoiles": 0.6,
+   "coeurs": 0.0,
+   "palette": [
+    "#FFD9A8",
+    "#FFE9C2",
+    "#FFCBB0",
+    "#FFF1D6"
+   ]
+  },
+  "01b Entrée du groove": {
+   "bokeh": 0.7,
+   "etoiles": 0.7,
+   "coeurs": 0.0,
+   "palette": [
+    "#FFD39A",
+    "#FFC4C4",
+    "#FFE7B0",
+    "#F8D0E4"
+   ]
+  },
+  "02-03 Ton sourire, ta grâce": {
+   "bokeh": 0.55,
+   "etoiles": 0.4,
+   "coeurs": 0.12,
+   "palette": [
+    "#FFCFC0",
+    "#FFE0C2",
+    "#F8C6D8",
+    "#FFF0DE"
+   ]
+  },
+  "04 Gacaliso": {
+   "bokeh": 0.5,
+   "etoiles": 0.5,
+   "coeurs": 0.15,
+   "palette": [
+    "#F8C6D8",
+    "#E6D2FF",
+    "#FFD9C6",
+    "#FFF0E6"
+   ]
+  },
+  "05-06 Souleika Queen, Hambalyo": {
+   "bokeh": 0.8,
+   "etoiles": 0.8,
+   "coeurs": 0.25,
+   "palette": [
+    "#FFB8C8",
+    "#FFD6A6",
+    "#FFE9B0",
+    "#F6C2E8"
+   ]
+  },
+  "06b Interlude": {
+   "bokeh": 0.6,
+   "etoiles": 0.5,
+   "coeurs": 0.1,
+   "palette": [
+    "#FFD6A6",
+    "#FFC9B5",
+    "#FFE9C2",
+    "#F8D0E4"
+   ]
+  },
+  "07-08 Naturelle, complicité": {
+   "bokeh": 0.55,
+   "etoiles": 0.45,
+   "coeurs": 0.15,
+   "palette": [
+    "#FFCFC0",
+    "#FFE0C2",
+    "#F8C6D8",
+    "#FFE9B0"
+   ]
+  },
+  "09 Paix et lumière": {
+   "bokeh": 0.35,
+   "etoiles": 0.5,
+   "coeurs": 0.0,
+   "palette": [
+    "#E6D8FF",
+    "#FFF3DE",
+    "#D8E8FF",
+    "#F3E2FF"
+   ]
+  },
+  "10 Kora x Amapiano": {
+   "bokeh": 0.85,
+   "etoiles": 0.9,
+   "coeurs": 0.1,
+   "palette": [
+    "#FFC0D0",
+    "#C8E6FF",
+    "#FFE6A6",
+    "#E0C8FF"
+   ]
+  },
+  "11 Jour de lumière": {
+   "bokeh": 0.9,
+   "etoiles": 0.9,
+   "coeurs": 0.3,
+   "palette": [
+    "#FFB8C8",
+    "#FFD6A6",
+    "#FFE9B0",
+    "#F6C2E8"
+   ]
+  },
+  "12 Final": {
+   "bokeh": 0.7,
+   "etoiles": 0.8,
+   "coeurs": 0.3,
+   "palette": [
+    "#FFC2D1",
+    "#FFE2B8",
+    "#FFF3E6",
+    "#F6C2E8"
+   ]
+  }
+ },
+ "rayons_pont": [
+  1.0,
+  0.93,
+  0.86
+ ],
+ "lanternes": {
+  "_doc": "Lumières qui s'élèvent comme des prières pendant le pont spirituel.",
+  "debut": 114.16,
+  "fin": 132.19,
+  "nombre": 18
+ },
+ "cometes": [
+  {
+   "nom": "ouverture",
+   "_doc": "Traînée de poussière d'étoiles en arc au-dessus du titre.",
+   "t0": 2.6,
+   "dur": 1.7,
+   "espace": "cadre",
+   "points": [
+    [
+     -0.08,
+     0.3
+    ],
+    [
+     0.2,
+     0.12
+    ],
+    [
+     0.5,
+     0.075
+    ],
+    [
+     0.8,
+     0.12
+    ],
+    [
+     1.08,
+     0.28
+    ]
+   ],
+   "particules": 170,
+   "vie": 1.4
+  },
+  {
+   "nom": "refrain",
+   "_doc": "Arc magique au-dessus d'elle à l'entrée du refrain « Souleika Queen ».",
+   "t0": 63.25,
+   "dur": 1.3,
+   "espace": "cadre",
+   "points": [
+    [
+     -0.08,
+     0.2
+    ],
+    [
+     0.25,
+     0.07
+    ],
+    [
+     0.6,
+     0.05
+    ],
+    [
+     0.9,
+     0.1
+    ],
+    [
+     1.08,
+     0.18
+    ]
+   ],
+   "particules": 140,
+   "vie": 1.2
+  },
+  {
+   "nom": "refrain_final",
+   "_doc": "Même arc, en miroir, pour le refrain final.",
+   "t0": 156.5,
+   "dur": 1.3,
+   "espace": "cadre",
+   "points": [
+    [
+     1.08,
+     0.2
+    ],
+    [
+     0.75,
+     0.07
+    ],
+    [
+     0.4,
+     0.05
+    ],
+    [
+     0.1,
+     0.1
+    ],
+    [
+     -0.08,
+     0.18
+    ]
+   ],
+   "particules": 140,
+   "vie": 1.2
+  },
+  {
+   "nom": "baiser_coeur",
+   "_doc": "Le baiser envoyé devient une traînée d'étoiles qui dessine un cœur au-dessus d'elle, puis scintille jusqu'au fondu final.",
+   "t0": 176.3,
+   "dur": 2.6,
+   "espace": "photo",
+   "photo": "P09",
+   "points": [
+    [
+     0.62,
+     0.71
+    ],
+    [
+     0.7,
+     0.745
+    ],
+    [
+     0.8,
+     0.66
+    ],
+    [
+     0.85,
+     0.48
+    ],
+    [
+     0.8,
+     0.29
+    ],
+    [
+     0.66,
+     0.175
+    ]
+   ],
+   "coeur": {
+    "centre": [
+     0.5,
+     0.215
+    ],
+    "demi_largeur": 0.135,
+    "demi_hauteur": 0.105
+   },
+   "particules": 260,
+   "vie": 1.6,
+   "persiste_jusqua": 185.5
+  }
+ ],
+ "textes": {
+  "baguette": [
+   "T02",
+   "T03",
+   "T04",
+   "T05",
+   "T07",
+   "T08",
+   "T09",
+   "T10",
+   "T11",
+   "T12",
+   "T14",
+   "T15",
+   "T16",
+   "T17",
+   "T18",
+   "T19",
+   "T20"
+  ],
+  "remplacements": {
+   "T01": {
+    "ligne": 0,
+    "texte": "Il était une fois"
+   }
+  },
+  "palette": "or_rose"
+ }
+}
