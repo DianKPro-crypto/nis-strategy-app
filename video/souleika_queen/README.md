@@ -40,6 +40,34 @@ Contrôles propres à cette version :
   et des spirales.
 - `python3 src/compare.py` : planche avant/après.
 
+## Carte surprise « L'Enveloppe enchantée »
+
+Petite page web pour téléphone, partagée par WhatsApp, qui s'ouvre le 31 octobre à minuit (heure de Djibouti).
+
+- **Avant l'heure :** un compte à rebours s'affiche sous l'enveloppe scellée.
+- **À l'heure :** Souleika brise le sceau de cire DK et la chanson démarre. La lettre se révèle au rythme du chant :
+  le prénom sur « Souleika Queen », la ligne « Waan ku jeclahay » au moment où elle est chantée, avec des cœurs en
+  feu d'artifice.
+- **Ensuite :** le film « Nuit enchantée » (version téléphone), puis un bouton « Envoyer un baiser à Dian » qui
+  ouvre WhatsApp.
+
+| Fichier | Rôle |
+|---|---|
+| `carte/index.html` | la carte (code, textes, minutage sur le chant) |
+| `carte/apercu.html` | image d'aperçu du lien WhatsApp (enveloppe scellée, sans photo) |
+| `carte/build.py` | assemble le site dans `work/carte_site/` (portrait, extrait du chant, film, polices) |
+| `carte/capture.js` | aperçu WhatsApp, captures iPhone et Android, vidéo de démonstration (`work/carte_qa/`) |
+
+Le numéro WhatsApp est lu dans `carte/prive.json`, qui reste hors Git.
+
+```bash
+python3 carte/build.py --url https://<site>.netlify.app
+node carte/capture.js
+```
+
+Le lien d'aperçu `?apercu=dk3110` ouvre la carte avant l'heure, pour les vérifications. Il ne doit jamais être transmis
+à Souleika.
+
 ## Refaire le rendu
 
 ```bash

@@ -5,3 +5,5 @@ exports/**/*.mp4
 exports/**/*.jpg
 exports/**/*.png
 __pycache__/
+carte/prive.json
+.netlify/
