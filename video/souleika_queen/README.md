@@ -46,8 +46,8 @@ Petite page web pour téléphone, partagée par WhatsApp, qui s'ouvre le 31 octo
 
 - **Avant l'heure :** un compte à rebours s'affiche sous l'enveloppe scellée.
 - **À l'heure :** Souleika brise le sceau de cire DK. La voix de Karim lit la lettre sur un fond de kora, et chaque mot
-  apparaît quand il est prononcé. Certains mots déclenchent la magie : « étoiles », « lanternes », « feux d'artifice »,
-  « Waan ku jeclahay » (cœurs).
+  apparaît quand il est prononcé. Certains mots déclenchent la magie : « Souleika », « étoiles », « lanternes »,
+  « feux d'artifice », « Waan ku jeclahay » (cœurs), puis la signature « Karim » scintille.
 - **Ensuite :** le film « Nuit enchantée » (version téléphone). La chanson reste la surprise du film. Un bouton
   « Envoyer un baiser à Karim » ouvre WhatsApp.
 
@@ -55,20 +55,27 @@ Sans enregistrement de voix, la lettre s'affiche mot à mot en silence, au rythm
 
 | Fichier | Rôle |
 |---|---|
-| `carte/index.html` | la carte (code, textes, minutage sur le chant) |
+| `carte/index.html` | la carte (code, textes, effets déclenchés par les mots) |
 | `carte/apercu.html` | image d'aperçu du lien WhatsApp (enveloppe scellée, sans photo) |
-| `carte/build.py` | assemble le site dans `work/carte_site/` (portrait, extrait du chant, film, polices) |
-| `carte/capture.js` | aperçu WhatsApp, captures iPhone et Android, vidéo de démonstration (`work/carte_qa/`) |
-| `carte/voix.py` | voix de Karim : nettoyage, instant de chaque mot (transcription locale), mélange avec la kora |
+| `carte/build.py` | assemble le site dans `work/carte_site/` (portrait, voix de la lettre, film, polices) |
+| `carte/capture.js` | aperçu WhatsApp, captures iPhone et Android, contrôle de synchronisation, démonstration (`work/carte_qa/`) |
+| `carte/voix.py` | voix de Karim : instant de chaque mot (transcription locale, débuts re-mesurés), son de la carte |
 
 Le numéro WhatsApp est lu dans `carte/prive.json`, qui reste hors Git.
 
 ```bash
-python3 carte/voix.py voix_lettre.m4a kora.mp3          # facultatif : voix + kora, minutage des mots
+python3 carte/voix.py --melange sources/audio/Soul-Kora.mp3   # voix + kora déjà mixées (Suno) : raccourcie, mots minutés
+#   ou : python3 carte/voix.py voix_lettre.m4a kora.mp3       # voix seule, posée ici sur la kora
 python3 carte/build.py --url https://lettre-souleika-2026.netlify.app
 node carte/capture.js
 python3 carte/build.py --zip exports/enchante/Carte_Souleika_Netlify.zip
 ```
+
+Minutage des mots : la transcription locale donne l'instant de chaque mot, mais sur un fond musical elle avance
+jusqu'à 2 s les mots dits après un silence. Le début de ces mots est donc re-mesuré par le modèle lui-même (on rend
+muet le son juste avant le mot, de plus en plus loin, jusqu'à ce que le mot ne soit plus reconnu) ; le détail est
+dans `work/carte_voix/alignement.txt`, et `node carte/capture.js` vérifie que chaque mot s'affiche quand le son
+atteint son instant.
 
 Le lien d'aperçu `?apercu=dk3110` ouvre la carte avant l'heure, pour les vérifications. Il ne doit jamais être transmis
 à Souleika.
