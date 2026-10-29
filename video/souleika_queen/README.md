@@ -49,14 +49,19 @@ Petite page web pour téléphone, partagée par WhatsApp, qui s'ouvre le 31 octo
   apparaît quand il est prononcé. Certains mots déclenchent la magie : « Souleika », « étoiles », « lanternes »,
   « feux d'artifice », « Waan ku jeclahay » (cœurs), puis la signature « Karim » scintille.
 - **Ensuite :** le film « Nuit enchantée » (version téléphone). La chanson reste la surprise du film. Un bouton
-  « Envoyer un baiser à Karim » ouvre WhatsApp.
+  « Envoyer un baiser à Karim » ouvre WhatsApp ; « Relire ma lettre » rejoue la lecture (voix, kora, mots et magie).
+
+Dans WhatsApp, le lien s'affiche avec une image figée (WhatsApp ne fait tourner aucune page dans la conversation) :
+l'enveloppe scellée et « Touche pour voir le compte à rebours ». Le compte à rebours tourne en direct dès que le
+lien est ouvert. Après un changement d'image d'aperçu, changer `?v=` dans `og:image` (carte/index.html) pour que
+WhatsApp ne ressorte pas l'ancienne de son cache.
 
 Sans enregistrement de voix, la lettre s'affiche mot à mot en silence, au rythme d'une lecture posée.
 
 | Fichier | Rôle |
 |---|---|
 | `carte/index.html` | la carte (code, textes, effets déclenchés par les mots) |
-| `carte/apercu.html` | image d'aperçu du lien WhatsApp (enveloppe scellée, sans photo) |
+| `carte/apercu.html` | image d'aperçu du lien WhatsApp (composée comme l'écran d'attente, sans photo) |
 | `carte/build.py` | assemble le site dans `work/carte_site/` (portrait, voix de la lettre, film, polices) |
 | `carte/capture.js` | aperçu WhatsApp, captures iPhone et Android, contrôle de synchronisation, démonstration (`work/carte_qa/`) |
 | `carte/voix.py` | voix de Karim : instant de chaque mot (transcription locale, débuts re-mesurés), son de la carte |

@@ -87,7 +87,8 @@ const MAGIE = ["souleika.", "étoiles,", "lanternes", "d'artifice", "jeclahay.",
     await ctx.close();
   }
 
-  // 3. étapes intermédiaires (iPhone) : ouverture, puis chaque mot magique ; journal de synchronisation
+  // 3. étapes intermédiaires (iPhone) : ouverture, puis chaque mot magique ; journal de synchronisation,
+  //    à la première lecture puis après « Relire ma lettre » (la voix repart de zéro, les mots reviennent)
   if (!demo) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
     const p = await ctx.newPage();
@@ -96,14 +97,21 @@ const MAGIE = ["souleika.", "étoiles,", "lanternes", "d'artifice", "jeclahay.",
       window.journal = [];                       // instant du son quand chaque mot apparaît
       const son = document.getElementById("lettre");
       new MutationObserver((ms) => { for (const m of ms) {
-        const el = m.target;
-        if (!el.vu && (el.classList.contains("mot") && el.classList.contains("dit") || el.dataset.mot && el.classList.contains("visible"))) {
-          el.vu = true; window.journal.push({ t: son.currentTime, joue: !son.paused && son.currentTime > 0 });
-        }
+        const el = m.target, vu = el.classList.contains("mot") ? el.classList.contains("dit") : el.dataset.mot && el.classList.contains("visible");
+        if (vu && !el.vu) window.journal.push({ t: son.currentTime, joue: !son.paused && son.currentTime > 0 });
+        el.vu = vu;
       } }).observe(document.body, { attributes: true, attributeFilter: ["class"], subtree: true });
       return [...document.querySelectorAll("[data-lire], [data-mot]")]
         .flatMap((el) => el.dataset.mot ? [el.dataset.mot] : [...el.querySelectorAll(".mot")].map((s) => s.textContent));
     });
+    const rapport = async (nom) => {
+      const journal = await p.evaluate(() => window.journal.splice(0));
+      if (!VOIX) return;
+      const ecarts = journal.map((j, i) => j.t - VOIX[i]);
+      const joues = journal.filter((j) => j.joue).length;
+      console.log(`${nom} : ${journal.length}/${VOIX.length} mots affichés, ${joues} pendant que la voix joue ; ` +
+                  `écart affichage − mot dit : min ${Math.min(...ecarts).toFixed(3)} s, max ${Math.max(...ecarts).toFixed(3)} s`);
+    };
     const instants = VOIX || [];
     const etapes = [[0.7, "a_sceau_brise"], [1.6, "b_rabat"], [2.3, "c_lettre"]];
     textes.forEach((w, i) => { if (MAGIE.includes(w.toLowerCase()) && instants[i] !== undefined) etapes.push([instants[i] + 0.7, `mot_${String(i).padStart(2, "0")}`]); });
@@ -114,13 +122,13 @@ const MAGIE = ["souleika.", "étoiles,", "lanternes", "d'artifice", "jeclahay.",
       await p.screenshot({ path: path.join(QA, `iphone_etape_${etiquette}.png`) });
     }
     await attendre(Math.max(0, LECTURE - (Date.now() - t0)));
-    const journal = await p.evaluate(() => window.journal);
-    if (VOIX) {
-      const ecarts = journal.map((j, i) => j.t - VOIX[i]);
-      const joues = journal.filter((j) => j.joue).length;
-      console.log(`synchronisation : ${journal.length}/${VOIX.length} mots affichés, ${joues} pendant que la voix joue ; ` +
-                  `écart affichage − mot dit : min ${Math.min(...ecarts).toFixed(3)} s, max ${Math.max(...ecarts).toFixed(3)} s`);
-    }
+    await rapport("synchronisation");
+    await p.tap("#voir-film"); await attendre(1500); await p.tap("#fermer"); await attendre(1500);
+    await p.tap("#relire"); await attendre(LECTURE);
+    await rapport("relecture");
+    const bouton = await p.evaluate(() => [document.getElementById("appel").classList.contains("visible"), document.getElementById("voir-film").textContent.trim()]);
+    console.log("après la relecture :", bouton[0] ? `bouton « ${bouton[1]} » affiché` : "BOUTON DU FILM ABSENT");
+    await p.screenshot({ path: path.join(QA, "iphone_etape_relecture_fin.png") });
     await ctx.close();
   }
 
