@@ -48,7 +48,7 @@ Petite page web pour téléphone, partagée par WhatsApp, qui s'ouvre le 31 octo
 - **À l'heure :** Souleika brise le sceau de cire DK et la chanson démarre. La lettre se révèle au rythme du chant :
   le prénom sur « Souleika Queen », la ligne « Waan ku jeclahay » au moment où elle est chantée, avec des cœurs en
   feu d'artifice.
-- **Ensuite :** le film « Nuit enchantée » (version téléphone), puis un bouton « Envoyer un baiser à Dian » qui
+- **Ensuite :** le film « Nuit enchantée » (version téléphone), puis un bouton « Envoyer un baiser à Karim » qui
   ouvre WhatsApp.
 
 | Fichier | Rôle |

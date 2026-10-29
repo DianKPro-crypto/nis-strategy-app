@@ -7,3 +7,4 @@ exports/**/*.png
 __pycache__/
 carte/prive.json
 .netlify/
+exports/**/*.zip

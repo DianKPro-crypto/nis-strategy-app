@@ -6,8 +6,9 @@ la chanson démarre, la lettre se révèle au rythme du chant, puis le film « N
 Usage :
   python3 carte/build.py --url https://exemple.netlify.app      assemble le site (photos, chant, film, polices)
   node carte/capture.js                                         image d'aperçu WhatsApp + contrôles visuels
+  python3 carte/build.py --zip exports/enchante/carte.zip       archive à déposer sur Netlify (glisser-déposer)
 
-Le numéro WhatsApp de Dian est lu dans carte/prive.json (hors Git).
+Le numéro WhatsApp de Karim est lu dans carte/prive.json (hors Git).
 """
 import argparse
 import json
@@ -26,7 +27,7 @@ from photos import load_rgb  # noqa: E402
 
 OUT = ROOT / "work" / "carte_site"
 OUVERTURE = "2026-10-31T00:00:00+03:00"      # minuit, heure de Djibouti
-APERCU = "dk3110"                            # lien d'aperçu réservé à Dian : ?apercu=dk3110
+APERCU = "dk3110"                            # lien d'aperçu réservé à Karim : ?apercu=dk3110
 EXTRAIT = (61.20, 112.0)                     # extrait du chant : juste avant « Gacaliso », jusqu'à l'interlude
 
 
@@ -65,10 +66,30 @@ def fonts(media):
         subset.save_font(f, str(media / dst), opts)
 
 
+def archive(dst):
+    """Archive du site prêt à publier (sans la page de fabrication de l'aperçu)."""
+    import zipfile
+    assert (OUT / "media" / "apercu.jpg").exists(), "lancer d'abord node carte/capture.js (image d'aperçu)"
+    dst = Path(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(OUT.rglob("*")):
+            rel = f.relative_to(OUT)
+            if f.is_file() and rel.name != "apercu.html" and rel.parts[0] != ".netlify":
+                z.write(f, Path("souleika-carte") / rel)
+    print(f"archive : {dst} ({dst.stat().st_size / 1e6:.1f} Mo)")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--url", required=True, help="adresse publique du site (aperçu WhatsApp)")
+    ap.add_argument("--url", help="adresse publique du site (aperçu WhatsApp)")
+    ap.add_argument("--zip", help="seulement créer l'archive à déposer sur Netlify")
     args = ap.parse_args()
+    if args.zip:
+        archive(args.zip)
+        return
+    if not args.url:
+        ap.error("--url est requis pour assembler le site")
     prive = json.loads((HERE / "prive.json").read_text(encoding="utf-8"))
     if OUT.exists():
         shutil.rmtree(OUT)
