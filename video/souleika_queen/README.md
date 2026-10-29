@@ -62,6 +62,7 @@ Sans enregistrement de voix, la lettre s'affiche mot à mot en silence, au rythm
 |---|---|
 | `carte/index.html` | la carte (code, textes, effets déclenchés par les mots) |
 | `carte/apercu.html` | image d'aperçu du lien WhatsApp (composée comme l'écran d'attente, sans photo) |
+| `carte/teaser.html`, `carte/teaser.js` | animation de 5 s en boucle à envoyer juste avant le lien (étoiles, étoiles filantes, sceau qui brille) |
 | `carte/build.py` | assemble le site dans `work/carte_site/` (portrait, voix de la lettre, film, polices) |
 | `carte/capture.js` | aperçu WhatsApp, captures iPhone et Android, contrôle de synchronisation, démonstration (`work/carte_qa/`) |
 | `carte/voix.py` | voix de Karim : instant de chaque mot (transcription locale, débuts re-mesurés), son de la carte |
@@ -74,6 +75,7 @@ python3 carte/voix.py --melange sources/audio/Soul-Kora.mp3   # voix + kora déj
 python3 carte/build.py --url https://lettre-souleika-2026.netlify.app
 node carte/capture.js
 python3 carte/build.py --zip exports/enchante/Carte_Souleika_Netlify.zip
+node carte/teaser.js     # animation WhatsApp : Souleika_Animation_WhatsApp.mp4 (option « GIF ») et .gif
 ```
 
 Minutage des mots : la transcription locale donne l'instant de chaque mot, mais sur un fond musical elle avance

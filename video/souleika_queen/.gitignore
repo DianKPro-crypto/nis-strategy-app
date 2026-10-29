@@ -4,6 +4,7 @@ work/
 exports/**/*.mp4
 exports/**/*.jpg
 exports/**/*.png
+exports/**/*.gif
 __pycache__/
 carte/prive.json
 .netlify/

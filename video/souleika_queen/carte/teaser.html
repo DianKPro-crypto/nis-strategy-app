@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Pour Souleika · animation WhatsApp</title>
+<style>
+/* Animation à envoyer dans WhatsApp juste avant le lien (1080 × 1350, boucle de 5 s, sans son) :
+   ciel étoilé qui scintille, poussière d'or, deux étoiles filantes, sceau DK qui brille. Aucune photo.
+   Rendue image par image par carte/teaser.js : dessiner(t) fixe l'état exact de l'instant t. */
+@font-face { font-family: "Playfair Display"; src: url(media/playfair-500-italic.woff) format("woff"); font-weight: 500; font-style: italic; }
+@font-face { font-family: "Inter"; src: url(media/inter-600.woff) format("woff"); font-weight: 600; }
+html, body { margin: 0; width: 1080px; height: 1350px; overflow: hidden; }
+body {
+  position: relative; color: #F5EFE5; font-family: "Inter", sans-serif;
+  background:
+    radial-gradient(95% 50% at 50% 0%, #1D1856 0%, rgba(29, 24, 86, 0) 64%),
+    radial-gradient(85% 45% at 50% 106%, #3E1446 0%, rgba(62, 20, 70, 0) 66%),
+    linear-gradient(180deg, #070B1F 0%, #0B1030 52%, #130A2C 100%);
+}
+canvas { position: absolute; inset: 0; }
+#fond { z-index: 0; }
+#devant { z-index: 6; }
+h1, .date, .invite { position: absolute; left: 0; right: 0; margin: 0; text-align: center; z-index: 3; }
+h1 { top: 160px; font-family: "Playfair Display", serif; font-style: italic; font-weight: 500; font-size: 138px; line-height: 1.12; }
+/* le titre en or, parcouru d'un reflet qui fait le tour en 5 s (motif répété : aucun saut à la boucle) */
+h1 span { background: linear-gradient(100deg, #D9A441 0%, #F6DFA0 30%, #FFF7DC 42%, #F6DFA0 54%, #E3B34C 78%, #D9A441 100%);
+          background-size: var(--tuile, 300px) 100%; background-repeat: repeat-x;
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+          filter: drop-shadow(0 0 26px rgba(227, 179, 76, .42)); padding: 0 .08em; }
+.date { top: 348px; padding-left: .42em; font-size: 40px; font-weight: 600; letter-spacing: .42em; text-transform: uppercase;
+        color: rgba(245, 239, 229, .92); text-shadow: 0 2px 12px rgba(5, 8, 25, .8); }
+.invite { top: 1040px; font-family: "Playfair Display", serif; font-style: italic; font-weight: 500; font-size: 64px; line-height: 1.1;
+          color: #F6DFA0; text-shadow: 0 0 22px rgba(227, 179, 76, .38), 0 2px 10px rgba(5, 8, 25, .8); }
+
+.enveloppe { position: absolute; left: 150px; top: 452px; width: 780px; height: 520px; z-index: 2; }
+.halo { position: absolute; inset: -120px -150px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(227, 179, 76, .26), rgba(227, 179, 76, 0)); }
+.dos, .poche, .rabat { position: absolute; inset: 0; border-radius: 22px; }
+.dos { background: linear-gradient(160deg, #18225A 0%, #0E1440 60%, #0A0F33 100%);
+       box-shadow: 0 40px 90px rgba(0, 0, 0, .6), 0 0 80px rgba(227, 179, 76, .14); }
+.poche { background: linear-gradient(170deg, #1C2766 0%, #121A4E 55%, #0C1240 100%); clip-path: polygon(0 0, 50% 56%, 100% 0, 100% 100%, 0 100%); }
+.rabat::before, .rabat::after { content: ""; position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 50% 62%); }
+.rabat::before { background: linear-gradient(180deg, #F6DFA0, #B8862E); }
+.rabat::after { inset: 3px 4px 0; background: linear-gradient(180deg, #24307A 0%, #172060 70%); }
+.enveloppe svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.sceau { position: absolute; left: 50%; top: 62%; width: 196px; height: 196px; margin: -98px 0 0 -98px; }
+.anneau { position: absolute; inset: 0; border-radius: 50%; border: 3px solid #F6DFA0; opacity: 0;
+          box-shadow: 0 0 18px 2px rgba(227, 179, 76, .85), inset 0 0 14px rgba(227, 179, 76, .6); }
+.cire { position: absolute; inset: 0; overflow: hidden; border-radius: 47% 53% 50% 50% / 52% 48% 52% 48%;
+        background: radial-gradient(circle at 35% 28%, #CF3D55 0%, #9A1F34 42%, #5F0E1E 100%);
+        box-shadow: 0 16px 30px rgba(0, 0, 0, .5), inset 0 3px 5px rgba(255, 255, 255, .3), inset 0 -10px 16px rgba(0, 0, 0, .4);
+        display: flex; align-items: center; justify-content: center; }
+.cire img { width: 60%; position: relative; z-index: 1;
+            filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .55)) drop-shadow(0 -1px 0 rgba(255, 225, 160, .35)); }
+.reflet { position: absolute; inset: -20%; z-index: 2; mix-blend-mode: screen;
+          background: linear-gradient(115deg, rgba(255, 244, 220, 0) 40%, rgba(255, 244, 220, .75) 50%, rgba(255, 244, 220, 0) 60%); }
+</style>
+</head>
+<body>
+<canvas id="fond" width="1080" height="1350"></canvas>
+<h1><span>Pour Souleika</span></h1>
+<p class="date">31 octobre · minuit</p>
+<div class="enveloppe">
+  <div class="halo" id="halo"></div>
+  <div class="dos"></div><div class="poche"></div>
+  <svg viewBox="0 0 300 200" preserveAspectRatio="none"><path d="M1 1 L150 112 L299 1" fill="none" stroke="rgba(227,179,76,.8)" stroke-width=".8"/>
+    <path d="M1 199 L120 96 M299 199 L180 96" fill="none" stroke="rgba(227,179,76,.38)" stroke-width=".8"/>
+    <rect x=".5" y=".5" width="299" height="199" rx="8" fill="none" stroke="rgba(227,179,76,.6)" stroke-width=".8"/></svg>
+  <div class="rabat"></div>
+  <div class="sceau">
+    <div class="anneau" id="anneau1"></div><div class="anneau" id="anneau2"></div>
+    <div class="cire" id="cire"><img id="dk" src="media/dk.png" alt=""><div class="reflet" id="reflet"></div></div>
+  </div>
+</div>
+<p class="invite">Une lettre enchantée t'attend…</p>
+<canvas id="devant" width="1080" height="1350"></canvas>
+<script>
+"use strict";
+const D = 5;                                   // durée de la boucle (s) : tout mouvement revient à son point de départ
+const W = 1080, H = 1350, TAU = Math.PI * 2;
+const fond = document.getElementById("fond").getContext("2d");
+const devant = document.getElementById("devant").getContext("2d");
+let graine = 11;
+const R = () => (graine = (graine * 16807) % 2147483647) / 2147483647;
+const frac = (x) => x - Math.floor(x);
+const doux = (a, b, x) => { const u = Math.min(1, Math.max(0, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+
+// zones de texte : pas d'étoile vive par-dessus
+const libre = (x, y) => !(y > 150 && y < 410 && x > 120 && x < 960) && !(y > 1025 && y < 1125 && x > 100 && x < 980);
+const etoiles = Array.from({ length: 320 }, () => ({ x: R() * W, y: R() * H, r: .45 + R() ** 2.4 * 2.1, a: .35 + R() * .65,
+  k: 1 + Math.floor(R() * 2), p: R(), or: R() < .2 }));
+const astres = [];                             // grandes étoiles à branches
+while (astres.length < 11) { const x = 60 + R() * (W - 120), y = 40 + R() * (H - 80);
+  if (libre(x, y) && !(x > 120 && x < 960 && y > 430 && y < 1000)) astres.push({ x, y, l: 12 + R() * 16, k: 1 + Math.floor(R() * 2), p: R() }); }
+const poussiere = Array.from({ length: 54 }, () => ({ x: 110 + R() * (W - 220), y: 520 + R() * 780, m: 70 + R() * 150, p: R(),
+  a: .3 + R() * .5, r: 1.1 + R() * 2 }));
+// grain fixe très léger : évite les aplats en escalier dans les dégradés de nuit (vidéo comme GIF)
+const grain = fond.createImageData(W, H);
+for (let i = 0; i < grain.data.length; i += 4) { const v = R() * 255; grain.data[i] = grain.data[i + 1] = grain.data[i + 2] = v; grain.data[i + 3] = 6; }
+const grainCanvas = Object.assign(document.createElement("canvas"), { width: W, height: H });
+grainCanvas.getContext("2d").putImageData(grain, 0, 0);
+
+function eclat(ctx, x, y, l, a, couleur = "255,244,214") {   // étoile à quatre branches et son halo
+  if (a <= 0) return;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, l * 1.2);
+  g.addColorStop(0, `rgba(${couleur},${.55 * a})`); g.addColorStop(1, `rgba(${couleur},0)`);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, l * 1.2, 0, TAU); ctx.fill();
+  ctx.fillStyle = `rgba(${couleur},${a})`;
+  for (const [dx, dy] of [[1, 0], [0, 1]]) {
+    ctx.beginPath();
+    ctx.moveTo(x - dx * l, y - dy * l); ctx.lineTo(x + dy * l * .09, y + dx * l * .09);
+    ctx.lineTo(x + dx * l, y + dy * l); ctx.lineTo(x - dy * l * .09, y - dx * l * .09); ctx.closePath(); ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(x, y, Math.max(1.2, l * .1), 0, TAU); ctx.fill();
+}
+
+function filante(ctx, t, t0, t1, x0, y0, x1, y1, queue, epaisseur) {
+  if (t < t0 || t > t1) return;
+  const u = (t - t0) / (t1 - t0), e = 1 - (1 - u) ** 2;                 // ralentit en fin de course
+  const x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e;
+  const a = doux(0, .14, u) * (1 - doux(.62, 1, u));
+  const n = Math.hypot(x1 - x0, y1 - y0), dx = (x1 - x0) / n, dy = (y1 - y0) / n;
+  const g = ctx.createLinearGradient(x, y, x - dx * queue, y - dy * queue);
+  g.addColorStop(0, `rgba(255,250,236,${.95 * a})`); g.addColorStop(.25, `rgba(246,223,160,${.45 * a})`); g.addColorStop(1, "rgba(246,223,160,0)");
+  ctx.strokeStyle = g; ctx.lineWidth = epaisseur; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - dx * queue, y - dy * queue); ctx.stroke();
+  const h = ctx.createRadialGradient(x, y, 0, x, y, epaisseur * 5);
+  h.addColorStop(0, `rgba(255,252,240,${a})`); h.addColorStop(1, "rgba(255,252,240,0)");
+  ctx.fillStyle = h; ctx.beginPath(); ctx.arc(x, y, epaisseur * 5, 0, TAU); ctx.fill();
+}
+
+const $ = (id) => document.getElementById(id);
+const titre = document.querySelector("h1 span");
+const tuile = titre.getBoundingClientRect().width * 2.4;
+titre.style.setProperty("--tuile", `${tuile}px`);
+const CX = 540, CY = 452 + .62 * 520;          // centre du sceau
+
+window.dessiner = (t) => {
+  t = frac(t / D) * D;
+  // ciel
+  fond.clearRect(0, 0, W, H);
+  fond.globalCompositeOperation = "lighter";
+  for (const s of etoiles) {
+    const sc = .4 + .6 * Math.sin(Math.PI * (s.k * t / D + s.p)) ** 2, a = s.a * sc * (libre(s.x, s.y) ? 1 : .45);
+    fond.fillStyle = s.or ? `rgba(246,214,140,${a})` : `rgba(255,248,232,${a})`;
+    fond.beginPath(); fond.arc(s.x, s.y, s.r, 0, TAU); fond.fill();
+  }
+  for (const s of astres) eclat(fond, s.x, s.y, s.l, .85 * Math.sin(Math.PI * (s.k * t / D + s.p)) ** 4);
+  for (const d of poussiere) {
+    const u = frac(t / D + d.p), a = d.a * Math.sin(Math.PI * u) ** 2;
+    const x = d.x + 12 * Math.sin(TAU * (t / D + d.p)), y = d.y - d.m * u;
+    const g = fond.createRadialGradient(x, y, 0, x, y, d.r * 3.2);
+    g.addColorStop(0, `rgba(246,214,140,${a})`); g.addColorStop(1, "rgba(246,214,140,0)");
+    fond.fillStyle = g; fond.beginPath(); fond.arc(x, y, d.r * 3.2, 0, TAU); fond.fill();
+  }
+  filante(fond, t, .7, 1.75, 1050, 34, 640, 146, 300, 3.2);         // grande étoile filante, au-dessus du titre
+  filante(fond, t, 3.15, 3.85, 470, 1168, 140, 1290, 190, 2.2);     // petite, dans le ciel du bas
+  fond.globalCompositeOperation = "source-over";
+  fond.drawImage(grainCanvas, 0, 0);
+
+  // reflet du titre : un tour complet par boucle
+  titre.style.backgroundPosition = `${-tuile * t / D}px 0`;
+  // halo de l'enveloppe qui respire
+  $("halo").style.opacity = .7 + .3 * Math.sin(TAU * t / D) ** 2;
+  // sceau : deux anneaux d'or qui s'élargissent tour à tour, lueur qui respire, reflet qui traverse la cire
+  for (const [id, dec] of [["anneau1", 0], ["anneau2", .5]]) {
+    const p = frac(2 * t / D + dec);
+    $(id).style.transform = `scale(${1 + .8 * p})`; $(id).style.opacity = .55 * (1 - p) ** 2;
+  }
+  const u = (t - 2.2) / .85;                                        // reflet entre 2,2 s et 3,05 s
+  const eclair = Math.max(0, 1 - Math.abs(u - .5) * 2.4);           // la lueur s'avive au passage du reflet
+  const lueur = .42 + .28 * Math.sin(TAU * t / D * 2) ** 2 + .3 * eclair;
+  $("cire").style.boxShadow = `0 16px 30px rgba(0,0,0,.5), 0 0 ${40 + 50 * lueur}px ${6 + 10 * lueur}px rgba(227,179,76,${.55 * lueur}), ` +
+    `0 0 ${120 + 60 * lueur}px rgba(246,223,160,${.3 * lueur}), inset 0 3px 5px rgba(255,255,255,.3), inset 0 -10px 16px rgba(0,0,0,.4)`;
+  $("reflet").style.transform = `translateX(${-140 + 280 * Math.min(1, Math.max(0, u))}%)`;
+  $("reflet").style.opacity = u > 0 && u < 1 ? 1 : 0;
+  $("dk").style.filter = `brightness(${1 + .55 * Math.max(0, 1 - Math.abs(u - .5) * 3)}) drop-shadow(0 2px 0 rgba(0,0,0,.55)) drop-shadow(0 -1px 0 rgba(255,225,160,.35))`;
+
+  // éclats autour du sceau et sur le titre
+  devant.clearRect(0, 0, W, H);
+  devant.globalCompositeOperation = "lighter";
+  const fin = titre.getBoundingClientRect();
+  for (const [x, y, l, t0] of [[CX - 168, CY - 96, 24, .35], [CX + 176, CY - 128, 30, 1.3], [CX - 196, CY + 70, 20, 2.15],
+                               [CX + 206, CY + 92, 26, 3.05], [CX - 20, CY - 176, 18, 4.05], [fin.right - 22, fin.top + 44, 26, 2.6]]) {
+    const v = frac((t - t0) / D) * D, a = v < .75 ? Math.sin(Math.PI * v / .75) ** 2 : 0;
+    eclat(devant, x, y, l * (.6 + .4 * a), a);
+  }
+  devant.globalCompositeOperation = "source-over";
+};
+window.dessiner(0);
+</script>
+</body>
+</html>
