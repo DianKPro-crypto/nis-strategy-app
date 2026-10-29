@@ -5,6 +5,7 @@ Usage :
   python3 src/export.py --style enchante     idem pour la version « Nuit enchantée » (config/style_enchante.json,
                                              exports/enchante/ ; détourage préalable : python3 src/matte.py)
   python3 src/export.py --encode             ré-encoder et refaire les livrables sans re-rendre les images
+  python3 src/export.py --style enchante --leger   seulement les versions légères pour téléphone (720p, ~20 Mo)
   python3 src/export.py --segments 1 2       ne recalculer que ces segments (0-11)
 """
 import argparse
@@ -42,6 +43,8 @@ class Out:
             self.board = self.exp / f"{pre}_Storyboard.jpg"
             self.csv = self.exp / f"{pre}_Timeline.csv"
             self.status = [self.exp / f"{pre}_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
+            self.light = self.exp / f"{pre}_Telephone_720p.mp4"
+            self.light_status = [self.exp / f"{pre}_Statut_WhatsApp_{k + 1}-3_leger.mp4" for k in range(len(STATUS_CUTS))]
             self.report = ROOT / "analysis" / f"qc_report_{style}.md"
             self.title = st["titre"]
         else:
@@ -51,6 +54,8 @@ class Out:
             self.board = self.exp / "Souleika_Queen_Storyboard.jpg"
             self.csv = self.exp / "Souleika_Queen_Timeline.csv"
             self.status = [self.exp / f"Souleika_Queen_Statut_WhatsApp_{k + 1}-3.mp4" for k in range(len(STATUS_CUTS))]
+            self.light = self.exp / "Souleika_Queen_Telephone_720p.mp4"
+            self.light_status = [self.exp / f"Souleika_Queen_Statut_WhatsApp_{k + 1}-3_leger.mp4" for k in range(len(STATUS_CUTS))]
             self.report = ROOT / "analysis" / "qc_report.md"
             self.title = "SOULEIKA QUEEN — L’amour en lumière"
         self.list = self.chunks / "list.txt"
@@ -96,6 +101,41 @@ def render_all(tl, out, only=None):
 COLOR = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
 
 
+def status_filters(bounds, k):
+    """Partie k du Statut WhatsApp : découpe sur une articulation musicale, fondus courts entre les parties."""
+    a, b = bounds[k], bounds[k + 1]
+    last = k == len(bounds) - 2
+    vf = f"trim={a}:{b},setpts=PTS-STARTPTS" + (",fade=t=in:d=0.3" if k else "") + ("" if last else f",fade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+    af = f"atrim={a}:{b},asetpts=PTS-STARTPTS" + (",afade=t=in:d=0.25" if k else "") + ("" if last else f",afade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+    return vf, af
+
+
+def encode_light(tl, out):
+    """Versions légères pour téléphone (720 × 1280, deux passes à débit cible), tirées du film final en haute
+    qualité : environ 20 Mo pour le film, 6 à 8 Mo par partie du Statut, faciles à télécharger et à partager."""
+    log = WORK / "x264_2pass"
+    common_v = ["-c:v", "libx264", "-preset", "medium", "-b:v", "760k", "-maxrate", "1100k", "-bufsize", "2200k",
+                "-profile:v", "high", "-level:v", "3.1", "-pix_fmt", "yuv420p", "-r", str(FPS), "-fps_mode", "cfr", *COLOR,
+                "-passlogfile", log]
+    scale = "scale=720:1280:flags=lanczos"
+    end = total_frames(tl) / FPS
+    bounds = STATUS_CUTS + [end]
+    jobs = [(out.light, [], scale, "anull")]
+    for k in range(len(STATUS_CUTS)):
+        a, b = bounds[k], bounds[k + 1]
+        last = k == len(STATUS_CUTS) - 1
+        vf = scale + (",fade=t=in:d=0.3" if k else "") + ("" if last else f",fade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+        af = ("afade=t=in:d=0.25" if k else "anull") + ("" if last else f",afade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+        jobs.append((out.light_status[k], ["-ss", f"{a}", "-t", f"{b - a:.3f}"], vf, af))
+    for dst, cut, vf, af in jobs:
+        src = [*cut, "-i", out.main]
+        run(["ffmpeg", "-v", "error", "-y", *src, "-map", "0:v", "-vf", vf, *common_v, "-pass", "1", "-an", "-f", "null", "/dev/null"])
+        run(["ffmpeg", "-v", "error", "-y", *src, "-map", "0:v", "-map", "0:a", "-vf", vf, "-af", af, *common_v,
+             "-pass", "2", "-c:a", "aac", "-b:a", "112k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", dst])
+    for f in log.parent.glob(log.name + "*"):
+        f.unlink()
+
+
 def encode(tl, out):
     out.exp.mkdir(parents=True, exist_ok=True)
     src = ["-f", "concat", "-safe", "0", "-i", out.list]
@@ -113,10 +153,7 @@ def encode(tl, out):
     end = total_frames(tl) / FPS
     bounds = STATUS_CUTS + [end]
     for k in range(len(STATUS_CUTS)):
-        a, b = bounds[k], bounds[k + 1]
-        last = k == len(STATUS_CUTS) - 1
-        vf = f"trim={a}:{b},setpts=PTS-STARTPTS" + (",fade=t=in:d=0.3" if k else "") + ("" if last else f",fade=t=out:st={b - a - 0.3:.3f}:d=0.3")
-        af = f"atrim={a}:{b},asetpts=PTS-STARTPTS" + (",afade=t=in:d=0.25" if k else "") + ("" if last else f",afade=t=out:st={b - a - 0.3:.3f}:d=0.3")
+        vf, af = status_filters(bounds, k)
         run(["ffmpeg", "-v", "error", "-y", *src, "-i", aud, "-map", "0:v", "-map", "1:a", "-vf", vf, "-af", af,
              "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-profile:v", "high", "-level:v", "4.1",
              "-maxrate", "5M", "-bufsize", "10M", *common_v, "-c:a", "aac", "-b:a", "160k", "-ar", "48000", out.status[k]])
@@ -298,14 +335,19 @@ def qc(tl, items, out, r):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--encode", action="store_true", help="ne pas re-rendre les images")
+    ap.add_argument("--leger", action="store_true", help="seulement les versions légères pour téléphone (images déjà rendues)")
     ap.add_argument("--segments", nargs="*", type=int, help="ne recalculer que ces segments (0-11)")
     ap.add_argument("--style", help="variante de style (ex. enchante)")
     args = ap.parse_args()
     out = Out(args.style)
     tl = load_json("config/timeline.json")
+    if args.leger:
+        encode_light(tl, out)
+        return
     if not args.encode:
         render_all(tl, out, args.segments)
     encode(tl, out)
+    encode_light(tl, out)
     sys.path.insert(0, str(ROOT / "src"))
     from render import Renderer
     r = Renderer(args.style)                        # timeline et textes tels que rendus (style appliqué)
