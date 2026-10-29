@@ -4,7 +4,10 @@
 //                                                       en boucle ; l'option « GIF » pour une vidéo n'existe pas partout)
 //   exports/enchante/Souleika_Animation_WhatsApp.mp4   1080 × 1350 : la même en vidéo (Statut, autres usages)
 // 25 images/s : 4 centièmes de seconde par image, durée qu'un GIF sait exprimer exactement (la boucle reste de 5 s).
-// Usage : node carte/teaser.js   (après python3 carte/build.py, qui prépare polices et monogramme dans work/carte_site/media)
+// WhatsApp ne joue un GIF qu'une fois, à sa première apparition : --cycles 3 donne une boucle de 15 s (trois passages
+// d'étoiles filantes différents, 600 × 750, 20 images/s, tramage ordonné : environ 9 Mo au lieu de 13)
+// → Souleika_Animation_WhatsApp_15s.gif
+// Usage : node carte/teaser.js [--cycles 3]   (après python3 carte/build.py, qui prépare polices et monogramme)
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -14,8 +17,10 @@ const { chromium } = require("playwright");
 const RACINE = path.resolve(__dirname, "..");
 const MEDIA = path.join(RACINE, "work", "carte_site", "media");
 const IMAGES = path.join(RACINE, "work", "carte_teaser");
-const SORTIE = path.join(RACINE, "exports", "enchante", "Souleika_Animation_WhatsApp");
-const DUREE = 5, IPS = +(process.env.IPS || 25);
+const i = process.argv.indexOf("--cycles"), CYCLES = i > 0 ? Math.max(1, +process.argv[i + 1]) : 1;
+const DUREE = 5 * CYCLES, IPS = +(process.env.IPS || (CYCLES > 1 ? 20 : 25)), LARGEUR = CYCLES > 1 ? 600 : 720;
+const TRAME = CYCLES > 1 ? "bayer:bayer_scale=3" : "sierra2_4a";
+const SORTIE = path.join(RACINE, "exports", "enchante", `Souleika_Animation_WhatsApp${CYCLES > 1 ? `_${DUREE}s` : ""}`);
 const TYPES = { ".html": "text/html; charset=utf-8", ".png": "image/png", ".woff": "font/woff" };
 
 const srv = http.createServer((req, res) => {
@@ -31,7 +36,7 @@ const srv = http.createServer((req, res) => {
   const browser = await chromium.launch();
   const p = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
   const erreurs = []; p.on("pageerror", (e) => erreurs.push(String(e)));
-  await p.goto(`http://127.0.0.1:${srv.address().port}/teaser.html`);
+  await p.goto(`http://127.0.0.1:${srv.address().port}/teaser.html?cycles=${CYCLES}`);
   await p.evaluate(() => document.fonts.ready);
   await p.waitForFunction(() => document.getElementById("dk").complete);
   const n = DUREE * IPS;
@@ -45,7 +50,7 @@ const srv = http.createServer((req, res) => {
   execFileSync("ffmpeg", ["-v", "error", "-y", ...entree, "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-profile:v", "high",
     "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", `${SORTIE}.mp4`]);
   execFileSync("ffmpeg", ["-v", "error", "-y", ...entree, "-filter_complex",
-    "scale=720:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a",
+    `scale=${LARGEUR}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=${TRAME}`,
     "-loop", "0", `${SORTIE}.gif`]);
   fs.rmSync(IMAGES, { recursive: true, force: true });
   for (const ext of ["mp4", "gif"]) console.log(`${SORTIE}.${ext} : ${(fs.statSync(`${SORTIE}.${ext}`).size / 1e6).toFixed(2)} Mo`);

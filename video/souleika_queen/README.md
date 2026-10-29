@@ -76,6 +76,7 @@ python3 carte/build.py --url https://lettre-souleika-2026.netlify.app
 node carte/capture.js
 python3 carte/build.py --zip exports/enchante/Carte_Souleika_Netlify.zip
 node carte/teaser.js     # animation WhatsApp : Souleika_Animation_WhatsApp.gif (à envoyer tel quel) et .mp4
+node carte/teaser.js --cycles 3   # boucle de 15 s : WhatsApp ne joue un GIF qu'une fois, à sa première apparition
 ```
 
 Minutage des mots : la transcription locale donne l'instant de chaque mot, mais sur un fond musical elle avance
