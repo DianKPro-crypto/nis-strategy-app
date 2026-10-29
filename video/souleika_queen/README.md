@@ -45,11 +45,13 @@ Contrôles propres à cette version :
 Petite page web pour téléphone, partagée par WhatsApp, qui s'ouvre le 31 octobre à minuit (heure de Djibouti).
 
 - **Avant l'heure :** un compte à rebours s'affiche sous l'enveloppe scellée.
-- **À l'heure :** Souleika brise le sceau de cire DK et la chanson démarre. La lettre se révèle au rythme du chant :
-  le prénom sur « Souleika Queen », la ligne « Waan ku jeclahay » au moment où elle est chantée, avec des cœurs en
-  feu d'artifice.
-- **Ensuite :** le film « Nuit enchantée » (version téléphone), puis un bouton « Envoyer un baiser à Karim » qui
-  ouvre WhatsApp.
+- **À l'heure :** Souleika brise le sceau de cire DK. La voix de Karim lit la lettre sur un fond de kora, et chaque mot
+  apparaît quand il est prononcé. Certains mots déclenchent la magie : « étoiles », « lanternes », « feux d'artifice »,
+  « Waan ku jeclahay » (cœurs).
+- **Ensuite :** le film « Nuit enchantée » (version téléphone). La chanson reste la surprise du film. Un bouton
+  « Envoyer un baiser à Karim » ouvre WhatsApp.
+
+Sans enregistrement de voix, la lettre s'affiche mot à mot en silence, au rythme d'une lecture posée.
 
 | Fichier | Rôle |
 |---|---|
@@ -57,12 +59,15 @@ Petite page web pour téléphone, partagée par WhatsApp, qui s'ouvre le 31 octo
 | `carte/apercu.html` | image d'aperçu du lien WhatsApp (enveloppe scellée, sans photo) |
 | `carte/build.py` | assemble le site dans `work/carte_site/` (portrait, extrait du chant, film, polices) |
 | `carte/capture.js` | aperçu WhatsApp, captures iPhone et Android, vidéo de démonstration (`work/carte_qa/`) |
+| `carte/voix.py` | voix de Karim : nettoyage, instant de chaque mot (transcription locale), mélange avec la kora |
 
 Le numéro WhatsApp est lu dans `carte/prive.json`, qui reste hors Git.
 
 ```bash
-python3 carte/build.py --url https://<site>.netlify.app
+python3 carte/voix.py voix_lettre.m4a kora.mp3          # facultatif : voix + kora, minutage des mots
+python3 carte/build.py --url https://lettre-souleika-2026.netlify.app
 node carte/capture.js
+python3 carte/build.py --zip exports/enchante/Carte_Souleika_Netlify.zip
 ```
 
 Le lien d'aperçu `?apercu=dk3110` ouvre la carte avant l'heure, pour les vérifications. Il ne doit jamais être transmis

@@ -129,31 +129,42 @@ canvas { position: fixed; inset: 0; pointer-events: none; }
          transform: scale(.94); transition: transform 1s cubic-bezier(.2, .7, .2, 1); }
 .carte::-webkit-scrollbar { display: none; }
 .scene:not(.cache) .carte { transform: scale(1); }
-.portrait { width: min(38vw, 158px); aspect-ratio: 3 / 4; margin: 0 auto 14px; border-radius: 999px 999px 16px 16px; overflow: hidden;
+.portrait { width: min(30vw, 128px); aspect-ratio: 3 / 4; margin: 0 auto 10px; border-radius: 999px 999px 16px 16px; overflow: hidden;
             border: 2px solid var(--or); box-shadow: 0 0 0 5px rgba(227, 179, 76, .14), 0 0 34px rgba(227, 179, 76, .38); }
 .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .joyeux { font-size: 12px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; color: var(--or-clair); margin: 0; }
-.prenom { font-family: var(--serif); font-weight: 700; font-size: clamp(46px, 14vw, 60px); line-height: 1.05; margin: 2px 0 2px;
+.prenom { font-family: var(--serif); font-weight: 700; font-size: clamp(40px, 12vw, 54px); line-height: 1.05; margin: 2px 0 2px;
           background: linear-gradient(100deg, #B8862E 0%, #F6DFA0 30%, #E3B34C 50%, #FFF3C8 58%, #C9973A 78%, #E3B34C 100%);
           background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
           filter: drop-shadow(0 2px 10px rgba(227, 179, 76, .35)); animation: brille 4s linear infinite; }
 @keyframes brille { from { background-position: 120% 0; } to { background-position: -100% 0; } }
 .wacan { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 20px; color: var(--ivoire); margin: 0; text-shadow: 0 1px 8px rgba(5, 8, 25, .85); }
-.filet { width: 64%; height: 14px; margin: 14px auto 12px; position: relative; }
+.filet { width: 64%; height: 14px; margin: 10px auto 8px; position: relative; }
 .filet::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: linear-gradient(90deg, transparent, var(--or), transparent); }
 .filet::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; transform: rotate(45deg); background: var(--or); }
 .lettre-texte { margin: 0; }
-.ligne { display: block; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(16px, 4.5vw, 19px); line-height: 1.5;
-         color: rgba(245, 239, 229, .97); text-wrap: balance; text-shadow: 0 1px 8px rgba(5, 8, 25, .85);
-         opacity: 0; transform: translateY(8px); filter: blur(3px);
-         transition: opacity 1s ease, transform 1s ease, filter 1s ease; }
+.ligne { display: block; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(15.5px, 4.2vw, 18px); line-height: 1.42;
+         color: rgba(245, 239, 229, .97); text-wrap: balance; text-shadow: 0 1px 8px rgba(5, 8, 25, .85); }
+/* lecture mot à mot : chaque mot apparaît quand il est prononcé, en or un instant, puis ivoire */
+.mot { opacity: 0; filter: blur(2.5px); transition: opacity .45s ease, filter .45s ease, color 1.4s ease; }
+.mot.dit { opacity: 1; filter: none; }
+.mot.actif { color: var(--or-clair); transition: opacity .3s ease, filter .3s ease, color .2s ease; }
 .ligne.forte { font-weight: 500; color: var(--or-clair); margin-top: 6px; }
-.signature { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.signature { margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .signature span { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 28px; color: var(--or); }
 .signature img { width: 30px; }
 .apparait { opacity: 0; transform: translateY(8px); filter: blur(3px); transition: opacity 1s ease, transform 1s ease, filter 1s ease; }
 .visible { opacity: 1 !important; transform: none !important; filter: none !important; }
-.cta { margin-top: 18px; display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 26px; border: 0; border-radius: 999px;
+/* quand le bouton du film apparaît, la carte remonte au-dessus de lui (aucun défilement à faire) */
+#s-carte { transition: opacity .9s ease, transform .9s ease, filter .9s ease, padding .8s ease; }
+#s-carte.avec-appel { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+.avec-appel .carte { max-height: calc(100dvh - 150px - env(safe-area-inset-bottom)); transition: transform 1s cubic-bezier(.2, .7, .2, 1), max-height .8s ease; }
+.appel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center;
+         padding: 34px 16px max(18px, env(safe-area-inset-bottom));
+         background: linear-gradient(180deg, rgba(7, 11, 31, 0), rgba(7, 11, 31, .88) 45%);
+         opacity: 0; transform: translateY(24px); pointer-events: none; transition: opacity .8s ease, transform .8s cubic-bezier(.2, .7, .2, 1); }
+.appel.visible { pointer-events: auto; }
+.cta { display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 0 26px; border: 0; border-radius: 999px;
        font-family: var(--sans); font-weight: 600; font-size: 16px; color: #0B1030; cursor: pointer;
        background: linear-gradient(100deg, #C9973A, #F6DFA0 45%, #E3B34C); box-shadow: 0 0 0 0 rgba(246, 223, 160, .5), 0 10px 26px rgba(0, 0, 0, .4);
        animation: appel 2.4s ease-in-out infinite; }
@@ -217,7 +228,7 @@ canvas { position: fixed; inset: 0; pointer-events: none; }
     </div>
     <div id="pret" hidden>
       <div class="invite">Touche le sceau pour ouvrir ta lettre</div>
-      <div class="son">🔊 Monte le son</div>
+      <div class="son" id="son" hidden>🔊 Monte le son</div>
     </div>
   </div>
 </section>
@@ -226,24 +237,25 @@ canvas { position: fixed; inset: 0; pointer-events: none; }
 <section class="scene cache" id="s-carte" aria-label="Carte d'anniversaire">
   <article class="carte">
     <div class="portrait apparait" id="portrait"><img src="media/portrait.jpg" alt="Souleika"></div>
-    <p class="joyeux apparait" id="joyeux">Joyeux anniversaire</p>
-    <h1 class="prenom apparait" id="prenom">Souleika</h1>
-    <p class="wacan apparait" id="wacan">Dhalasho wacan, gacaliso</p>
+    <!-- ordre de lecture : data-lire = mots révélés un à un ; data-mot = élément révélé d'un bloc quand le mot est dit -->
+    <p class="joyeux" id="joyeux" data-lire>Joyeux anniversaire</p>
+    <h1 class="prenom apparait" id="prenom" data-mot="Souleika.">Souleika</h1>
+    <p class="wacan" id="wacan" data-lire>Dhalasho wacan, gacaliso</p>
     <div class="filet apparait" id="filet"></div>
     <p class="lettre-texte" id="texte">
-      <span class="ligne">Il était une fois une reine</span>
-      <span class="ligne">dont le sourire illumine chacun de mes jours.</span>
-      <span class="ligne">Aujourd'hui, les étoiles, les lanternes et les feux d'artifice ne brillent que pour toi.</span>
-      <span class="ligne">Que Dieu t'accorde la paix, la santé et la sérénité,</span>
-      <span class="ligne">et une année aussi belle que ton cœur.</span>
-      <span class="ligne forte">Waan ku jeclahay. Je te MOUA…</span>
+      <span class="ligne" data-lire>Il était une fois une reine</span>
+      <span class="ligne" data-lire>dont le sourire illumine chacun de mes jours.</span>
+      <span class="ligne" data-lire>Aujourd'hui, les étoiles, les lanternes et les feux d'artifice ne brillent que pour toi.</span>
+      <span class="ligne" data-lire>Que Dieu t'accorde la paix, la santé et la sérénité,</span>
+      <span class="ligne" data-lire>et une année aussi belle que ton cœur.</span>
+      <span class="ligne forte" data-lire>Waan ku jeclahay. Je te MOUA…</span>
     </p>
-    <div class="signature apparait" id="signature"><span>Karim</span><img src="media/dk.png" alt="DK"></div>
-    <div class="apparait" id="appel">
-      <button class="cta" id="voir-film"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>Découvrir ton film</button>
-      <p class="legende">Souleika Queen · Nuit enchantée · 3 min</p>
-    </div>
+    <div class="signature apparait" id="signature" data-mot="Karim."><span>Karim</span><img src="media/dk.png" alt="DK"></div>
   </article>
+  <div class="appel" id="appel">
+    <button class="cta" id="voir-film"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>Découvrir ton film</button>
+    <p class="legende">Souleika Queen · Nuit enchantée · 3 min</p>
+  </div>
 </section>
 
 <!-- scène 3 : le film -->
@@ -266,7 +278,7 @@ canvas { position: fixed; inset: 0; pointer-events: none; }
 
 <canvas id="avant"></canvas>
 <div class="bulle" id="bulle"></div>
-<audio id="musique" src="media/musique.mp3" preload="none"></audio>
+<audio id="lettre" preload="none"></audio>
 
 <script>
 (() => {
@@ -276,18 +288,19 @@ const OUVERTURE = Date.parse("__OUVERTURE__");          // 31 octobre, minuit à
 const APERCU = "__APERCU__";                            // lien d'aperçu réservé à Karim (avant l'heure)
 const TEL = "__TEL__";
 const BAISER = "💋 Merci Karim ! J'ai ouvert ma lettre enchantée… Waan ku jeclahay ✨";
-// Moments de la musique (secondes depuis le début de l'extrait, qui commence à 61,20 s du chant).
-// Les éclatements tombent sur les attaques mesurées du chant (analysis/audio_analysis.json).
-const PLAN = [
-  [2.60, "titre"], [2.60, "feu", .74, .16, "pivoine", ["#FFD27A", "#FFF0C8"]],
-  [3.02, "feu", .24, .12, "pivoine", ["#FF7FB5", "#FFD27A"]], [3.40, "feu", .55, .07, "anneau", ["#C9A6FF", "#FFE9B8"]],
-  [3.40, "wacan"], [4.75, "feu", .82, .22, "saule", ["#FFC46B", "#FFE2A0"]],
-  [5.20, "ligne", 0], [7.80, "ligne", 1], [10.60, "ligne", 2], [13.80, "ligne", 3], [16.60, "ligne", 4],
-  [18.94, "feu", .2, .14, "pivoine", ["#7FE6FF", "#FFD27A"]],
-  [22.16, "feu", .26, .14, "coeur", ["#FF7FB5", "#FFC0DA"]], [22.25, "ligne", 5],
-  [24.44, "feu", .76, .12, "coeur", ["#FFD27A", "#FFF0C8"]],
-  [25.20, "signature"], [27.00, "appel"],
-];
+// Voix de Karim qui lit la lettre, sur un fond de kora (la chanson reste la surprise du film).
+// {"audio": "media/lettre.mp3", "mots": [instant de chaque mot, en secondes depuis le début du son]}
+// ou null : lecture silencieuse au rythme d'une voix posée.
+const VOIX = __VOIX__;
+// Mots qui déclenchent la magie (première occurrence).
+const EFFETS = {
+  "souleika": () => { scintiller($("prenom"), 60); feu(.76, .1, "pivoine", ["#FFD27A", "#FFF0C8"]); },
+  "étoiles": () => pluieEtoiles(),
+  "lanternes": () => lancerLanternes(),
+  "d'artifice": () => { feu(.22, .1, "pivoine", ["#FF7FB5", "#FFD27A"]); setTimeout(() => feu(.8, .08, "anneau", ["#C9A6FF", "#FFE9B8"]), 420); },
+  "jeclahay": () => { feu(.26, .12, "coeur", ["#FF7FB5", "#FFC0DA"]); setTimeout(() => feu(.76, .1, "coeur", ["#FFD27A", "#FFF0C8"]), 650); coeurs = true; },
+  "karim": () => scintiller($("signature"), 40),
+};
 
 // ----------------------------------------------------------------- outils
 const $ = (id) => document.getElementById(id);
@@ -355,6 +368,17 @@ function eclatSceau() {
   etincelles.push({ halo: true, x: cx, y: cy, age: 0, vie: .6, c: [255, 220, 150], devant: true });
 }
 let coeurs = false;
+let lanternes = [];
+function lancerLanternes() {
+  for (let i = 0; i < (reduit ? 6 : 16); i++)
+    lanternes.push({ x: .06 + R() * .88, y: 1.06 + R() * .35, v: .03 + R() * .035, s: 7 + R() ** 1.5 * 15, ph: R() * 6.28 });
+}
+function pluieEtoiles() {
+  for (let i = 0; i < (reduit ? 14 : 44); i++) {
+    const x = R() * W, y = R() * H * .7;
+    etincelles.push({ x, y, x0: x, y0: y, vx: 0, vy: 0, age: -R() * .8, vie: 1.2 + R() * .8, k: 1, g: 0, c: [255, 246, 226], devant: false, crep: true, ph: R() * 6.28, trace: .001, astre: true });
+  }
+}
 function dessinerCoeur(ctx, x, y, s) {
   ctx.beginPath(); ctx.moveTo(x, y + s * .3);
   ctx.bezierCurveTo(x, y, x - s * .5, y, x - s * .5, y + s * .3); ctx.bezierCurveTo(x - s * .5, y + s * .6, x, y + s * .8, x, y + s);
@@ -390,6 +414,13 @@ function dessiner(now) {
   const restantes = [];
   for (const p of etincelles) {
     p.age += dt; if (p.age > p.vie) continue; restantes.push(p);
+    if (p.age < 0) continue;
+    if (p.astre) {
+      const u = p.age / p.vie, a = Math.sin(Math.PI * u) ** 2, r = 1.4 + 2.2 * a;
+      cc.fillStyle = `rgba(255,248,232,${a})`; cc.beginPath(); cc.arc(p.x, p.y, r, 0, 6.283); cc.fill();
+      cc.fillStyle = `rgba(255,236,190,${a * .25})`; cc.beginPath(); cc.arc(p.x, p.y, r * 4, 0, 6.283); cc.fill();
+      continue;
+    }
     const ctx = p.devant ? ca : cc, u = p.age / p.vie, [r, g, b] = p.c;
     if (p.halo) {
       const rad = Math.min(W, H) * .45 * (.4 + u), gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
@@ -406,6 +437,18 @@ function dessiner(now) {
     ctx.fillStyle = `rgba(${cr},${cg},${cb},${a * .18})`; ctx.beginPath(); ctx.arc(x, y, 4, 0, 6.283); ctx.fill();
   }
   etincelles = restantes;
+  lanternes = lanternes.filter((l) => l.y > -.12);
+  for (const l of lanternes) {
+    l.y -= l.v * dt;
+    const x = l.x * W + Math.sin(horloge * .5 + l.ph) * 12, y = l.y * H, s = l.s, fl = .85 + .15 * Math.sin(horloge * 7 + l.ph);
+    const halo = cc.createRadialGradient(x, y, 0, x, y, s * 3.2);
+    halo.addColorStop(0, `rgba(255,170,80,${.35 * fl})`); halo.addColorStop(1, "rgba(255,120,40,0)");
+    cc.fillStyle = halo; cc.fillRect(x - s * 3.2, y - s * 3.2, s * 6.4, s * 6.4);
+    const corps = cc.createLinearGradient(x, y - s, x, y + s);
+    corps.addColorStop(0, `rgba(255,120,50,${.75 * fl})`); corps.addColorStop(1, `rgba(255,214,130,${.95 * fl})`);
+    cc.fillStyle = corps; cc.beginPath();
+    cc.moveTo(x - s * .62, y - s); cc.lineTo(x + s * .62, y - s); cc.lineTo(x + s * .44, y + s); cc.lineTo(x - s * .44, y + s); cc.closePath(); cc.fill();
+  }
   if (coeurs) {
     for (const c of listeCoeurs) {
       const y = (1.1 - ((horloge * c.v + c.p) % 1.25)) * H, x = c.x * W + Math.sin(horloge * .6 + c.p * 9) * 18;
@@ -433,7 +476,7 @@ function majCompte() {
   if (ouverte()) {
     if (!document.body.classList.contains("pret")) {
       document.body.classList.add("pret"); $("attente").hidden = true; $("pret").hidden = false;
-      $("musique").preload = "auto"; $("musique").load();
+      if (VOIX) { $("lettre").src = VOIX.audio; $("lettre").preload = "auto"; $("lettre").load(); $("son").hidden = false; }
       if (majCompte.vu) { eclatSceau(); bulle("C'est l'heure ✨"); }
     }
     return;
@@ -445,10 +488,10 @@ function majCompte() {
 }
 heureServeur().then(majCompte); majCompte(); setInterval(majCompte, 250);
 
-let debut = 0;                     // instant (horloge) du toucher sur le sceau, si la musique ne joue pas
-function tempsMusique() {
-  const m = $("musique");
-  return (!m.paused && m.currentTime > 0) ? m.currentTime : (horloge - debut);
+let debut = 0;                     // instant (horloge) du toucher sur le sceau
+function tempsLettre() {             // la voix fait foi quand elle joue ; sinon l'horloge depuis le toucher
+  const m = $("lettre");
+  return (VOIX && !m.paused && m.currentTime > 0) ? m.currentTime : (horloge - debut);
 }
 $("sceau").addEventListener("click", () => {
   if (etat !== "enveloppe") return;
@@ -458,7 +501,7 @@ $("sceau").addEventListener("click", () => {
   }
   etat = "ouverture"; debut = horloge;
   $("s-enveloppe").classList.add("ouverture-en-cours");
-  const m = $("musique"); m.currentTime = 0; m.play().catch(() => {});
+  if (VOIX) { const m = $("lettre"); m.currentTime = 0; m.play().catch(() => {}); }
   const s = $("sceau"), cire = s.querySelector(".cire");
   const g = cire.cloneNode(true), d = cire.cloneNode(true);
   g.className = "moitie g"; d.className = "moitie d"; cire.remove(); s.append(g, d);
@@ -467,55 +510,81 @@ $("sceau").addEventListener("click", () => {
   setTimeout(() => $("enveloppe").classList.add("ouvert"), 350);
   setTimeout(() => $("enveloppe").classList.add("rabat-derriere"), 820);
   setTimeout(() => { const e = $("s-enveloppe"); e.style.transform = "translateY(6vh) scale(.92)"; e.classList.add("cache"); }, 2000);
-  setTimeout(() => { $("s-carte").classList.remove("cache"); $("portrait").classList.add("visible"); $("joyeux").classList.add("visible"); }, 2100);
-  lancerPlan();
+  setTimeout(() => { $("s-carte").classList.remove("cache"); $("portrait").classList.add("visible"); }, 2100);
+  lancerLecture();
 });
 
-// ----------------------------------------------------------------- scène 2 : la carte, au rythme du chant
-let planIdx = 0;
-function lancerPlan() {
-  etat = "carte"; planIdx = 0;
+// ----------------------------------------------------------------- scène 2 : la lettre, mot à mot
+const mots = [];                     // { el, cle, ligne } dans l'ordre de lecture
+const norme = (w) => w.toLowerCase().replace(/[’]/g, "'").replace(/[.,;:!?…]/g, "");
+for (const el of document.querySelectorAll("[data-lire], [data-mot]")) {
+  if (el.dataset.mot) { mots.push({ el, cle: norme(el.dataset.mot), ligne: el, bloc: true }); continue; }
+  const parts = el.textContent.trim().split(/\s+/);
+  el.textContent = "";
+  parts.forEach((w, i) => {
+    const sp = document.createElement("span"); sp.className = "mot"; sp.textContent = w;
+    el.append(sp, i < parts.length - 1 ? " " : "");
+    mots.push({ el: sp, cle: norme(w), ligne: el });
+  });
+}
+function rythmePose() {              // sans voix : rythme d'une lecture posée, pauses sur la ponctuation
+  let t = 2.9; const out = [];
+  mots.forEach((m, i) => {
+    out.push(t);
+    const w = m.bloc ? m.cle : m.el.textContent, fin = !mots[i + 1] || mots[i + 1].ligne !== m.ligne;
+    t += .3 + .034 * w.length + (/[,;]$/.test(w) ? .3 : 0) + (/[.!?…]$/.test(w) ? .7 : 0) + (fin ? .45 : 0);
+  });
+  return out;
+}
+const instants = VOIX ? VOIX.mots : rythmePose();
+let motIdx = 0, effetsFaits = new Set(), ligneCourante = null;
+function dire(i) {
+  const m = mots[i];
+  if (m.bloc) m.el.classList.add("visible");
+  else { m.el.classList.add("dit", "actif"); setTimeout(() => m.el.classList.remove("actif"), 650); }
+  if (m.el.id === "prenom") $("filet").classList.add("visible");
+  if (m.ligne !== ligneCourante) { ligneCourante = m.ligne; m.ligne.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+  if (EFFETS[m.cle] && !effetsFaits.has(m.cle)) { effetsFaits.add(m.cle); EFFETS[m.cle](); }
+}
+function lancerLecture() {
+  etat = "carte"; motIdx = 0;
   const tick = () => {
     if (etat !== "carte") return;
-    const t = tempsMusique();
-    while (planIdx < PLAN.length && PLAN[planIdx][0] <= t) { executer(PLAN[planIdx]); planIdx++; }
-    if (planIdx < PLAN.length) requestAnimationFrame(tick);
+    const t = tempsLettre();
+    while (motIdx < mots.length && instants[motIdx] <= t) dire(motIdx++);
+    if (motIdx < mots.length) requestAnimationFrame(tick);
+    else setTimeout(montrerAppel, 1400);
   };
   requestAnimationFrame(tick);
 }
-const lignes = () => document.querySelectorAll("#texte .ligne");
-function executer([, action, a, b, c, d]) {
-  if (action === "titre") { $("prenom").classList.add("visible"); scintiller($("prenom"), 60); }
-  else if (action === "wacan") { $("wacan").classList.add("visible"); $("filet").classList.add("visible"); }
-  else if (action === "ligne") {
-    lignes()[a].classList.add("visible");
-    if (a === 5) { scintiller(lignes()[a], 60); coeurs = true; }      // « Waan ku jeclahay » : cœurs qui s'élèvent
-  }
-  else if (action === "feu") { feu(a, b, c, d); }
-  else if (action === "signature") { $("signature").classList.add("visible"); }
-  else if (action === "appel") { $("appel").classList.add("visible"); $("video").preload = "metadata"; $("video").src = "media/film.mp4"; }
+function montrerAppel() {
+  $("s-carte").classList.add("avec-appel"); $("appel").classList.add("visible");
+  const c = document.querySelector(".carte");                 // la signature reste visible au-dessus du bouton
+  setTimeout(() => c.scrollTo({ top: c.scrollHeight, behavior: "smooth" }), 850);
+  $("video").preload = "metadata"; if (!$("video").src) $("video").src = "media/film.mp4";
 }
-function toutAfficher() {          // pour relire la lettre sans attendre
-  for (const id of ["portrait", "joyeux", "prenom", "wacan", "filet", "signature", "appel"]) $(id).classList.add("visible");
-  lignes().forEach((l) => l.classList.add("visible"));
+function toutAfficher() {            // pour relire la lettre sans attendre
+  for (const id of ["portrait", "prenom", "filet", "signature"]) $(id).classList.add("visible");
+  document.querySelectorAll(".mot").forEach((m) => m.classList.add("dit"));
+  montrerAppel();
 }
 
 // ----------------------------------------------------------------- scène 3 : le film
-function adoucirMusique() {
-  const m = $("musique"); if (m.paused) return;
+function adoucirLettre() {
+  const m = $("lettre"); if (m.paused) return;
   const v0 = m.volume, t0 = performance.now();
   const step = () => { const u = (performance.now() - t0) / 700; if (u >= 1) { m.pause(); m.volume = v0; return; } m.volume = v0 * (1 - u); requestAnimationFrame(step); };
   step(); setTimeout(() => m.pause(), 760);      // iOS ignore le volume : la musique s'arrête quand même
 }
 function ouvrirFilm() {
-  etat = "film"; adoucirMusique();
+  etat = "film"; adoucirLettre();
   const v = $("video"); if (!v.src) v.src = "media/film.mp4";
   $("s-film").classList.remove("cache");
   v.currentTime = 0; v.play().catch(() => {});
 }
 function fermerFilm() {
   const v = $("video"); v.pause();
-  $("s-film").classList.add("cache"); $("s-carte").classList.add("cache");
+  $("s-film").classList.add("cache"); $("s-carte").classList.add("cache"); $("appel").classList.remove("visible");
   $("s-fin").classList.remove("cache"); etat = "fin"; coeurs = true;
   feu(.5, .16, "coeur", ["#FF7FB5", "#FFD27A"]);
 }

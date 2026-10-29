@@ -1,7 +1,8 @@
 """Carte surprise « L'Enveloppe enchantée » : assemble le site statique dans work/carte_site/ (hors Git).
 
 La carte (carte/index.html) s'ouvre le 31 octobre à minuit, heure de Djibouti, en brisant un sceau de cire ;
-la chanson démarre, la lettre se révèle au rythme du chant, puis le film « Nuit enchantée » se lance.
+la voix de Karim lit la lettre sur un fond de kora, chaque mot apparaît quand il est dit, puis le film
+« Nuit enchantée » se lance : la chanson reste la surprise du film.
 
 Usage :
   python3 carte/build.py --url https://exemple.netlify.app      assemble le site (photos, chant, film, polices)
@@ -28,7 +29,7 @@ from photos import load_rgb  # noqa: E402
 OUT = ROOT / "work" / "carte_site"
 OUVERTURE = "2026-10-31T00:00:00+03:00"      # minuit, heure de Djibouti
 APERCU = "dk3110"                            # lien d'aperçu réservé à Karim : ?apercu=dk3110
-EXTRAIT = (61.20, 112.0)                     # extrait du chant : juste avant « Gacaliso », jusqu'à l'interlude
+VOIX = ROOT / "work" / "carte_voix"           # voix de Karim + kora, minutage des mots (carte/voix.py)
 
 
 def run(cmd):
@@ -97,8 +98,11 @@ def main():
     media.mkdir(parents=True)
 
     html = (HERE / "index.html").read_text(encoding="utf-8")
+    voix = "null"                                # sans voix : lecture silencieuse (la chanson reste la surprise du film)
+    if (VOIX / "lettre.mp3").exists() and (VOIX / "mots.json").exists():
+        voix = json.dumps({"audio": "media/lettre.mp3", "mots": json.loads((VOIX / "mots.json").read_text())["mots"]})
     for k, v in {"__URL__": args.url.rstrip("/"), "__TEL__": prive["telephone_whatsapp"],
-                 "__APERCU__": APERCU, "__OUVERTURE__": OUVERTURE}.items():
+                 "__APERCU__": APERCU, "__OUVERTURE__": OUVERTURE, "__VOIX__": voix}.items():
         assert k in html, k
         html = html.replace(k, v)
     (OUT / "index.html").write_text(html, encoding="utf-8")
@@ -110,11 +114,8 @@ def main():
     portrait(media / "portrait.jpg")
     fonts(media)
 
-    # chant : extrait du master (fondu d'entrée court, fondu de sortie long)
-    a, b = EXTRAIT
-    run(["ffmpeg", "-v", "error", "-y", "-ss", a, "-to", b, "-i", ROOT / "work" / "audio_master.wav",
-         "-af", f"afade=t=in:d=0.6,afade=t=out:st={b - a - 6:.2f}:d=6", "-c:a", "libmp3lame", "-b:a", "128k",
-         "-ar", "44100", media / "musique.mp3"])
+    if voix != "null":
+        shutil.copy(VOIX / "lettre.mp3", media / "lettre.mp3")
     # film : version téléphone (720 × 1280) et affiche (première image : la page d'accueil)
     film = ROOT / "exports" / "enchante" / "Souleika_Queen_Nuit_Enchantee_Telephone_720p.mp4"
     shutil.copy(film, media / "film.mp4")

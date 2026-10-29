@@ -35,6 +35,7 @@ function serveur() {
 }
 
 const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+const LECTURE = +(process.env.LECTURE_MS || 47000);     // durée de la lecture de la lettre (voix ou rythme posé)
 
 (async () => {
   fs.mkdirSync(QA, { recursive: true });
@@ -53,7 +54,9 @@ const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
   if (process.argv.includes("--apercu")) { await browser.close(); srv.close(); return; }   // image d'aperçu seulement
 
   // 2. captures iPhone et Android
-  const appareils = [["iphone", { width: 390, height: 844 }, 3], ["android", { width: 412, height: 915 }, 2.625]];
+  // « iphone_safari » : hauteur réellement visible avec les barres de Safari ou de WhatsApp
+  const appareils = [["iphone", { width: 390, height: 844 }, 3], ["iphone_safari", { width: 390, height: 664 }, 3],
+                     ["android", { width: 412, height: 915 }, 2.625]];
   for (const [nom, viewport, dpr] of appareils) {
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: dpr, isMobile: true, hasTouch: true });
     const p = await ctx.newPage();
@@ -66,7 +69,7 @@ const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
     await p.screenshot({ path: path.join(QA, `${nom}_2_patience.png`) });
     await p.goto(`${base}/?apercu=${TOKEN}`); await attendre(1200);
     await p.screenshot({ path: path.join(QA, `${nom}_3_pret.png`) });
-    await p.tap("#sceau"); await attendre(29500);         // fin de la lettre : le bouton du film apparaît
+    await p.tap("#sceau"); await attendre(LECTURE);       // fin de la lettre : le bouton du film apparaît
     await p.screenshot({ path: path.join(QA, `${nom}_9_film_appel.png`) });
     await p.tap("#voir-film"); await attendre(1200);
     await p.screenshot({ path: path.join(QA, `${nom}_10_film.png`) });
@@ -83,7 +86,8 @@ const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
     await p.goto(`${base}/?apercu=${TOKEN}`); await attendre(1200);
     await p.tap("#sceau");
     const t0 = Date.now();
-    for (const [s, etiquette] of [[0.7, "a_sceau_brise"], [1.6, "b_rabat"], [2.3, "c_lettre"], [3.2, "d_titre_feux"], [12.0, "e_lettre"], [23.0, "f_waan_coeurs"]]) {
+    for (const [s, etiquette] of [[0.7, "a_sceau_brise"], [1.6, "b_rabat"], [2.3, "c_lettre"], [4.6, "d_titre"], [14.0, "e_lettre"],
+                                  [23.0, "f_etoiles_lanternes"], [37.0, "g_waan_coeurs"]]) {
       await attendre(Math.max(0, s * 1000 - (Date.now() - t0)));
       await p.screenshot({ path: path.join(QA, `iphone_etape_${etiquette}.png`) });
     }
@@ -100,7 +104,7 @@ const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
     await attendre(8200);                       // le compte à rebours atteint minuit, le sceau s'illumine
     const toucher = (Date.now() - t0) / 1000;
     await p.tap("#sceau");
-    await attendre(30500);                      // la lettre au rythme du chant
+    await attendre(LECTURE + 1500);             // la lettre lue mot à mot
     await p.tap("#voir-film"); await attendre(2500);
     await p.tap("#fermer"); await attendre(4500);
     const video = p.video();
