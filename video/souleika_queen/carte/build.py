@@ -76,7 +76,7 @@ def archive(dst):
         for f in sorted(OUT.rglob("*")):
             rel = f.relative_to(OUT)
             if f.is_file() and rel.name != "apercu.html" and rel.parts[0] != ".netlify":
-                z.write(f, Path("souleika-carte") / rel)
+                z.write(f, rel)            # fichiers à la racine : l'archive se dépose telle quelle ou décompressée
     print(f"archive : {dst} ({dst.stat().st_size / 1e6:.1f} Mo)")
 
 
@@ -120,7 +120,6 @@ def main():
     shutil.copy(film, media / "film.mp4")
     run(["ffmpeg", "-v", "error", "-y", "-ss", "0.5", "-i", film, "-frames:v", "1", "-q:v", "3", media / "poster.jpg"])
 
-    (OUT / "netlify.toml").write_text('[build]\n  publish = "."\n  command = ""\n', encoding="utf-8")
     (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
     (OUT / "_headers").write_text("/*\n  X-Robots-Tag: noindex, nofollow\n  Referrer-Policy: no-referrer\n"
                                   "/media/*\n  Cache-Control: public, max-age=86400\n", encoding="utf-8")
