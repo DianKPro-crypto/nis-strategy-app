@@ -1,7 +1,9 @@
 // Animation « Pour Souleika » à envoyer dans WhatsApp juste avant le lien : WhatsApp la joue en boucle, sans son.
 // carte/teaser.html est rendue image par image (instant exact de chaque image : boucle sans raccord), puis encodée :
-//   exports/enchante/Souleika_Animation_WhatsApp.mp4   1080 × 1350, 5 s : à envoyer avec l'option « GIF » de WhatsApp
-//   exports/enchante/Souleika_Animation_WhatsApp.gif   720 × 900 : vrai GIF, si l'on préfère
+//   exports/enchante/Souleika_Animation_WhatsApp.gif   720 × 900, 25 images/s : à envoyer tel quel (WhatsApp le joue
+//                                                       en boucle ; l'option « GIF » pour une vidéo n'existe pas partout)
+//   exports/enchante/Souleika_Animation_WhatsApp.mp4   1080 × 1350 : la même en vidéo (Statut, autres usages)
+// 25 images/s : 4 centièmes de seconde par image, durée qu'un GIF sait exprimer exactement (la boucle reste de 5 s).
 // Usage : node carte/teaser.js   (après python3 carte/build.py, qui prépare polices et monogramme dans work/carte_site/media)
 const http = require("http");
 const fs = require("fs");
@@ -13,7 +15,7 @@ const RACINE = path.resolve(__dirname, "..");
 const MEDIA = path.join(RACINE, "work", "carte_site", "media");
 const IMAGES = path.join(RACINE, "work", "carte_teaser");
 const SORTIE = path.join(RACINE, "exports", "enchante", "Souleika_Animation_WhatsApp");
-const DUREE = 5, IPS = 30;
+const DUREE = 5, IPS = +(process.env.IPS || 25);
 const TYPES = { ".html": "text/html; charset=utf-8", ".png": "image/png", ".woff": "font/woff" };
 
 const srv = http.createServer((req, res) => {
@@ -43,7 +45,7 @@ const srv = http.createServer((req, res) => {
   execFileSync("ffmpeg", ["-v", "error", "-y", ...entree, "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-profile:v", "high",
     "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", `${SORTIE}.mp4`]);
   execFileSync("ffmpeg", ["-v", "error", "-y", ...entree, "-filter_complex",
-    "fps=15,scale=720:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a",
+    "scale=720:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a",
     "-loop", "0", `${SORTIE}.gif`]);
   fs.rmSync(IMAGES, { recursive: true, force: true });
   for (const ext of ["mp4", "gif"]) console.log(`${SORTIE}.${ext} : ${(fs.statSync(`${SORTIE}.${ext}`).size / 1e6).toFixed(2)} Mo`);

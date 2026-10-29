@@ -75,7 +75,7 @@ python3 carte/voix.py --melange sources/audio/Soul-Kora.mp3   # voix + kora déj
 python3 carte/build.py --url https://lettre-souleika-2026.netlify.app
 node carte/capture.js
 python3 carte/build.py --zip exports/enchante/Carte_Souleika_Netlify.zip
-node carte/teaser.js     # animation WhatsApp : Souleika_Animation_WhatsApp.mp4 (option « GIF ») et .gif
+node carte/teaser.js     # animation WhatsApp : Souleika_Animation_WhatsApp.gif (à envoyer tel quel) et .mp4
 ```
 
 Minutage des mots : la transcription locale donne l'instant de chaque mot, mais sur un fond musical elle avance
