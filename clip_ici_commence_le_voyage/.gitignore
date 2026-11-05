@@ -2,3 +2,4 @@ project/node_modules/
 work/
 exports/_raw_*.mp4
 exports/*.mp4
+exports/**/*.mp4
