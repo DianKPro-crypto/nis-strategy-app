@@ -6,6 +6,8 @@
 |---|---|
 | Version 16:9 (1920 × 1080, 25 i/s) | `exports/Ici_commence_le_voyage_16x9.mp4` |
 | Version 9:16 (1080 × 1920, 25 i/s) | `exports/Ici_commence_le_voyage_9x16.mp4` |
+| Extrait Statut WhatsApp (61,8 s, 9:16, 12 Mo) | `exports/whatsapp/Ici_commence_le_voyage_Statut_62s_9x16.mp4` (composition `Statut9x16`) |
+| Versions allégées pour téléphone (48 Mo et 39 Mo) | `exports/Ici_commence_le_voyage_16x9_leger.mp4`, `exports/Ici_commence_le_voyage_9x16_leger.mp4` |
 | Projet Remotion | `project/` (`npm install`, puis `npm run studio` ou `npm run render:16x9` / `render:9x16`, puis `tools/finalize.sh`) |
 | Configuration des scènes, durées, cadrages | `project/src/config/scenes.ts` |
 | Vignettes extraites | `project/public/scenes/scene_01.jpg` … `scene_13.jpg` |
@@ -49,5 +51,5 @@ Rendu : `cd project && npm install && node scripts/render.mjs Voyage16x9 ../expo
 - **Animation.** C'est un film photographique : rapprochements, reculs et glissements latéraux lents, fondus de 0,4 à 0,8 s. **Aucun mouvement corporel n'a été généré** (respiration, voile, vagues). Un outil de génération vidéo (Higgsfield) est connecté, mais je ne l'ai pas utilisé : il consomme des crédits et peut altérer les visages et les mains. Je peux l'essayer sur 2 ou 3 plans si vous le souhaitez.
 - **Provenance des images.** Les visuels fournis semblent générés par IA, et non issus de vos photos de terrain. Ils conviennent à un clip de fiction, mais ne doivent pas être présentés comme des scènes réelles ou documentaires. Une mention du type « Images de fiction » est recommandée si le clip accompagne une communication institutionnelle.
 - **Charte Dian K Pro.** L'outro animée Dian K Pro, prévue par votre charte vidéo, **n'est pas incluse**. Le brief demandait de ne mettre ni logo ni signature et de finir par un fondu au noir. Je peux l'ajouter après la fin de la chanson sur demande.
-- **Statut WhatsApp.** Avec 4 min 26 s, la version 9:16 dépasse la limite de 90 s. Pour un Statut, il faut un extrait, par exemple le refrain final avec les scènes 11 à 13, de 3:24 à 4:26 environ (62 s).
+- **Statut WhatsApp.** L'extrait couvre le refrain final et l'outro (scènes 11 à 13, de 3:24,4 à 4:26). Il s'ouvre sur une page de garde titrée, sur le souffle qui précède « Ici, ici commence le voyage », avec une montée du son de 0,24 s. Il dure 61,8 s, sous la limite de 90 s.
 - Pas de sous-titres, ni d'ambiance de mer ajoutée (aucun fichier fourni). Pas de voix off.
