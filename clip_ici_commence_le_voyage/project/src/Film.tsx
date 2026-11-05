@@ -4,7 +4,7 @@ import {
   interpolate, staticFile, useCurrentFrame, useVideoConfig,
 } from 'remotion';
 import {
-  FADE_TO_BLACK, FINAL_TITLE, FPS, IMAGES, OPENING_TITLE, TITLE_TEXT,
+  FADE_TO_BLACK, FINAL_TITLE, FPS, IMAGES, OPENING_TITLE, SONG_DURATION_S,
   flatShots, type CamH, type CamV,
 } from './config/scenes';
 
@@ -19,14 +19,14 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 /* ---------- Un plan ---------- */
 type FlatShot = ReturnType<typeof flatShots>[number];
 
-const ShotView: React.FC<{shot: FlatShot; format: Format; durFrames: number}> = ({shot, format, durFrames}) => {
+const ShotView: React.FC<{shot: FlatShot; format: Format; durFrames: number; opaque?: boolean}> = ({shot, format, durFrames, opaque}) => {
   const frame = useCurrentFrame();
   const {width: W, height: H} = useVideoConfig();
   const meta = IMAGES[shot.img];
   const p = ease(clamp(frame / Math.max(1, durFrames - 1), 0, 1));
   const t = frame / FPS;
   const breathe = shot.breathe ? 1 + 0.006 * Math.sin((2 * Math.PI * t) / 5.5) : 1;
-  const opacity = shot.xfade > 0
+  const opacity = shot.xfade > 0 && !opaque
     ? interpolate(frame, [0, shot.xfade * FPS], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})
     : 1;
   const src = staticFile(`scenes/${shot.img}.jpg`);
@@ -143,25 +143,53 @@ const FadeToBlack: React.FC = () => {
 };
 
 /* ---------- Film ---------- */
-export const Film: React.FC<{format: Format}> = ({format}) => {
-  const {durationInFrames} = useVideoConfig();
+/** offset (images) : démarre le film plus loin dans la chanson (extraits). Le plan en cours à l'offset est rendu sans fondu d'entrée. */
+export const Film: React.FC<{format: Format; offset?: number}> = ({format, offset = 0}) => {
   const shots = flatShots();
+  const total = Math.round(SONG_DURATION_S * FPS);
   return (
     <AbsoluteFill style={{backgroundColor: INK}}>
-      {shots.map((s, i) => {
-        const from = Math.max(0, Math.round((s.start - s.xfade / 2) * FPS));
-        const to = Math.min(durationInFrames, Math.round((s.end + s.nextXfade / 2) * FPS));
-        return (
-          <Sequence key={i} from={from} durationInFrames={to - from} name={`S${String(s.scene).padStart(2, '0')} ${s.img}`}>
-            <ShotView shot={s} format={format} durFrames={to - from} />
-          </Sequence>
-        );
-      })}
-      <Grade />
-      <OpeningTitle format={format} />
-      <FinalTitle format={format} />
-      <FadeToBlack />
-      <Audio src={staticFile('audio/ici_commence_le_voyage.mp3')} />
+      <Sequence from={-offset} layout="none">
+        {shots.map((s, i) => {
+          const from = Math.max(0, Math.round((s.start - s.xfade / 2) * FPS));
+          const to = Math.min(total, Math.round((s.end + s.nextXfade / 2) * FPS));
+          if (to <= offset) return null;
+          return (
+            <Sequence key={i} from={from} durationInFrames={to - from} name={`S${String(s.scene).padStart(2, '0')} ${s.img}`}>
+              <ShotView shot={s} format={format} durFrames={to - from} opaque={offset > 0 && from <= offset} />
+            </Sequence>
+          );
+        })}
+        <Grade />
+        <OpeningTitle format={format} />
+        <FinalTitle format={format} />
+        <FadeToBlack />
+        <Audio src={staticFile('audio/ici_commence_le_voyage.mp3')}
+          volume={(f) => (offset > 0 ? interpolate(f, [offset, offset + 6], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}) : 1)} />
+      </Sequence>
     </AbsoluteFill>
   );
 };
+
+/* ---------- Extrait Statut WhatsApp (≤ 90 s) : refrain final, scènes 11 à 13 ---------- */
+export const STATUT_START_S = 204.4; // souffle avant « Ici, ici commence le voyage » (204,95 s)
+export const STATUT_FRAMES = Math.round((SONG_DURATION_S - STATUT_START_S) * FPS);
+
+const StatutCover: React.FC = () => {
+  const t = useCurrentFrame() / FPS;
+  const o = interpolate(t, [3.2, 4.2], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
+  if (o <= 0) return null;
+  return (
+    <AbsoluteFill style={{opacity: o}}>
+      <AbsoluteFill style={{background: 'linear-gradient(to top, rgba(0,0,0,0.0) 10%, rgba(0,0,0,0.5) 22%, rgba(0,0,0,0.5) 36%, rgba(0,0,0,0) 52%)'}} />
+      <TitleImg name="title_v_open" style={{left: (1080 - 863) / 2, top: 1240 - PAD}} />
+    </AbsoluteFill>
+  );
+};
+
+export const Statut: React.FC = () => (
+  <AbsoluteFill>
+    <Film format="v" offset={Math.round(STATUT_START_S * FPS)} />
+    <StatutCover />
+  </AbsoluteFill>
+);
