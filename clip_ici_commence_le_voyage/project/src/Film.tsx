@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  AbsoluteFill, Audio, Easing, Img, Sequence,
+  AbsoluteFill, Audio, Easing, Img, Sequence, continueRender, delayRender,
   interpolate, staticFile, useCurrentFrame, useVideoConfig,
 } from 'remotion';
-import {loadFont} from '@remotion/fonts';
+import {PLAYFAIR_400I, PLAYFAIR_500} from './fontData';
 import {
   FADE_TO_BLACK, FINAL_TITLE, FPS, IMAGES, OPENING_TITLE, TITLE_TEXT,
   flatShots, type CamH, type CamV,
@@ -15,9 +15,13 @@ const GOLD = '#E3B34C';
 const IVORY = '#F7F0E3';
 
 /* ---------- Polices locales (aucun appel réseau au rendu) ---------- */
-const pf = (f: string) => staticFile(`fonts/${f}.woff2`);
-loadFont({family: 'Playfair Display', url: pf('playfair-display-latin-500-normal'), weight: '500'});
-loadFont({family: 'Playfair Display', url: pf('playfair-display-latin-400-italic'), weight: '400', style: 'italic'});
+const b64ToBuf = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
+const fontHandle = delayRender('Polices intégrées', {timeoutInMilliseconds: 20000});
+Promise.all([
+  new FontFace('Playfair Display', b64ToBuf(PLAYFAIR_500), {weight: '500'}),
+  new FontFace('Playfair Display', b64ToBuf(PLAYFAIR_400I), {weight: '400', style: 'italic'}),
+].map((f) => f.load().then((l) => document.fonts.add(l))))
+  .finally(() => continueRender(fontHandle));
 
 type Format = 'h' | 'v';
 const ease = Easing.bezier(0.37, 0, 0.63, 1);
