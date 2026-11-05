@@ -24,7 +24,7 @@ for (let start = 0, i = 0; start < N; start += CHUNK, i++) {
       await renderMedia({
         serveUrl, composition, codec: 'h264', outputLocation: file, frameRange: [start, end],
         muted: true, crf: 14, pixelFormat: 'yuv420p', imageFormat: 'jpeg', jpegQuality: 95,
-        concurrency: 4, timeoutInMilliseconds: 60000, overwrite: true,
+        concurrency: Number(process.env.CONCURRENCY || 3), timeoutInMilliseconds: 120000, overwrite: true,
       });
       fs.writeFileSync(file + '.ok', '');
       console.log(`${id} segment ${i} [${start}-${end}] ok`);

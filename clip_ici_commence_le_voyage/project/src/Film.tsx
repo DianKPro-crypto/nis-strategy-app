@@ -1,9 +1,8 @@
 import React from 'react';
 import {
-  AbsoluteFill, Audio, Easing, Img, Sequence, continueRender, delayRender,
+  AbsoluteFill, Audio, Easing, Img, Sequence,
   interpolate, staticFile, useCurrentFrame, useVideoConfig,
 } from 'remotion';
-import {PLAYFAIR_400I, PLAYFAIR_500} from './fontData';
 import {
   FADE_TO_BLACK, FINAL_TITLE, FPS, IMAGES, OPENING_TITLE, TITLE_TEXT,
   flatShots, type CamH, type CamV,
@@ -11,17 +10,6 @@ import {
 
 /* ---------- Charte ---------- */
 const INK = '#0B0B0C';
-const GOLD = '#E3B34C';
-const IVORY = '#F7F0E3';
-
-/* ---------- Polices locales (aucun appel réseau au rendu) ---------- */
-const b64ToBuf = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
-const fontHandle = delayRender('Polices intégrées', {timeoutInMilliseconds: 20000});
-Promise.all([
-  new FontFace('Playfair Display', b64ToBuf(PLAYFAIR_500), {weight: '500'}),
-  new FontFace('Playfair Display', b64ToBuf(PLAYFAIR_400I), {weight: '400', style: 'italic'}),
-].map((f) => f.load().then((l) => document.fonts.add(l))))
-  .finally(() => continueRender(fontHandle));
 
 type Format = 'h' | 'v';
 const ease = Easing.bezier(0.37, 0, 0.63, 1);
@@ -100,19 +88,10 @@ const Grade: React.FC = () => {
 };
 
 /* ---------- Titre ---------- */
-const TitleBlock: React.FC<{format: Format; size: number; align: 'center' | 'right'}> = ({format, size, align}) => (
-  <div style={{textAlign: align, lineHeight: 1.04, textShadow: '0 2px 18px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.6)'}}>
-    <div style={{fontFamily: 'Playfair Display', fontWeight: 500, fontSize: size, color: IVORY, letterSpacing: 0.5}}>
-      {TITLE_TEXT[0]}
-    </div>
-    <div style={{fontFamily: 'Playfair Display', fontStyle: 'italic', fontWeight: 400, fontSize: size * 1.08, color: GOLD}}>
-      {TITLE_TEXT[1]}
-    </div>
-    <div style={{
-      height: 2, width: format === 'h' ? 120 : 110, background: GOLD, opacity: 0.9,
-      margin: align === 'center' ? `${size * 0.32}px auto 0` : `${size * 0.32}px 0 0 auto`,
-    }} />
-  </div>
+/** Titres pré-rendus (tools/make_titles.py) : Playfair Display ivoire + or, marge de 60 px autour du texte. */
+const PAD = 60;
+const TitleImg: React.FC<{name: string; style: React.CSSProperties}> = ({name, style}) => (
+  <Img src={staticFile(`titles/${name}.png`)} style={{position: 'absolute', ...style}} />
 );
 
 const OpeningTitle: React.FC<{format: Format}> = ({format}) => {
@@ -124,18 +103,14 @@ const OpeningTitle: React.FC<{format: Format}> = ({format}) => {
     return (
       <AbsoluteFill style={{opacity: o}}>
         <AbsoluteFill style={{background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 32%, rgba(0,0,0,0) 55%)'}} />
-        <div style={{position: 'absolute', left: 0, right: 0, bottom: 150, transform: `translateY(${rise}px)`}}>
-          <TitleBlock format={format} size={112} align="center" />
-        </div>
+        <TitleImg name="title_h_open" style={{left: (1920 - 825) / 2, bottom: 150 - PAD, transform: `translateY(${rise}px)`}} />
       </AbsoluteFill>
     );
   }
   return (
     <AbsoluteFill style={{opacity: o}}>
       <AbsoluteFill style={{background: 'linear-gradient(to top, rgba(0,0,0,0.0) 10%, rgba(0,0,0,0.5) 22%, rgba(0,0,0,0.5) 36%, rgba(0,0,0,0) 52%)'}} />
-      <div style={{position: 'absolute', left: 60, right: 60, top: 1240, transform: `translateY(${rise}px)`}}>
-        <TitleBlock format={format} size={118} align="center" />
-      </div>
+      <TitleImg name="title_v_open" style={{left: (1080 - 863) / 2, top: 1240 - PAD, transform: `translateY(${rise}px)`}} />
     </AbsoluteFill>
   );
 };
@@ -149,18 +124,14 @@ const FinalTitle: React.FC<{format: Format}> = ({format}) => {
     return (
       <AbsoluteFill style={{opacity: o}}>
         <AbsoluteFill style={{background: 'radial-gradient(ellipse 30% 34% at 84% 26%, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.22) 55%, rgba(0,0,0,0) 100%)'}} />
-        <div style={{position: 'absolute', right: 86, top: 120, transform: `translateY(${rise}px)`}}>
-          <TitleBlock format={format} size={92} align="right" />
-        </div>
+        <TitleImg name="title_h_final" style={{right: 86 - PAD, top: 120 - PAD, transform: `translateY(${rise}px)`}} />
       </AbsoluteFill>
     );
   }
   return (
     <AbsoluteFill style={{opacity: o}}>
       <AbsoluteFill style={{background: 'linear-gradient(to top, rgba(0,0,0,0) 12%, rgba(0,0,0,0.45) 20%, rgba(0,0,0,0.35) 34%, rgba(0,0,0,0) 46%)'}} />
-      <div style={{position: 'absolute', left: 60, right: 60, top: 1330, transform: `translateY(${rise}px)`}}>
-        <TitleBlock format={format} size={100} align="center" />
-      </div>
+      <TitleImg name="title_v_final" style={{left: (1080 - 749) / 2, top: 1330 - PAD, transform: `translateY(${rise}px)`}} />
     </AbsoluteFill>
   );
 };
