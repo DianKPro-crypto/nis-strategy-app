@@ -12,6 +12,10 @@
 
 Encodage : H.264 High, yuv420p, CRF 17, audio AAC 320 kb/s 48 kHz repris directement du fichier original, `faststart`.
 
+Contrôles effectués sur les deux fichiers : 6 657 images, 266,28 s, 13 scènes dans l'ordre, pic audio −2,5 dBFS (aucun écrêtage), −15,4 LUFS (identique à l'original), aucun noir involontaire (seul noir : fondu final 265,5–266,2 s), titres lisibles hors visages.
+
+Rendu : `cd project && npm install && node scripts/render.mjs Voyage16x9 ../exports/_raw_16x9.mp4` (puis `Voyage9x16`), puis `tools/finalize.sh`. Les titres sont des PNG pré-rendus en Playfair Display (`tools/make_titles.py`), ce qui évite tout chargement de police au rendu.
+
 ## Ajustements réalisés
 
 1. **Durée : 4 min 26,28 s, pas 4 min 20 s.** Le fichier audio dure 266,28 s. Les dernières paroles (« Au cœur de ma vie ») se terminent à 255,0 s, mais la musique reste pleine (environ −11 à −13 dB RMS) jusqu'à 262 s, puis décroît naturellement jusqu'à 266 s. Pour tenir 260 s, il faudrait couper ou fondre cette fin instrumentale : ce serait une vraie modification musicale. Conformément à la consigne, je n'ai pas modifié l'audio. Le film suit la chanson entière, et son fondu au noir (262,6 → 265,8 s) accompagne la réverbération finale.
