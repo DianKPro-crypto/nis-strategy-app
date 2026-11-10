@@ -15,6 +15,7 @@ Préférences exprimées par Dr Sidibé ; à appliquer par défaut à toute vid�
 - **Photos réelles bien visibles** : voile global ≤ ~35 %, lisibilité par dégradés localisés derrière le texte ; jamais de texte ni de logo sur un visage.
 - **Pas de sous-titres** (sauf demande explicite). Sur demande : compétence `.claude/skills/sous-titres-dynamiques` (style par défaut `or-karaoke` ; transcription française toujours avec `--model small --language fr`, jamais le modèle par défaut qui traduit en anglais).
 - Charte : noir #0B0B0C et or #E3B34C, Playfair Display + Inter ; signature finale avec l'outro animée Dian K Pro.
+- **Logo Dian K Pro : toujours sur fond noir** (#0B0B0C) — utiliser une version détourée (PNG transparent) ou sur fond noir, jamais le carré bleu nuit du fichier source.
 - Musique : morceaux Suno fournis par Dr Sidibé ; voix off fournie par lui (enregistrement professionnel).
 
 ### Éthique et provenance
