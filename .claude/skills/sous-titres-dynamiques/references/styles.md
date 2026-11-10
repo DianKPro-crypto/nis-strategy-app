@@ -41,10 +41,11 @@ D'où les seuils de `luminance` : sous 60, rien ; de 60 à 150, voile doux ; au-
 ## `pastille` — mot actif surligné
 
 - **Intention** : énergie, rythme, lecture immédiate sur petit écran.
-- **Typo** : Inter 900 en MAJUSCULES.
+- **Typo** : Inter 900 en MAJUSCULES, interlettrage +0,02 em.
 - **Taille** : 72 px (min 48) en 16:9 ; 88 px (min 56) en 9:16.
 - **Groupes** : 3 mots / 26 caractères en 16:9 ; 2 mots / 14 caractères en 9:16.
-- **Animation** : le groupe apparaît en pop (de ×0,86 à ×1, `back.out(1.7)`, 0,18 s). Une pastille or (rayon 0,2 em) passe d'un mot à l'autre ; le mot actif devient noir sur or, à ×1,04. Les mots en emphase restent en or hors pastille.
+- **Animation** : le groupe apparaît en pop (de ×0,86 à ×1, `back.out(1.7)`, 0,18 s). Une pastille or (rayon 0,22 em) passe d'un mot à l'autre ; le mot actif devient noir sur or, à ×1,04. Les mots en emphase restent en or hors pastille.
+- **Lisibilité** : sur le mot actif, l'ombre du texte s'éteint (texte noir net sur or) et une ombre douce passe SOUS la pastille. Avec un halo noir autour de lettres noires, la lecture devenait floue et fatigante (retour de Dr Sidibé sur le premier test).
 - **Pour** : accroches, campagnes jeunes, réseaux sociaux.
 - **Éviter** : contenus solennels, projection en comité.
 

@@ -47,7 +47,7 @@ const STYLES = {
     label: "Pastille or — mot actif surligné",
     usage: "Réseaux sociaux, accroches énergiques, jeunes publics",
     energie: "élevée",
-    font: "Inter", weight: 900, upper: true, tracking: "0",
+    font: "Inter", weight: 900, upper: true, tracking: "0.02em",
     size: { "16x9": [72, 48], "9x16": [88, 56] },
     mots: { "16x9": 3, "9x16": 2 }, car: { "16x9": 26, "9x16": 14 },
     color: CHARTE.blanc, active: CHARTE.noir, emphColor: CHARTE.or,
@@ -109,6 +109,16 @@ const STYLES = {
 // Voile local derrière le texte (pas un voile global sur la photo). Seuils validés WCAG (texte large ≥ 3:1 pour l'or, ≥ 4.5:1 pour le blanc) :
 // doux 45 % jusqu'à une luminance de bande ≈ 150/255 ; plein 70 % au-delà (or ≥ 3.9:1 même sur fond blanc).
 const SCRIMS = { aucun: 0, doux: 0.45, plein: 0.7 };
+
+// Ombre portée du texte clair. k = 0 donne la même ombre transparente : GSAP interpole les deux chaînes,
+// ce qui permet d'éteindre l'ombre sur le mot actif de la pastille (texte noir sur or : un halo noir y
+// brouille les lettres et fatigue la lecture).
+const textShadow = (scrimA, k = 1) =>
+  scrimA
+    ? `0px 2px 4px ${NOIR_RGBA(r3(0.55 * k))}`
+    : `0px 3px 8px ${NOIR_RGBA(r3(0.9 * k))}, 0px 0px 26px ${NOIR_RGBA(r3(0.6 * k))}, 0px 0px 2px ${NOIR_RGBA(r3(0.9 * k))}`;
+// Ombre portée SOUS la pastille (détache la pastille du fond sans toucher aux lettres).
+const PILL_SHADOW = (k = 1) => `0px 6px 18px ${NOIR_RGBA(r3(0.45 * k))}`;
 
 // ───────────────────────────── Outils texte ─────────────────────────────
 const MUSIC_RE = /^[♪♫♬♩�♪-♯\s]+$/u;
@@ -545,9 +555,9 @@ function layout(st, fmt, o, scrimA) {
 // ───────────────────────────── Génération de la sous-composition ─────────────────────────────
 function styleCss(st, L, scrimA, compId) {
   const fam = (f) => (f.startsWith("Playfair") ? `'${f}', 'EB Garamond', Georgia, serif` : `'${f}', 'Helvetica Neue', Arial, sans-serif`);
-  const shadow = scrimA
-    ? `0 2px 4px ${NOIR_RGBA(0.55)}`
-    : `0 3px 8px ${NOIR_RGBA(0.9)}, 0 0 26px ${NOIR_RGBA(0.6)}, 0 0 2px ${NOIR_RGBA(0.9)}`;
+  const pill = st.highlight === "pastille";
+  // pastille : l'ombre est portée par chaque mot (et s'éteint sur le mot actif), pas par la ligne
+  const shadow = pill ? "none" : textShadow(scrimA);
   const lines = [
     `#root { position: absolute; inset: 0; overflow: visible; pointer-events: none; }`,
     `#${compId}-zone { position: absolute; left: ${L.F.marge}px; right: ${L.F.marge}px; top: ${L.top}px; height: ${L.zoneH}px; overflow: visible; }`,
@@ -555,7 +565,7 @@ function styleCss(st, L, scrimA, compId) {
     `.${compId}-l { display: inline; font-family: ${fam(st.font)}; font-weight: ${st.weight}; letter-spacing: ${st.tracking}; line-height: ${st.lines > 1 ? 1.32 : 1.16}; word-spacing: ${st.gap}em; color: ${st.color}; ${st.upper ? "text-transform: uppercase; " : ""}${st.lines > 1 ? "white-space: normal; text-wrap: balance; " : "white-space: nowrap; "}text-shadow: ${shadow};${
       scrimA ? ` background: ${NOIR_RGBA(scrimA)}; padding: 0.12em 0.48em; border-radius: 0.3em; -webkit-box-decoration-break: clone; box-decoration-break: clone;` : ""
     } }`,
-    `.${compId}-w { display: inline-block; white-space: pre;${st.highlight === "pastille" ? ` padding: 0.02em 0.16em; margin: 0 0.04em; border-radius: 0.2em; background-color: ${OR_RGBA(0)};` : ""} }`,
+    `.${compId}-w { display: inline-block; white-space: pre;${pill ? ` padding: 0.06em 0.2em; margin: 0 0.04em; border-radius: 0.22em; background-color: ${OR_RGBA(0)}; text-shadow: ${textShadow(scrimA)}; box-shadow: ${PILL_SHADOW(0)};` : ""} }`,
     `.${compId}-e { color: ${st.emphColor};${st.emphItalic ? " font-style: italic;" : ""} }`,
   ];
   // chiffre-cle : seuls les chiffres passent en Playfair XXL et « tombent » à leur prononciation
@@ -654,6 +664,7 @@ function generate(words, st, styleName, fmt, o) {
     highlight: st.highlight, color: st.color, active: st.active, emphColor: st.emphColor,
     activeScale: st.activeScale, emphScale: st.emphScale, lift: st.lift, gap: st.gap, slam: !!st.emphSlam,
     pillOn: OR_RGBA(1), pillOff: OR_RGBA(0),
+    sh: textShadow(scrimA), sh0: textShadow(scrimA, 0), box: PILL_SHADOW(1), box0: PILL_SHADOW(0),
     enterFrom: st.enterFrom, enterTo: { ...st.enterTo, duration: undefined },
   };
   delete S.enterTo.duration;
@@ -711,7 +722,9 @@ ${markup}
           var fromVars = { scale: 1, yPercent: 0 };
           if (S.highlight === "pastille") {
             fromVars.backgroundColor = S.pillOff; fromVars.color = restColor;
+            fromVars.textShadow = S.sh; fromVars.boxShadow = S.box0;
             onVars.backgroundColor = S.pillOn; onVars.color = S.active;
+            onVars.textShadow = S.sh0; onVars.boxShadow = S.box; // texte noir net sur or, ombre sous la pastille
           } else {
             fromVars.color = restColor;
             onVars.color = w.e ? S.emphColor : S.active;
@@ -791,7 +804,7 @@ function planche(fmt, o) {
           if (wi === activeIdx && st.highlight !== "aucun" && !w.slam) {
             const sc = w.emph ? st.emphScale : st.activeScale;
             const tf = `transform:translateY(-${st.lift}%) scale(${sc})`;
-            style = st.highlight === "pastille" ? `background-color:${OR_RGBA(1)};color:${st.active};${tf}` : `color:${w.emph ? st.emphColor : st.active};${tf}`;
+            style = st.highlight === "pastille" ? `background-color:${OR_RGBA(1)};color:${st.active};text-shadow:${textShadow(scrimA, 0)};box-shadow:${PILL_SHADOW(1)};${tf}` : `color:${w.emph ? st.emphColor : st.active};${tf}`;
           }
           return `<span class="${id}-ww">${wi ? " " : ""}<span class="${cls.join(" ")}" style="${style}">${esc(w.display)}</span></span>`;
         })
