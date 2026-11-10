@@ -37,9 +37,9 @@ const STYLES = {
     energie: "moyenne",
     font: "Inter", weight: 900, upper: false, tracking: "-0.01em",
     size: { "16x9": [76, 48], "9x16": [92, 56] },
-    mots: { "16x9": 5, "9x16": 3 }, car: { "16x9": 34, "9x16": 18 },
+    mots: { "16x9": 5, "9x16": 3 }, car: { "16x9": 36, "9x16": 22 },
     color: CHARTE.blanc, active: CHARTE.or, emphColor: CHARTE.or,
-    highlight: "couleur", activeScale: 1.04, emphScale: 1.1, lift: 6, gap: 0.1,
+    highlight: "couleur", activeScale: 1.04, emphScale: 1.08, lift: 6, gap: 0.1,
     enterFrom: { opacity: 0, y: 26 }, enterTo: { opacity: 1, y: 0, duration: 0.22, ease: "power3.out" },
     exit: 0.12, lines: 1, fit: true, ponctuation: "auto", scrim: 0,
   },
@@ -61,7 +61,7 @@ const STYLES = {
     energie: "calme",
     font: "Playfair Display", weight: 700, upper: false, tracking: "0",
     size: { "16x9": [64, 44], "9x16": [78, 52] },
-    mots: { "16x9": 6, "9x16": 4 }, car: { "16x9": 40, "9x16": 22 },
+    mots: { "16x9": 6, "9x16": 4 }, car: { "16x9": 42, "9x16": 26 },
     color: CHARTE.creme, active: CHARTE.or, emphColor: CHARTE.or, emphItalic: true,
     highlight: "couleur", activeScale: 1.02, emphScale: 1.04, lift: 0, gap: 0.06,
     enterFrom: { opacity: 0, y: 14 }, enterTo: { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
@@ -73,7 +73,7 @@ const STYLES = {
     energie: "moyenne-élevée",
     font: "Inter", weight: 700, upper: false, tracking: "-0.005em",
     size: { "16x9": [70, 46], "9x16": [84, 54] },
-    mots: { "16x9": 4, "9x16": 3 }, car: { "16x9": 30, "9x16": 16 },
+    mots: { "16x9": 4, "9x16": 3 }, car: { "16x9": 32, "9x16": 20 },
     color: CHARTE.blanc, active: CHARTE.or, emphColor: CHARTE.or,
     emphFont: "Playfair Display", emphWeight: 700, emphSize: 1.45, emphSlam: true,
     highlight: "couleur", activeScale: 1.03, emphScale: 1.0, lift: 4, gap: 0.1,
@@ -476,10 +476,15 @@ function buildGroups(words, st, fmt, o) {
   // mot orphelin en fin de phrase (« … une famille | entière. ») : rééquilibrer avec le groupe précédent
   for (let i = 1; i < groups.length; i++) {
     const g = groups[i], p = groups[i - 1];
-    if (g.length !== 1 || p.length < 3) continue;
+    if (g.length !== 1 || p.length < 2) continue;
     const pl = p[p.length - 1];
     if (/[.!?…,;:]["»”)]*$/u.test(pl.text) || g[0].start - pl.end >= pause) continue;
     const all = [...p, ...g];
+    if (len(all) <= maxC * (st.lines > 1 ? 1 : 1.2) && count(all) <= maxW + 0.5) {
+      groups.splice(i - 1, 2, all);
+      i--;
+      continue;
+    }
     let best = null;
     for (let k = 1; k < all.length - 1; k++) {
       const a = all.slice(0, k), b = all.slice(k);
@@ -551,11 +556,11 @@ function styleCss(st, L, scrimA, compId) {
       scrimA ? ` background: ${NOIR_RGBA(scrimA)}; padding: 0.12em 0.48em; border-radius: 0.3em; -webkit-box-decoration-break: clone; box-decoration-break: clone;` : ""
     } }`,
     `.${compId}-w { display: inline-block; white-space: pre;${st.highlight === "pastille" ? ` padding: 0.02em 0.16em; margin: 0 0.04em; border-radius: 0.2em; background-color: ${OR_RGBA(0)};` : ""} }`,
-    `.${compId}-e { color: ${st.emphColor};${st.emphItalic ? " font-style: italic;" : ""}${
-      st.emphFont ? ` font-family: ${fam(st.emphFont)}; font-weight: ${st.emphWeight}; font-size: ${st.emphSize}em; line-height: 1;` : ""
-    } }`,
+    `.${compId}-e { color: ${st.emphColor};${st.emphItalic ? " font-style: italic;" : ""} }`,
   ];
-  if (st.emphSlam) lines.push(`.${compId}-s { opacity: 0; }`);
+  // chiffre-cle : seuls les chiffres passent en Playfair XXL et « tombent » à leur prononciation
+  if (st.emphSlam)
+    lines.push(`.${compId}-s { opacity: 0;${st.emphFont ? ` font-family: ${fam(st.emphFont)}; font-weight: ${st.emphWeight}; font-size: ${st.emphSize}em; line-height: 1;` : ""} }`);
   return lines.join("\n    ");
 }
 
@@ -573,6 +578,7 @@ function generate(words, st, styleName, fmt, o) {
   markBinds(ws, lex, user);
   const raw = buildGroups(ws, st, fmt, o);
   if (!o["sans-emphase"]) raw.forEach((g) => markEmphasis(g, st, lex, user));
+  if (st.emphSlam) ws.forEach((w) => (w.slam = !!w.emph && /\d/.test(w.text)));
 
   const LEAD = 0.06, HOLD = 0.25;
   const k = charK(st.font, st.weight, st.upper);
@@ -597,7 +603,8 @@ function generate(words, st, styleName, fmt, o) {
     g.end = r3(g.end);
     g.text = g.words.map((w) => w.display).join(" ");
     const hasEmph = g.words.some((w) => w.emph);
-    g.scale = Math.max(st.activeScale, hasEmph ? st.emphScale : 1, hasEmph && st.emphSize ? st.emphSize : 1);
+    const hasSlam = g.words.some((w) => w.slam);
+    g.scale = Math.max(st.activeScale, hasEmph ? st.emphScale : 1, hasSlam && st.emphSize ? st.emphSize : 1);
     const chars = g.text.length;
     if (st.lines > 1) {
       g.size = L.base;
@@ -613,14 +620,18 @@ function generate(words, st, styleName, fmt, o) {
   const pfx = compId;
   const markup = groups
     .map((g) => {
+      // Chaque mot animé est le DERNIER enfant d'un enveloppeur non animé, l'espace le précède.
+      // GSAP, quand il mesure un élément non rendu (scène encore masquée), le retire puis le réinsère
+      // devant son élément frère suivant : avec des espaces entre mots, l'espace passait devant le mot
+      // (« 12 000enfants »). Sans frère suivant, l'ordre est conservé.
       const spans = g.words
         .map((w, wi) => {
           const cls = [`${pfx}-w`];
           if (w.emph) cls.push(`${pfx}-e`);
-          if (w.emph && st.emphSlam) cls.push(`${pfx}-s`);
-          return `<span id="${pfx}-g${g.gi}-w${wi}" class="${cls.join(" ")}">${esc(w.display)}</span>`;
+          if (w.slam) cls.push(`${pfx}-s`);
+          return `<span class="${pfx}-ww">${wi ? " " : ""}<span id="${pfx}-g${g.gi}-w${wi}" class="${cls.join(" ")}">${esc(w.display)}</span></span>`;
         })
-        .join(" ");
+        .join("");
       return `      <div id="${pfx}-g${g.gi}" class="${pfx}-g"><span class="${pfx}-l" style="font-size: ${g.size}px">${spans}</span></div>`;
     })
     .join("\n");
@@ -635,7 +646,7 @@ function generate(words, st, styleName, fmt, o) {
     size: g.size,
     text: g.text,
     spaces: g.words.length - 1,
-    words: g.words.map((w, wi) => ({ id: `${pfx}-g${g.gi}-w${wi}`, start: r3(w.start), end: r3(w.end), e: w.emph ? 1 : 0 })),
+    words: g.words.map((w, wi) => ({ id: `${pfx}-g${g.gi}-w${wi}`, start: r3(w.start), end: r3(w.end), e: w.emph ? 1 : 0, s: w.slam ? 1 : 0 })),
   }));
   const S = {
     font: st.font, weight: st.weight, upper: st.upper, fit: st.fit && st.lines === 1,
@@ -691,7 +702,7 @@ ${markup}
           if (!we) return;
           var restColor = w.e ? S.emphColor : S.color;
           var on = Math.max(0.04, Math.min(0.1, (w.end - w.start) * 0.5));
-          if (S.slam && w.e) {
+          if (w.s) {
             tl.fromTo(we, { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.28, ease: "expo.out", immediateRender: false }, Math.max(g.start, w.start - 0.04));
             return;
           }
@@ -706,8 +717,8 @@ ${markup}
             onVars.color = w.e ? S.emphColor : S.active;
           }
           tl.fromTo(we, fromVars, onVars, w.start);
-          var lastWord = i === g.words.length - 1;
-          if (!(lastWord && w.end >= g.end - g.outDur - 0.01)) {
+          // le dernier mot du groupe reste actif jusqu'à la sortie du groupe
+          if (i < g.words.length - 1) {
             var offVars = Object.assign({}, fromVars, { duration: 0.12, ease: "power1.out", immediateRender: false });
             var offFrom = Object.assign({}, onVars);
             delete offFrom.duration; delete offFrom.ease; delete offFrom.immediateRender;
@@ -777,14 +788,14 @@ function planche(fmt, o) {
           const cls = [`${id}-w`];
           if (w.emph) cls.push(`${id}-e`);
           let style = "";
-          if (wi === activeIdx && st.highlight !== "aucun" && !(st.emphSlam && w.emph)) {
+          if (wi === activeIdx && st.highlight !== "aucun" && !w.slam) {
             const sc = w.emph ? st.emphScale : st.activeScale;
             const tf = `transform:translateY(-${st.lift}%) scale(${sc})`;
             style = st.highlight === "pastille" ? `background-color:${OR_RGBA(1)};color:${st.active};${tf}` : `color:${w.emph ? st.emphColor : st.active};${tf}`;
           }
-          return `<span class="${cls.join(" ")}" style="${style}">${esc(w.display)}</span>`;
+          return `<span class="${id}-ww">${wi ? " " : ""}<span class="${cls.join(" ")}" style="${style}">${esc(w.display)}</span></span>`;
         })
-        .join(" ");
+        .join("");
       const bg = fond === "sombre" ? "linear-gradient(160deg,#2a3138 0%,#151a1f 55%,#0B0B0C 100%)" : "linear-gradient(160deg,#f4efe6 0%,#d8cdb8 60%,#bfae8f 100%)";
       tiles.push(`<figure><div class="frame" style="width:${L.F.w}px;height:${L.F.h}px"><div id="${id}" style="position:absolute;inset:0;background:${bg}"><style>${css}</style><div id="${id}-zone"><div class="${id}-g"><span class="${id}-l" style="font-size:${g.size}px">${spans}</span></div></div></div></div><figcaption><b>${esc(name)}</b> — ${esc(st.label)}<br>${esc(st.usage)} · fond ${fond}${scrimA ? ` · voile ${Math.round(scrimA * 100)} %` : ""}</figcaption></figure>`);
     }

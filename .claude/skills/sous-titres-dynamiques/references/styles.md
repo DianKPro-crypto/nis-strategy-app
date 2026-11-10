@@ -6,7 +6,9 @@ Les valeurs ci-dessous sont celles de `scripts/captions.mjs` (objet `STYLES`). E
 Commun à tous les styles :
 - texte blanc ou crème, ombre portée noire (3 px + halo de 26 px), ou voile local si le fond est clair ;
 - mot actif et emphase en or ;
-- un groupe visible à la fois ; entrée dès le premier mot (0,06 s avant) ; sortie au plus tard 0,25 s après le dernier mot, avec arrêt franc.
+- un groupe visible à la fois ; entrée dès le premier mot (0,06 s avant) ; sortie au plus tard 0,25 s après le dernier mot, avec arrêt franc ;
+- karaoké : chaque mot redevient blanc à la fin de sa prononciation, sauf le dernier du groupe, qui reste actif jusqu'à la sortie ;
+- les mots sont espacés par une vraie espace placée avant chaque mot, dans un enveloppeur non animé. Ce balisage résiste à GSAP quand une scène est encore masquée : sans lui, « 12 000 enfants » s'affichait « 12 000enfants ».
 
 ## Contrastes vérifiés (WCAG 2.1)
 
@@ -31,8 +33,8 @@ D'où les seuils de `luminance` : sous 60, rien ; de 60 à 150, voile doux ; au-
 - **Intention** : narration claire et chaleureuse. Le regard suit la voix mot à mot ; l'or signe la marque.
 - **Typo** : Inter 900, casse normale, interlettrage −0,01 em, espacement des mots +0,1 em.
 - **Taille** : 76 px (min 48) en 16:9 ; 92 px (min 56) en 9:16.
-- **Groupes** : 5 mots / 34 caractères en 16:9 ; 3 mots / 18 caractères en 9:16. Un mot-outil compte pour un demi-mot.
-- **Animation** : le groupe monte de 26 px en fondu (0,22 s, `power3.out`). Le mot actif passe à l'or, grossit à ×1,04 et se soulève de 6 % (0,04 à 0,1 s). Le mot en emphase reste en or et grossit à ×1,10 avec rebond (`back.out(2)`). Sortie en fondu de 0,12 s.
+- **Groupes** : 5 mots / 36 caractères en 16:9 ; 3 mots / 22 caractères en 9:16. Un mot-outil compte pour un demi-mot.
+- **Animation** : le groupe monte de 26 px en fondu (0,22 s, `power3.out`). Le mot actif passe à l'or, grossit à ×1,04 et se soulève de 6 % (0,04 à 0,1 s). Le mot en emphase reste en or et grossit à ×1,08 avec rebond (`back.out(2)`). Sortie en fondu de 0,12 s.
 - **Pour** : Statut WhatsApp, Stories, plaidoyer, explications.
 - **Éviter** : témoignages très émotionnels (préférer `editorial`).
 
@@ -51,7 +53,7 @@ D'où les seuils de `luminance` : sous 60, rien ; de 60 à 150, voile doux ; au-
 - **Intention** : sobriété éditoriale, ton magazine, respect de la parole.
 - **Typo** : Playfair Display 700, couleur crème ; emphase en *italique* or.
 - **Taille** : 64 px (min 44) en 16:9 ; 78 px (min 52) en 9:16.
-- **Groupes** : 6 mots / 40 caractères en 16:9 ; 4 mots / 22 caractères en 9:16. Coupure sur pause ≥ 0,25 s.
+- **Groupes** : 6 mots / 42 caractères en 16:9 ; 4 mots / 26 caractères en 9:16. Coupure sur pause ≥ 0,25 s.
 - **Animation** : fondu lent avec montée de 14 px (0,5 s, `power2.out`). Mot actif en or, à ×1,02. Sortie de 0,25 s.
 - **Pour** : témoignages d'agents de santé ou de mères (consentement vérifié), récit de terrain, film institutionnel.
 - **Éviter** : débits rapides (plus de 170 mots/min).
@@ -59,9 +61,9 @@ D'où les seuils de `luminance` : sous 60, rien ; de 60 à 150, voile doux ; au-
 ## `chiffre-cle` — les données frappent
 
 - **Intention** : faire retenir un chiffre.
-- **Typo** : Inter 700. Le chiffre est en Playfair Display 700, en or, à 1,45 em.
+- **Typo** : Inter 700. Seuls les chiffres passent en Playfair Display 700, en or, à 1,45 em. Les autres mots en emphase (« zéro dose ») restent en Inter, en or.
 - **Taille** : 70 px (min 46) en 16:9 ; 84 px (min 54) en 9:16.
-- **Groupes** : 4 mots / 30 caractères en 16:9 ; 3 mots / 16 caractères en 9:16. Un chiffre n'est jamais séparé du nom qui le suit (« 12 000 enfants »).
+- **Groupes** : 4 mots / 32 caractères en 16:9 ; 3 mots / 20 caractères en 9:16. Un chiffre n'est jamais séparé du nom qui le suit (« 12 000 enfants »).
 - **Animation** : le chiffre est invisible jusqu'à sa prononciation, puis « tombe » (de ×1,6 à ×1, `expo.out`, 0,28 s). Les autres mots suivent le karaoké discret (or, ×1,03, soulèvement de 4 %).
 - **Pour** : résultats, couverture vaccinale, besoins de financement.
 - **Obligatoire** : chiffres validés, sinon mention « Données illustratives — à valider par l'équipe pays » à l'écran.

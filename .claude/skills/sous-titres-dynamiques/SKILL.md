@@ -80,6 +80,7 @@ Le script écrit `compositions/captions.html` et affiche **l'hôte à coller dan
 Ce que garantit le générateur (contrat HyperFrames) :
 - un seul groupe visible à la fois, avec un arrêt franc (`tl.set … visibility:hidden`) à la fin de chaque groupe, et un auto-contrôle intégré ;
 - une coupe à la française : jamais de groupe qui finit sur « de », « et » ou « l' » ; « parce que », « zéro dose » et « 12 000 enfants » ne sont jamais coupés ; pas de mot orphelin en fin de phrase ;
+- un balisage des mots qui résiste à GSAP quand une scène est mesurée alors qu'elle est encore masquée : les espaces entre mots ne sautent pas (bug réel constaté au rendu, corrigé) ;
 - la taille ajustée à la largeur (`fitTextFontSize` à l'exécution, estimation au moment de la construction), avec un plancher de 40 px ou plus ;
 - Inter et Playfair Display (polices fournies avec HyperFrames), sans `Math.random`, sans horloge, déterministe ;
 - une zone de texte dans le cadre titre 80 %. En 9:16, la bande reste dans y 260–1600 (alerte sinon).
@@ -116,6 +117,18 @@ Liste de contrôle :
 - WhatsApp ≤ 90 s.
 
 Rendre seulement après validation de l'aperçu par Dr Sidibé.
+
+### Aperçu sans le CLI HyperFrames
+
+Dans cet environnement cloud, le mode automatique bloque l'installation et l'exécution de HyperFrames, et le réseau bloque les CDN. Pour voir quand même les sous-titres bouger, `scripts/apercu.cjs` assemble le projet dans Chromium avec GSAP et encode un MP4 :
+
+```bash
+npm pack gsap@3.12.5 && tar -xzf gsap-3.12.5.tgz        # récupère GSAP sans rien installer (dossier de travail temporaire)
+NODE_PATH=$(npm root -g) node .claude/skills/sous-titres-dynamiques/scripts/apercu.cjs <projet> apercu.mp4 --gsap package/dist/gsap.min.js
+NODE_PATH=$(npm root -g) node .claude/skills/sous-titres-dynamiques/scripts/apercu.cjs <projet> cle.png --gsap package/dist/gsap.min.js --at 0,6,12
+```
+
+C'est un aperçu, pas le rendu de livraison : pas d'ajustement `fitTextFontSize` (ce sont les tailles calculées à la construction qui s'appliquent), pas de traitement média, un seul `<audio>`. La livraison passe par `npx hyperframes check` puis `render`. Les alertes `[caption-lint]` éventuelles sont affichées.
 
 ## 7. Autres voies
 
