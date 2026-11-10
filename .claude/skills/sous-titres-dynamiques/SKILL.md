@@ -5,10 +5,10 @@ description: Sous-titres dynamiques (karaoké mot à mot, mot actif en or, pasti
 
 # Sous-titres dynamiques — charte Dian K Pro
 
-Outil : `scripts/captions.mjs` (Node ≥ 18, aucune dépendance). Depuis la racine du dépôt :
+Outil : `scripts/captions.mjs` (Node ≥ 18, aucune dépendance), dans le dossier de cette compétence. Dans le dépôt nis-strategy-app : `.claude/skills/sous-titres-dynamiques/`. Installée comme compétence personnelle claude.ai, elle se trouve ailleurs (par exemple `~/.claude/skills/…/sous-titres-dynamiques/`) : régler `CAP` en conséquence.
 
 ```bash
-CAP=.claude/skills/sous-titres-dynamiques/scripts/captions.mjs
+CAP=.claude/skills/sous-titres-dynamiques/scripts/captions.mjs     # adapter si la compétence est installée ailleurs
 node $CAP styles      # les six styles
 node $CAP aide        # toutes les options
 ```
@@ -124,8 +124,8 @@ Dans cet environnement cloud, le mode automatique bloque l'installation et l'ex�
 
 ```bash
 npm pack gsap@3.12.5 && tar -xzf gsap-3.12.5.tgz        # récupère GSAP sans rien installer (dossier de travail temporaire)
-NODE_PATH=$(npm root -g) node .claude/skills/sous-titres-dynamiques/scripts/apercu.cjs <projet> apercu.mp4 --gsap package/dist/gsap.min.js
-NODE_PATH=$(npm root -g) node .claude/skills/sous-titres-dynamiques/scripts/apercu.cjs <projet> cle.png --gsap package/dist/gsap.min.js --at 0,6,12
+NODE_PATH=$(npm root -g) node "$(dirname $CAP)/apercu.cjs" <projet> apercu.mp4 --gsap package/dist/gsap.min.js
+NODE_PATH=$(npm root -g) node "$(dirname $CAP)/apercu.cjs" <projet> cle.png --gsap package/dist/gsap.min.js --at 0,6,12
 ```
 
 C'est un aperçu, pas le rendu de livraison : pas d'ajustement `fitTextFontSize` (ce sont les tailles calculées à la construction qui s'appliquent), pas de traitement média, un seul `<audio>`. La livraison passe par `npx hyperframes check` puis `render`. Les alertes `[caption-lint]` éventuelles sont affichées.
