@@ -1,0 +1,71 @@
+<template>
+<style>
+#root { position:absolute; inset:0; background:#0B0B0C; overflow:hidden; font-family:'Playfair Display',serif; color:#F4EBDD; }
+.shot { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.fx { position:absolute; inset:0; }
+.box { position:absolute; left:0; overflow:hidden; width:1080px; background:#0B0B0C; }
+.box img { position:absolute; left:0; top:0; max-width:none; transform-origin:0 0; will-change:transform; }
+.bg { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.grad { position:absolute; left:0; right:0; bottom:0; height:760px;
+  background:linear-gradient(to bottom, rgba(11,11,12,0) 0%, rgba(11,11,12,.34) 38%, rgba(11,11,12,.68) 70%, rgba(11,11,12,.8) 100%); }
+.ly { position:absolute; left:84px; width:912px; font-style:italic; font-weight:400; letter-spacing:.005em; }
+.ly.full { bottom:330px; font-size:74px; line-height:1.2; text-shadow:0 2px 22px rgba(11,11,12,.9), 0 0 6px rgba(11,11,12,.55); }
+.ly.pan { top:1374px; font-size:64px; line-height:1.2; }
+.ly .w { display:inline-block; }
+.ly .g { color:#E3B34C; }
+.tick { position:absolute; left:84px; height:4px; width:132px; background:
+  repeating-linear-gradient(to right, #E3B34C 0 30px, transparent 30px 44px); transform-origin:0 50%; }
+.seam { position:absolute; left:0; top:1297px; width:1080px; height:6px; }
+.st { position:absolute; top:0; height:6px; border-radius:3px; background:#E3B34C; transform-origin:0 50%; }
+.ground { position:absolute; left:0; top:1300px; width:1080px; height:620px; background:#0B0B0C; }
+</style>
+<div id="root" data-composition-id="s07" data-width="1080" data-height="1920">
+<div id="s07-p1" class="clip shot" data-start="0.0" data-duration="4.9" data-track-index="2" style="z-index:1"><div id="s07-p1-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s07-p1-i" src="assets/img/v07.jpg" width="1976" height="964" style="width:1976px;height:964px" alt=""></div><div class="grad"></div></div></div>
+<div id="s07-p2" class="clip shot" data-start="4.9" data-duration="5.0" data-track-index="1" style="z-index:2"><div id="s07-p2-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s07-p2-i" src="assets/img/v07.jpg" width="1976" height="964" style="width:1976px;height:964px" alt=""></div><div class="grad"></div></div></div>
+<div id="s07-p3" class="clip shot" data-start="9.9" data-duration="4.1" data-track-index="2" style="z-index:3"><div id="s07-p3-fx" class="fx"><div class="box" style="top:0;height:1920px"><img class="bg" src="assets/img/v07_bg.jpg" alt=""></div><div class="box" data-layout-allow-overflow style="top:560px;height:608px"><img id="s07-p3-i" src="assets/img/v07.jpg" width="1976" height="964" style="width:1976px;height:964px" alt=""></div><div class="grad"></div></div></div>
+<div id="s07-p4" class="clip shot" data-start="14.0" data-duration="4.9" data-track-index="1" style="z-index:4"><div id="s07-p4-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s07-p4-i" src="assets/img/v08.jpg" width="1976" height="964" style="width:1976px;height:964px" alt=""></div></div></div>
+<div id="s07-l1" class="clip ly full" data-start="0.05" data-duration="4.85" data-track-index="5" style="z-index:50"><div id="s07-l1-in"><span id="s07-l1-w1" class="w">Je</span> <span id="s07-l1-w2" class="w">ne</span> <span id="s07-l1-w3" class="w">te</span> <span id="s07-l1-w4" class="w">veux</span> <span id="s07-l1-w5" class="w">ni</span> <span id="s07-l1-w6" class="w">sans</span> <span id="s07-l1-w7" class="w">faille</span> <span id="s07-l1-w8" class="w">ni</span> <span id="s07-l1-w9" class="w">sans</span> <span id="s07-l1-w10" class="w g">ombre,</span></div></div>
+<div id="s07-l2" class="clip ly full" data-start="4.95" data-duration="4.95" data-track-index="5" style="z-index:50"><div id="s07-l2-in"><span id="s07-l2-w1" class="w">Je</span> <span id="s07-l2-w2" class="w">viens</span> <span id="s07-l2-w3" class="w">vers</span> <span id="s07-l2-w4" class="w">toi</span> <span id="s07-l2-w5" class="w g">tel</span> <span id="s07-l2-w6" class="w g">que</span> <span id="s07-l2-w7" class="w g">je</span> <span id="s07-l2-w8" class="w g">suis</span> <span id="s07-l2-w9" class="w">aussi.</span></div></div>
+<div id="s07-l3" class="clip ly full" data-start="9.95" data-duration="4.05" data-track-index="5" style="z-index:50"><div id="s07-l3-in"><span id="s07-l3-w1" class="w">Nous</span> <span id="s07-l3-w2" class="w">avons</span> <span id="s07-l3-w3" class="w">tous</span> <span id="s07-l3-w4" class="w">nos</span> <span id="s07-l3-w5" class="w">saisons</span> <span id="s07-l3-w6" class="w">les</span> <span id="s07-l3-w7" class="w">plus</span> <span id="s07-l3-w8" class="w">sombres,</span></div></div>
+</div>
+<script>
+(function(){
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s07-p1-i", {"x": -286.48, "y": 0.0, "scale": 1.9917}, {...{"x": -379.73, "y": -41.74, "scale": 2.16489}, duration: 4.9, ease: "none"}, 0.0);
+tl.fromTo("#s07-p2-i", {"x": -2451.06, "y": 0.0, "scale": 1.9917}, {...{"x": -2525.63, "y": -50.53, "scale": 2.09653}, duration: 5.0, ease: "none"}, 4.9);
+tl.fromTo("#s07-p3-i", {"x": -83.14, "y": 0.0, "scale": 0.63071}, {...{"x": -109.1, "y": -12.67, "scale": 0.65698}, duration: 4.1, ease: "none"}, 9.9);
+tl.fromTo("#s07-p4-i", {"x": -2569.13, "y": 0.0, "scale": 1.9917}, {...{"x": -2796.71, "y": -41.74, "scale": 2.16489}, duration: 4.9, ease: "none"}, 14.0);
+tl.fromTo("#s07-l1-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.12);
+tl.fromTo("#s07-l1-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.313);
+tl.fromTo("#s07-l1-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.505);
+tl.fromTo("#s07-l1-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.698);
+tl.fromTo("#s07-l1-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.019);
+tl.fromTo("#s07-l1-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.212);
+tl.fromTo("#s07-l1-w7", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.533);
+tl.fromTo("#s07-l1-w8", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.982);
+tl.fromTo("#s07-l1-w9", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 2.175);
+tl.fromTo("#s07-l1-w10", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 2.496);
+tl.fromTo("#s07-l1-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 4.6);
+tl.fromTo("#s07-l2-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 5.01);
+tl.fromTo("#s07-l2-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 5.208);
+tl.fromTo("#s07-l2-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 5.605);
+tl.fromTo("#s07-l2-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 5.935);
+tl.fromTo("#s07-l2-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.2);
+tl.fromTo("#s07-l2-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.464);
+tl.fromTo("#s07-l2-w7", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.729);
+tl.fromTo("#s07-l2-w8", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.927);
+tl.fromTo("#s07-l2-w9", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 7.257);
+tl.fromTo("#s07-l2-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 9.6);
+tl.fromTo("#s07-l3-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 9.99);
+tl.fromTo("#s07-l3-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 10.416);
+tl.fromTo("#s07-l3-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 10.927);
+tl.fromTo("#s07-l3-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 11.353);
+tl.fromTo("#s07-l3-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 11.694);
+tl.fromTo("#s07-l3-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 12.376);
+tl.fromTo("#s07-l3-w7", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 12.717);
+tl.fromTo("#s07-l3-w8", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 13.143);
+tl.fromTo("#s07-l3-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 13.7);
+window.__timelines["s07"] = tl;
+})();
+</script>
+</template>

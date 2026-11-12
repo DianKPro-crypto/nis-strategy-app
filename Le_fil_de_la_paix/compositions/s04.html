@@ -1,0 +1,78 @@
+<template>
+<style>
+#root { position:absolute; inset:0; background:#0B0B0C; overflow:hidden; font-family:'Playfair Display',serif; color:#F4EBDD; }
+.shot { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.fx { position:absolute; inset:0; }
+.box { position:absolute; left:0; overflow:hidden; width:1080px; background:#0B0B0C; }
+.box img { position:absolute; left:0; top:0; max-width:none; transform-origin:0 0; will-change:transform; }
+.bg { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.grad { position:absolute; left:0; right:0; bottom:0; height:760px;
+  background:linear-gradient(to bottom, rgba(11,11,12,0) 0%, rgba(11,11,12,.34) 38%, rgba(11,11,12,.68) 70%, rgba(11,11,12,.8) 100%); }
+.ly { position:absolute; left:84px; width:912px; font-style:italic; font-weight:400; letter-spacing:.005em; }
+.ly.full { bottom:330px; font-size:74px; line-height:1.2; text-shadow:0 2px 22px rgba(11,11,12,.9), 0 0 6px rgba(11,11,12,.55); }
+.ly.pan { top:1374px; font-size:64px; line-height:1.2; }
+.ly .w { display:inline-block; }
+.ly .g { color:#E3B34C; }
+.tick { position:absolute; left:84px; height:4px; width:132px; background:
+  repeating-linear-gradient(to right, #E3B34C 0 30px, transparent 30px 44px); transform-origin:0 50%; }
+.seam { position:absolute; left:0; top:1297px; width:1080px; height:6px; }
+.st { position:absolute; top:0; height:6px; border-radius:3px; background:#E3B34C; transform-origin:0 50%; }
+.ground { position:absolute; left:0; top:1300px; width:1080px; height:620px; background:#0B0B0C; }
+</style>
+<div id="root" data-composition-id="s04" data-width="1080" data-height="1920">
+<div id="s04-p1" class="clip shot" data-start="0.0" data-duration="4.75" data-track-index="2" style="z-index:1"><div id="s04-p1-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1300px"><img id="s04-p1-i" src="assets/img/v04.jpg" width="1976" height="960" style="width:1976px;height:960px" alt=""></div></div></div>
+<div id="s04-p2" class="clip shot" data-start="4.75" data-duration="3.8" data-track-index="1" style="z-index:2"><div id="s04-p2-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1300px"><img id="s04-p2-i" src="assets/img/v04.jpg" width="1976" height="960" style="width:1976px;height:960px" alt=""></div></div></div>
+<div id="s04-p3" class="clip shot" data-start="8.55" data-duration="4.9" data-track-index="2" style="z-index:3"><div id="s04-p3-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1300px"><img id="s04-p3-i" src="assets/img/v04.jpg" width="1976" height="960" style="width:1976px;height:960px" alt=""></div></div></div>
+<div id="s04-p4" class="clip shot" data-start="13.45" data-duration="4.75" data-track-index="1" style="z-index:4"><div id="s04-p4-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1300px"><img id="s04-p4-i" src="assets/img/v04.jpg" width="1976" height="960" style="width:1976px;height:960px" alt=""></div></div></div>
+<div id="s04-ground" class="clip ground" data-start="0.0" data-duration="18.2" data-track-index="3" style="z-index:40" data-layout-ignore></div>
+<div id="s04-seam" class="clip seam" data-start="0.0" data-duration="18.2" data-track-index="4" style="z-index:41" data-layout-ignore><i id="s04-st0" class="st" style="left:76.6px;width:21.6px"></i><i id="s04-st1" class="st" style="left:111.4px;width:21.6px"></i><i id="s04-st2" class="st" style="left:146.2px;width:21.6px"></i><i id="s04-st3" class="st" style="left:181.1px;width:21.6px"></i></div>
+<div id="s04-l1" class="clip ly pan" data-start="0.05" data-duration="4.7" data-track-index="5" style="z-index:50"><div id="s04-l1-in"><span id="s04-l1-w1" class="w">Un</span> <span id="s04-l1-w2" class="w">fil</span> <span id="s04-l1-w3" class="w">de</span> <span id="s04-l1-w4" class="w g">paix,</span> <span id="s04-l1-w5" class="w">un</span> <span id="s04-l1-w6" class="w">fil</span> <span id="s04-l1-w7" class="w">d’amour,</span></div></div>
+<div id="s04-l2" class="clip ly pan" data-start="4.8" data-duration="3.75" data-track-index="5" style="z-index:50"><div id="s04-l2-in"><span id="s04-l2-w1" class="w g">Recoud</span> <span id="s04-l2-w2" class="w">nos</span> <span id="s04-l2-w3" class="w">cœurs,</span> <span id="s04-l2-w4" class="w">jour</span> <span id="s04-l2-w5" class="w">après</span> <span id="s04-l2-w6" class="w">jour.</span></div></div>
+<div id="s04-l3" class="clip ly pan" data-start="8.6" data-duration="4.85" data-track-index="5" style="z-index:50"><div id="s04-l3-in"><span id="s04-l3-w1" class="w">Ya</span> <span id="s04-l3-w2" class="w">Allah,</span> <span id="s04-l3-w3" class="w">apprends-moi</span> <span id="s04-l3-w4" class="w">la</span> <span id="s04-l3-w5" class="w g">douceur,</span></div></div>
+<div id="s04-l4" class="clip ly pan" data-start="13.5" data-duration="4.7" data-track-index="5" style="z-index:50"><div id="s04-l4-in"><span id="s04-l4-w1" class="w">Que</span> <span id="s04-l4-w2" class="w">mes</span> <span id="s04-l4-w3" class="w">deux</span> <span id="s04-l4-w4" class="w">mains</span> <span id="s04-l4-w5" class="w">suivent</span> <span id="s04-l4-w6" class="w">enfin</span> <span id="s04-l4-w7" class="w">mon</span> <span id="s04-l4-w8" class="w g">cœur.</span></div></div>
+</div>
+<script>
+(function(){
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s04-p1-i", {"x": -717.64, "y": 0.0, "scale": 1.35417}, {...{"x": -797.92, "y": -41.49, "scale": 1.4406}, duration: 4.75, ease: "none"}, 0.0);
+tl.fromTo("#s04-p2-i", {"x": -2135.83, "y": -918.97, "scale": 2.33477}, {...{"x": -2433.15, "y": -1059.26, "scale": 2.50772}, duration: 3.8, ease: "none"}, 4.75);
+tl.fromTo("#s04-p3-i", {"x": -1365.52, "y": -19.7, "scale": 2.05177}, {...{"x": -1556.07, "y": -65.0, "scale": 2.25694}, duration: 4.9, ease: "none"}, 8.55);
+tl.fromTo("#s04-p4-i", {"x": -1081.72, "y": -650.0, "scale": 2.05177}, {...{"x": -1973.66, "y": -650.0, "scale": 2.05177}, duration: 4.75, ease: "none"}, 13.45);
+tl.fromTo("#s04-st0", {scaleX:0}, {scaleX:1, duration:0.5, ease:"power2.out"}, 0.15);
+tl.fromTo("#s04-st1", {scaleX:0}, {scaleX:1, duration:0.5, ease:"power2.out"}, 4.92);
+tl.fromTo("#s04-st2", {scaleX:0}, {scaleX:1, duration:0.5, ease:"power2.out"}, 8.68);
+tl.fromTo("#s04-st3", {scaleX:0}, {scaleX:1, duration:0.5, ease:"power2.out"}, 13.6);
+tl.fromTo("#s04-l1-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.09);
+tl.fromTo("#s04-l1-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.296);
+tl.fromTo("#s04-l1-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.57);
+tl.fromTo("#s04-l1-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.776);
+tl.fromTo("#s04-l1-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.187);
+tl.fromTo("#s04-l1-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.393);
+tl.fromTo("#s04-l1-w7", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.667);
+tl.fromTo("#s04-l1-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 4.45);
+tl.fromTo("#s04-l2-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 4.86);
+tl.fromTo("#s04-l2-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 5.352);
+tl.fromTo("#s04-l2-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 5.633);
+tl.fromTo("#s04-l2-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.125);
+tl.fromTo("#s04-l2-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.477);
+tl.fromTo("#s04-l2-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 6.898);
+tl.fromTo("#s04-l2-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 8.25);
+tl.fromTo("#s04-l3-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 8.62);
+tl.fromTo("#s04-l3-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 8.923);
+tl.fromTo("#s04-l3-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 9.631);
+tl.fromTo("#s04-l3-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 10.946);
+tl.fromTo("#s04-l3-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 11.249);
+tl.fromTo("#s04-l3-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 13.15);
+tl.fromTo("#s04-l4-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 13.54);
+tl.fromTo("#s04-l4-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 13.862);
+tl.fromTo("#s04-l4-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 14.184);
+tl.fromTo("#s04-l4-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 14.586);
+tl.fromTo("#s04-l4-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 15.069);
+tl.fromTo("#s04-l4-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 15.712);
+tl.fromTo("#s04-l4-w7", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 16.195);
+tl.fromTo("#s04-l4-w8", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 16.517);
+tl.fromTo("#s04-l4-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 17.9);
+window.__timelines["s04"] = tl;
+})();
+</script>
+</template>

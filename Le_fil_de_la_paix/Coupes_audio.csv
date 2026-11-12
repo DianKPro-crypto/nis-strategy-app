@@ -1,0 +1,3 @@
+﻿operation,source_debut_s,source_fin_s,sortie_debut_s,sortie_fin_s,commentaire
+conserve (aucune coupe),0.000,197.592,0.000,197.592,"Le chant source dure 3 min 17,6 s : dans la cible 3 min - 3 min 30, fin musicale naturelle. Aucun raccord, aucune acceleration."
+conversion,,,,,"MP3 48 kHz stereo -> WAV PCM 16 bits 48 kHz, niveau inchange (-14,1 LUFS mesure)."
