@@ -1,0 +1,40 @@
+﻿sequence,titre,plan,debut_s,fin_s,duree_s,mise_en_page_9x16,image_source,description,paroles_a_l_ecran,transition_entree
+01,La présence,1,0.00,6.40,6.40,plein cadre,hero,"Plan moyen, lent rapprochement ; page de garde",,coupe franche
+01,La présence,2,6.40,11.20,4.80,plein cadre,hero,"Portrait, regard hors champ",,coupe franche
+01,La présence,3,11.20,16.10,4.90,plein cadre,hero,Détail des mains réunies,"Entre mes mains,",coupe franche
+01,La présence,4,16.10,21.00,4.90,plein cadre,hero,"Broderies du boubou, descente lente",Un fil demeure…,coupe franche
+01,La présence,5,21.00,28.25,7.25,plein cadre,v02,Portrait rapproché,Apaise mon cœur.,coupe franche
+02,Les mots restés en soi,1,28.25,33.10,4.85,plein cadre,v02,Détail du regard,"J’avais gardé chaque mot comme une pierre,",coupe franche
+02,Les mots restés en soi,2,33.10,38.00,4.90,plein cadre,hero,"Trois-quarts, silence",,coupe franche
+02,Les mots restés en soi,3,38.00,42.90,4.90,plein cadre,hero,Plan taille dans la cour,,coupe franche
+02,Les mots restés en soi,4,42.90,47.80,4.90,plein cadre,v02,"Portrait, léger recul",Mais ma colère habitait mon langage.,coupe franche
+03,Le poids du silence,1,47.80,52.60,4.80,plein cadre,v03,Mains réunies et broderies,"Puis j’ai revu mes propres maladresses,",coupe franche
+03,Le poids du silence,2,52.60,57.45,4.85,plein cadre,hero,Retour au visage,,coupe franche
+03,Le poids du silence,3,57.45,62.40,4.95,plein cadre,v03,Des broderies vers les mains,"Sous nos armures, il reste une tendresse,",coupe franche
+03,Le poids du silence,4,62.40,66.35,3.95,plan large,v04,Raccord : l’étoffe à la couture défaite,Un peu de nous qui voudrait réparer.,coupe franche
+04,Ce qui peut être réparé,1,66.35,71.10,4.75,cadre + texte,v04,Assis devant l’étoffe ; cadre élargi au refrain,"Un fil de paix, un fil d’amour,",coupe franche
+04,Ce qui peut être réparé,2,71.10,74.90,3.80,cadre + texte,v04,Détail de la couture défaite,"Recoud nos cœurs, jour après jour.",coupe franche
+04,Ce qui peut être réparé,3,74.90,79.80,4.90,cadre + texte,v04,Portrait,"Ya Allah, apprends-moi la douceur,",coupe franche
+04,Ce qui peut être réparé,4,79.80,84.55,4.75,cadre + texte,v04,"Les deux mains sur l’étoffe, panoramique",Que mes deux mains suivent enfin mon cœur.,coupe franche
+05,La place de l’autre,1,84.55,89.65,5.10,cadre + texte,v05,Son regard vers la chaise,"Un fil de paix, même fragile,",coupe franche
+05,La place de l’autre,2,89.65,94.45,4.80,diptyque,v05+v05,Diptyque vertical : lui / la chaise vide,Peut rapprocher nos deux rives.,coupe franche
+06,Le premier geste,1,94.45,99.15,4.70,cadre + texte,v06,Il pose la bobine de fil,"Je fais un pas, / sans tout savoir,",coupe franche
+06,Le premier geste,2,99.15,104.00,4.85,cadre + texte,v06,"Bobine et couture défaite, plan presque fixe",Je laisse à l’amour un peu d’espoir.,coupe franche
+07,L’invitation,1,104.00,108.90,4.90,plein cadre,v07,Arrivée du second homme,"Je ne te veux ni sans faille ni sans ombre,",coupe franche
+07,L’invitation,2,108.90,113.90,5.00,plein cadre,v07,La main ouverte,Je viens vers toi tel que je suis aussi.,coupe franche
+07,L’invitation,3,113.90,118.00,4.10,plan large,v07,Les deux hommes dans la cour,"Nous avons tous nos saisons les plus sombres,",coupe franche
+07,L’invitation,4,118.00,122.90,4.90,plein cadre,v08,"Le second homme assis, regard",,coupe franche
+08,L’écoute,1,122.90,127.85,4.95,cadre + texte,v08,Champ : il parle,"J’ai déposé ma colère sur la table,",coupe franche
+08,L’écoute,2,127.85,132.55,4.70,diptyque,v08+v08,Diptyque : champ / contrechamp,Et le courage de rester là.,coupe franche
+08,L’écoute,3,132.55,137.45,4.90,plan large,v08,"Plan à deux, même hauteur","Je peux nommer ce qui m’a fait souffrir, / sans condamner tout ce que tu peux être.",coupe franche
+09,Le choix de la paix,1,137.45,142.45,5.00,cadre + texte,v09,Sa main se pose sur l’étoffe,"Je tends la main, / je te laisse choisir.",coupe franche
+09,Le choix de la paix,2,142.45,147.20,4.75,cadre + texte,v08,Réaction du personnage principal ; respiration,"Un fil de paix, un fil d’amour,",coupe franche
+10,La réparation,1,147.20,152.60,5.40,cadre + texte,v10,Ellipse : la couture réparée,"Recoud nos cœurs, jour après jour.","fondu 0,7 s"
+10,La réparation,2,152.60,155.90,3.30,cadre + texte,v10,Son visage,"Ya Allah, apprends-nous la douceur,",coupe franche
+10,La réparation,3,155.90,160.70,4.80,cadre + texte,v10,La main posée sur l’étoffe réparée,Que nos deux mains suivent enfin nos cœurs.,coupe franche
+11,Le lien retrouvé,1,160.70,165.70,5.00,plan large,v11,Ils tiennent ensemble l’étoffe pliée,"Un fil de paix, même fragile,",coupe franche
+11,Le lien retrouvé,2,165.70,170.30,4.60,diptyque,v11+v11,Diptyque : échange de regards,Peut rapprocher nos deux rives.,coupe franche
+11,Le lien retrouvé,3,170.30,175.25,4.95,cadre + texte,v11,Détail de l’étoffe et des mains,"Nous faisons un pas, / sans tout savoir,",coupe franche
+11,Le lien retrouvé,4,175.25,179.60,4.35,cadre + texte,v11,"Son visage, sourire discret",Nous laissons à l’amour un peu d’espoir.,coupe franche
+11,Le lien retrouvé,5,179.60,184.00,4.40,plan large,v11,"Plan à deux, lumière chaude",,coupe franche
+12,L’apaisement,1,184.00,197.60,13.60,cadre + texte,v12,"Portrait final, rapprochement puis immobilité",,coupe franche

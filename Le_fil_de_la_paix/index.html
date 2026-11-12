@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #0B0B0C; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="197.6" data-width="1080" data-height="1920">
+      <div id="s01" data-composition-id="s01" data-composition-src="compositions/s01.html" data-start="0.0" data-duration="28.25" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:1"></div>
+      <div id="s02" data-composition-id="s02" data-composition-src="compositions/s02.html" data-start="28.25" data-duration="19.55" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:2"></div>
+      <div id="s03" data-composition-id="s03" data-composition-src="compositions/s03.html" data-start="47.8" data-duration="18.55" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:3"></div>
+      <div id="s04" data-composition-id="s04" data-composition-src="compositions/s04.html" data-start="66.35" data-duration="18.2" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:4"></div>
+      <div id="s05" data-composition-id="s05" data-composition-src="compositions/s05.html" data-start="84.55" data-duration="9.9" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:5"></div>
+      <div id="s06" data-composition-id="s06" data-composition-src="compositions/s06.html" data-start="94.45" data-duration="9.55" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:6"></div>
+      <div id="s07" data-composition-id="s07" data-composition-src="compositions/s07.html" data-start="104.0" data-duration="18.9" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:7"></div>
+      <div id="s08" data-composition-id="s08" data-composition-src="compositions/s08.html" data-start="122.9" data-duration="14.55" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:8"></div>
+      <div id="s09" data-composition-id="s09" data-composition-src="compositions/s09.html" data-start="137.45" data-duration="10.45" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:9"></div>
+      <div id="s10" data-composition-id="s10" data-composition-src="compositions/s10.html" data-start="147.2" data-duration="13.5" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:10"></div>
+      <div id="s11" data-composition-id="s11" data-composition-src="compositions/s11.html" data-start="160.7" data-duration="23.3" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:11"></div>
+      <div id="s12" data-composition-id="s12" data-composition-src="compositions/s12.html" data-start="184.0" data-duration="13.6" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index:12"></div>
+      <audio id="chant" class="clip" src="assets/audio/Le_fil_de_la_paix_audio_edit.wav" data-start="0" data-duration="197.6" data-track-index="9" data-volume="1"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

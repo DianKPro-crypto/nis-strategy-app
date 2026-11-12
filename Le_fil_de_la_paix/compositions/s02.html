@@ -1,0 +1,55 @@
+<template>
+<style>
+#root { position:absolute; inset:0; background:#0B0B0C; overflow:hidden; font-family:'Playfair Display',serif; color:#F4EBDD; }
+.shot { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.fx { position:absolute; inset:0; }
+.box { position:absolute; left:0; overflow:hidden; width:1080px; background:#0B0B0C; }
+.box img { position:absolute; left:0; top:0; max-width:none; transform-origin:0 0; will-change:transform; }
+.bg { position:absolute; left:0; top:0; width:1080px; height:1920px; }
+.grad { position:absolute; left:0; right:0; bottom:0; height:760px;
+  background:linear-gradient(to bottom, rgba(11,11,12,0) 0%, rgba(11,11,12,.34) 38%, rgba(11,11,12,.68) 70%, rgba(11,11,12,.8) 100%); }
+.ly { position:absolute; left:84px; width:912px; font-style:italic; font-weight:400; letter-spacing:.005em; }
+.ly.full { bottom:330px; font-size:74px; line-height:1.2; text-shadow:0 2px 22px rgba(11,11,12,.9), 0 0 6px rgba(11,11,12,.55); }
+.ly.pan { top:1374px; font-size:64px; line-height:1.2; }
+.ly .w { display:inline-block; }
+.ly .g { color:#E3B34C; }
+.tick { position:absolute; left:84px; height:4px; width:132px; background:
+  repeating-linear-gradient(to right, #E3B34C 0 30px, transparent 30px 44px); transform-origin:0 50%; }
+.seam { position:absolute; left:0; top:1297px; width:1080px; height:6px; }
+.st { position:absolute; top:0; height:6px; border-radius:3px; background:#E3B34C; transform-origin:0 50%; }
+.ground { position:absolute; left:0; top:1300px; width:1080px; height:620px; background:#0B0B0C; }
+</style>
+<div id="root" data-composition-id="s02" data-width="1080" data-height="1920">
+<div id="s02-p1" class="clip shot" data-start="0.0" data-duration="4.85" data-track-index="2" style="z-index:1"><div id="s02-p1-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s02-p1-i" src="assets/img/v02.jpg" width="1976" height="968" style="width:1976px;height:968px" alt=""></div><div class="grad"></div></div></div>
+<div id="s02-p2" class="clip shot" data-start="4.85" data-duration="4.9" data-track-index="1" style="z-index:2"><div id="s02-p2-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s02-p2-i" src="assets/img/hero.jpg" width="3332" height="1870" style="width:3332px;height:1870px" alt=""></div></div></div>
+<div id="s02-p3" class="clip shot" data-start="9.75" data-duration="4.9" data-track-index="2" style="z-index:3"><div id="s02-p3-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s02-p3-i" src="assets/img/hero.jpg" width="3332" height="1870" style="width:3332px;height:1870px" alt=""></div></div></div>
+<div id="s02-p4" class="clip shot" data-start="14.65" data-duration="4.9" data-track-index="1" style="z-index:4"><div id="s02-p4-fx" class="fx"><div class="box" data-layout-allow-overflow style="top:0px;height:1920px"><img id="s02-p4-i" src="assets/img/v02.jpg" width="1976" height="968" style="width:1976px;height:968px" alt=""></div><div class="grad"></div></div></div>
+<div id="s02-l1" class="clip ly full" data-start="0.05" data-duration="4.8" data-track-index="5" style="z-index:50"><div id="s02-l1-in"><span id="s02-l1-w1" class="w">J’avais</span> <span id="s02-l1-w2" class="w">gardé</span> <span id="s02-l1-w3" class="w">chaque</span> <span id="s02-l1-w4" class="w">mot</span> <span id="s02-l1-w5" class="w">comme</span> <span id="s02-l1-w6" class="w">une</span> <span id="s02-l1-w7" class="w g">pierre,</span></div></div>
+<div id="s02-l4" class="clip ly full" data-start="14.7" data-duration="4.85" data-track-index="5" style="z-index:50"><div id="s02-l4-in"><span id="s02-l4-w1" class="w">Mais</span> <span id="s02-l4-w2" class="w">ma</span> <span id="s02-l4-w3" class="w">colère</span> <span id="s02-l4-w4" class="w">habitait</span> <span id="s02-l4-w5" class="w">mon</span> <span id="s02-l4-w6" class="w g">langage.</span></div></div>
+</div>
+<script>
+(function(){
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s02-p1-i", {"x": -1615.64, "y": -480.0, "scale": 2.47934}, {...{"x": -1780.66, "y": -606.32, "scale": 2.60983}, duration: 4.85, ease: "none"}, 0.0);
+tl.fromTo("#s02-p2-i", {"x": -3608.07, "y": -336.0, "scale": 2.56684}, {...{"x": -3944.4, "y": -389.19, "scale": 2.77497}, duration: 4.9, ease: "none"}, 4.85);
+tl.fromTo("#s02-p3-i", {"x": -1598.18, "y": -120.0, "scale": 1.28342}, {...{"x": -1679.09, "y": -155.68, "scale": 1.38748}, duration: 4.9, ease: "none"}, 9.75);
+tl.fromTo("#s02-p4-i", {"x": -1374.1, "y": -312.56, "scale": 2.30636}, {...{"x": -1249.26, "y": -166.96, "scale": 2.15595}, duration: 4.9, ease: "none"}, 14.65);
+tl.fromTo("#s02-l1-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.09);
+tl.fromTo("#s02-l1-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.575);
+tl.fromTo("#s02-l1-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 0.94);
+tl.fromTo("#s02-l1-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.364);
+tl.fromTo("#s02-l1-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.607);
+tl.fromTo("#s02-l1-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 1.971);
+tl.fromTo("#s02-l1-w7", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 2.214);
+tl.fromTo("#s02-l1-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 4.55);
+tl.fromTo("#s02-l4-w1", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 14.77);
+tl.fromTo("#s02-l4-w2", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 15.174);
+tl.fromTo("#s02-l4-w3", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 15.416);
+tl.fromTo("#s02-l4-w4", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 15.982);
+tl.fromTo("#s02-l4-w5", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 16.709);
+tl.fromTo("#s02-l4-w6", {opacity:0, y:16}, {opacity:1, y:0, duration:0.42, ease:"power2.out"}, 17.032);
+tl.fromTo("#s02-l4-in", {opacity:1}, {opacity:0, duration:0.28, ease:"power1.in"}, 19.25);
+window.__timelines["s02"] = tl;
+})();
+</script>
+</template>
