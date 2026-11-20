@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #0b0b0c;
+        --gold: #e3b34c;
+        --ivory: #fbf5e8;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #film {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 1920px;
+        object-fit: cover;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Extrait test : 0:54 → 1:24 de « Je laisse demain fleurir » -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-fps="25"
+      data-width="1080"
+      data-height="1920"
+    >
+      <video
+        id="film"
+        class="clip"
+        src="assets/fleurir_9x16.mp4"
+        data-start="0"
+        data-duration="30"
+        data-media-start="54"
+        data-has-audio="true"
+        data-volume="1"
+        data-fade-in="0.8"
+        data-fade-out="2"
+        data-track-index="0"
+        playsinline
+      ></video>
+
+      <div
+        id="mots"
+        data-composition-id="mots"
+        data-composition-src="compositions/mots.html"
+        data-start="0"
+        data-duration="30"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1080"
+        data-height="1920"
+        style="z-index: 2"
+      ></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

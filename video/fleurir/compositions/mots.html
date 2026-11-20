@@ -1,0 +1,334 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      --gold: #e3b34c;
+      --ivory: #fbf5e8;
+      font-family: "Inter", sans-serif;
+    }
+    .grp {
+      position: absolute;
+      left: 0;
+      width: 1080px;
+      text-align: center;
+      overflow: visible;
+    }
+    .band-top {
+      top: 300px;
+      height: 440px;
+    }
+    .band-low {
+      top: 1130px;
+      height: 320px;
+    }
+    /* Dégradé localisé derrière le texte, jamais plein écran */
+    .scrim {
+      position: absolute;
+      left: 40px;
+      right: 40px;
+      top: -40px;
+      bottom: -40px;
+      background: radial-gradient(
+        ellipse 50% 50% at 50% 50%,
+        rgba(11, 11, 12, 0.62) 0%,
+        rgba(11, 11, 12, 0.38) 45%,
+        rgba(11, 11, 12, 0) 100%
+      );
+      opacity: 0;
+    }
+    .inner {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    /* B · Éclosion */
+    .bloom {
+      font-weight: 900;
+      font-size: 124px;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      text-shadow: 0 4px 30px rgba(11, 11, 12, 0.55);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .bloom .ch,
+    .sig-big .ch,
+    .allah .ch {
+      display: inline-block;
+    }
+    /* A · Révélation */
+    .reveal {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 118px;
+      color: var(--ivory);
+      text-shadow: 0 4px 28px rgba(11, 11, 12, 0.6);
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .reveal .w {
+      display: inline-block;
+      margin: 0 0.12em;
+    }
+    .rule {
+      width: 420px;
+      height: 5px;
+      margin: 26px auto 0;
+      background: linear-gradient(90deg, rgba(227, 179, 76, 0), #e3b34c 18%, #e3b34c 82%, rgba(227, 179, 76, 0));
+      border-radius: 3px;
+    }
+    /* C · Signature */
+    .sig-small {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-size: 92px;
+      color: var(--ivory);
+      text-shadow: 0 4px 28px rgba(11, 11, 12, 0.6);
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .sig-small .w {
+      display: inline-block;
+      margin: 0 0.1em;
+    }
+    .sig-big {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 188px;
+      color: var(--gold);
+      line-height: 1.05;
+      white-space: nowrap;
+      text-shadow: 0 4px 30px rgba(11, 11, 12, 0.55);
+    }
+    .seed {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f3d389;
+      box-shadow: 0 0 14px 4px rgba(227, 179, 76, 0.7);
+      opacity: 0;
+    }
+    /* D · Invocation */
+    .allah {
+      font-family: "Playfair Display", serif;
+      font-weight: 700;
+      font-size: 140px;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 0 2px 6px rgba(11, 11, 12, 0.45), 0 4px 34px rgba(11, 11, 12, 0.7);
+    }
+    .halo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 520px;
+      height: 520px;
+      margin: -260px 0 0 -260px;
+      border-radius: 50%;
+      border: 3px solid rgba(227, 179, 76, 0.85);
+      opacity: 0;
+    }
+  </style>
+
+  <div id="root" data-composition-id="mots" data-width="1080" data-height="1920">
+    <!-- 0:56.1 « …mes deux mains dans la terre » -->
+    <div id="g-terre" class="grp band-top clip" data-start="1.9" data-duration="3.2">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">LA TERRE</div></div>
+    </div>
+
+    <!-- 1:00.4 « …par un jardin » -->
+    <div id="g-jardin" class="grp band-top clip" data-start="6.2" data-duration="2.4">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal"><span class="w">un</span><span class="w">jardin</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+
+    <!-- 1:03.0 Refrain : signature -->
+    <div id="g-sig" class="grp band-top clip" data-start="8.7" data-duration="4.05" data-layout-allow-overflow>
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="sig-small"><span class="w">Je</span><span class="w">laisse</span><span class="w">demain</span></div>
+        <div class="sig-big split">fleurir</div>
+      </div>
+      <div class="seed" data-layout-allow-occlusion style="left: 330px; top: 330px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 470px; top: 350px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 560px; top: 320px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 650px; top: 345px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 760px; top: 330px"></div>
+    </div>
+
+    <!-- 1:11.7 « …apprendre l'amour » -->
+    <div id="g-amour" class="grp band-low clip" data-start="17.55" data-duration="1.15">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">L’AMOUR</div></div>
+    </div>
+
+    <!-- 1:12.7 « Ya Allah, guide mes mains » -->
+    <div id="g-allah" class="grp band-low clip" data-start="18.65" data-duration="2.85" data-layout-allow-overflow>
+      <div class="scrim"></div>
+      <div class="halo"></div>
+      <div class="inner"><div class="allah split">Ya Allah</div></div>
+    </div>
+
+    <!-- 1:18.9 « Je fais un pas, je respire » -->
+    <div id="g-respire" class="grp band-low clip" data-start="24.8" data-duration="2.6">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal"><span class="w">je</span><span class="w">respire</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Découpe en lettres (déterministe, au chargement)
+    document.querySelectorAll("#root .split").forEach((el) => {
+      const txt = el.textContent;
+      el.textContent = "";
+      for (const c of txt) {
+        const s = document.createElement("span");
+        s.className = "ch";
+        s.textContent = c === " " ? " " : c;
+        el.appendChild(s);
+      }
+    });
+
+    const tl = gsap.timeline({ paused: true });
+    const q = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function scrimIn(g, at) {
+      tl.fromTo(`${g} .scrim`, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "sine.out" }, at);
+    }
+    function kill(g, end) {
+      tl.to(`${g} .scrim`, { opacity: 0, duration: 0.45, ease: "sine.in" }, end - 0.5);
+      tl.set([`${g} .inner`, `${g} .scrim`], { opacity: 0 }, end - 0.04);
+    }
+
+    // B · Éclosion : les lettres s'ouvrent depuis le centre
+    function bloom(g, wordAt, end, inDur = 0.85) {
+      const chars = q(`${g} .ch`);
+      const mid = (chars.length - 1) / 2;
+      scrimIn(g, wordAt - 0.15);
+      chars.forEach((c, i) => {
+        tl.fromTo(
+          c,
+          { opacity: 0, x: (mid - i) * 22, y: 26, scale: 0.7, filter: "blur(10px)" },
+          { opacity: 1, x: 0, y: 0, scale: 1, filter: "blur(0px)", duration: inDur, ease: "expo.out" },
+          wordAt - 0.1 + Math.abs(i - mid) * (inDur < 0.6 ? 0.015 : 0.035),
+        );
+      });
+      tl.fromTo(`${g} .bloom`, { scale: 0.94 }, { scale: 1.04, duration: end - wordAt, ease: "none" }, wordAt);
+      chars.forEach((c, i) => {
+        tl.to(c, { opacity: 0, y: -18, filter: "blur(8px)", duration: 0.4, ease: "power2.in" }, end - 0.5 + i * 0.012);
+      });
+      kill(g, end);
+    }
+
+    // A · Révélation : mot par mot, sur la voix, puis trait d'or
+    function reveal(g, times, end) {
+      const words = q(`${g} .w`);
+      scrimIn(g, times[0] - 0.2);
+      words.forEach((w, i) => {
+        tl.fromTo(
+          w,
+          { opacity: 0, y: 34, filter: "blur(8px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" },
+          times[i],
+        );
+      });
+      tl.fromTo(
+        `${g} .rule`,
+        { scaleX: 0, opacity: 1 },
+        { scaleX: 1, duration: 0.9, ease: "power2.inOut" },
+        times[times.length - 1] + 0.1,
+      );
+      tl.to(`${g} .inner`, { opacity: 0, y: -14, duration: 0.45, ease: "power2.in" }, end - 0.5);
+      kill(g, end);
+    }
+
+    // ---- Groupes (temps locaux : 0 = 0:54 dans la chanson) ----
+    bloom("#g-terre", 2.06, 5.1);
+    reveal("#g-jardin", [6.41, 6.65], 8.6);
+
+    // C · Signature
+    (function () {
+      const g = "#g-sig";
+      const small = q(`${g} .sig-small .w`);
+      const chars = q(`${g} .sig-big .ch`);
+      const at = [8.81, 9.0, 9.37];
+      scrimIn(g, 8.7);
+      small.forEach((w, i) => {
+        tl.fromTo(
+          w,
+          { opacity: 0, y: 40, filter: "blur(8px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" },
+          at[i],
+        );
+      });
+      chars.forEach((c, i) => {
+        tl.fromTo(
+          c,
+          { opacity: 0, y: 90, scaleY: 0.4, transformOrigin: "50% 100%" },
+          { opacity: 1, y: 0, scaleY: 1, duration: 0.9, ease: "back.out(1.6)" },
+          10.14 + i * 0.07,
+        );
+      });
+      tl.fromTo(
+        `${g} .sig-big`,
+        { textShadow: "0 0 0px rgba(227,179,76,0), 0 4px 30px rgba(11,11,12,0.55)" },
+        { textShadow: "0 0 46px rgba(243,211,137,0.95), 0 4px 30px rgba(11,11,12,0.55)", duration: 0.7, ease: "sine.out", yoyo: true, repeat: 1 },
+        10.75,
+      );
+      q(`${g} .seed`).forEach((s, i) => {
+        const dx = [-40, -15, 5, 20, 45][i];
+        tl.fromTo(
+          s,
+          { opacity: 0, x: 0, y: 0, scale: 0.4 },
+          { opacity: 1, scale: 1, duration: 0.4, ease: "sine.out" },
+          10.9 + i * 0.12,
+        );
+        tl.to(s, { x: dx, y: -160 - i * 18, duration: 1.6, ease: "sine.out" }, 10.9 + i * 0.12);
+        tl.to(s, { opacity: 0, duration: 0.6, ease: "sine.in" }, 11.9 + i * 0.12);
+      });
+      tl.to(`${g} .inner`, { opacity: 0, y: -16, duration: 0.5, ease: "power2.in" }, 12.2);
+      kill(g, 12.75);
+    })();
+
+    bloom("#g-amour", 17.73, 18.7, 0.45);
+
+    // D · Invocation : lettres qui apparaissent dans un halo
+    (function () {
+      const g = "#g-allah";
+      const chars = q(`${g} .ch`);
+      scrimIn(g, 18.65);
+      chars.forEach((c, i) => {
+        tl.fromTo(
+          c,
+          { opacity: 0, y: 12, filter: "blur(12px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.9, ease: "sine.out" },
+          (i < 2 ? 18.7 : 18.96) + i * 0.06,
+        );
+      });
+      tl.fromTo(`${g} .halo`, { scale: 0.45, opacity: 0.0 }, { scale: 0.75, opacity: 0.7, duration: 0.6, ease: "sine.out" }, 18.9);
+      tl.to(`${g} .halo`, { scale: 1.35, opacity: 0, duration: 1.8, ease: "sine.out" }, 19.5);
+      tl.fromTo(`${g} .allah`, { scale: 0.97 }, { scale: 1.03, duration: 2.8, ease: "none" }, 18.7);
+      tl.to(`${g} .inner`, { opacity: 0, filter: "blur(6px)", duration: 0.6, ease: "sine.in" }, 20.85);
+      kill(g, 21.5);
+    })();
+
+    reveal("#g-respire", [24.91, 25.47], 27.4);
+
+    window.__timelines["mots"] = tl;
+  </script>
+</template>
