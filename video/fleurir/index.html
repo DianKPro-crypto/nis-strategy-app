@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0b0b0c; }
+      #film { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 1; }
+    </style>
+  </head>
+  <body>
+    <!-- Version intégrale 9:16 (3 min 27 s + outro Dian K Pro) -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="211.7" data-fps="25" data-width="1080" data-height="1920">
+      <video id="film" class="clip" src="assets/fleurir_9x16.mp4" data-start="0" data-duration="207.2" data-media-start="0"
+        data-has-audio="true" data-volume="1" data-fade-out="1.2" data-track-index="0" playsinline></video>
+
+      <div id="garde" data-composition-id="garde" data-composition-src="compositions/garde.html" data-start="0" data-duration="6"
+        data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index: 3"></div>
+
+      <div id="mots" data-composition-id="mots" data-composition-src="compositions/mots.html" data-start="0" data-duration="207.2"
+        data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index: 2"></div>
+
+      <div id="outro" data-composition-id="outro" data-composition-src="compositions/outro.html" data-start="207.2" data-duration="4.5"
+        data-track-index="3" data-track-kind="graphics" data-width="1080" data-height="1920" style="z-index: 4"></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

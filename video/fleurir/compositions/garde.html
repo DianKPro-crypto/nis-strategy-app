@@ -1,0 +1,90 @@
+<template>
+  <!-- Page de garde : visible dès la première image (vignette), puis s'efface avant « Ya Allah » -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+    }
+    #garde-box {
+      position: absolute;
+      left: 0;
+      top: 230px;
+      width: 1080px;
+      height: 340px;
+      text-align: center;
+    }
+    #garde-scrim {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -70px;
+      bottom: -70px;
+      background: radial-gradient(
+        ellipse 56% 54% at 50% 50%,
+        rgba(11, 11, 12, 0.78) 0%,
+        rgba(11, 11, 12, 0.55) 50%,
+        rgba(11, 11, 12, 0) 100%
+      );
+    }
+    #garde-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #garde-l1 {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-size: 96px;
+      line-height: 1.05;
+      color: #fbf5e8;
+      text-shadow: 0 4px 28px rgba(11, 11, 12, 0.6);
+      white-space: nowrap;
+    }
+    #garde-l2 {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 200px;
+      line-height: 1;
+      color: #e3b34c;
+      text-shadow: 0 4px 30px rgba(11, 11, 12, 0.6);
+      white-space: nowrap;
+    }
+    #garde-rule {
+      width: 360px;
+      height: 5px;
+      margin: 18px auto 0;
+      background: linear-gradient(90deg, rgba(227, 179, 76, 0), #e3b34c 18%, #e3b34c 82%, rgba(227, 179, 76, 0));
+      border-radius: 3px;
+    }
+  </style>
+  <div id="root" data-composition-id="garde" data-width="1080" data-height="1920">
+    <div id="garde-box" class="clip" data-start="0" data-duration="6" data-layout-allow-overflow>
+      <div id="garde-scrim"></div>
+      <div id="garde-text">
+        <div id="garde-l1">Je laisse demain</div>
+        <div id="garde-l2">fleurir</div>
+        <div id="garde-rule"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Image 0 complète : rien ne part de zéro. Légère respiration, lueur, puis sortie.
+    tl.fromTo("#garde-l2", { scale: 1 }, { scale: 1.04, duration: 5, ease: "none" }, 0);
+    tl.fromTo(
+      "#garde-l2",
+      { textShadow: "0 0 0px rgba(243,211,137,0), 0 4px 30px rgba(11,11,12,0.6)" },
+      { textShadow: "0 0 44px rgba(243,211,137,0.9), 0 4px 30px rgba(11,11,12,0.6)", duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 1 },
+      0.8,
+    );
+    tl.fromTo("#garde-rule", { scaleX: 1 }, { scaleX: 1.15, duration: 5, ease: "none" }, 0);
+    tl.to("#garde-text", { opacity: 0, y: -24, filter: "blur(8px)", duration: 0.8, ease: "power2.in" }, 5.0);
+    tl.to("#garde-scrim", { opacity: 0, duration: 0.8, ease: "sine.in" }, 5.1);
+    tl.set(["#garde-text", "#garde-scrim"], { opacity: 0 }, 5.96);
+    window.__timelines["garde"] = tl;
+  </script>
+</template>

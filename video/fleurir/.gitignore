@@ -1,0 +1,5 @@
+# Médias lourds et sorties : non versionnés (source sur Google Drive)
+assets/*.mp4
+renders/
+.hyperframes/
+node_modules/
