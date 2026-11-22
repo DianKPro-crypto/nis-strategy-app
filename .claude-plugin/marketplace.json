@@ -1,0 +1,11 @@
+{
+  "name": "dian-k-pro",
+  "owner": { "name": "Dian K Pro" },
+  "plugins": [
+    {
+      "name": "dian-k-pro",
+      "source": "./claude-themes/dian-k-pro",
+      "description": "Thème Dian K Pro : noir et or, graines de lumière animées, effet doré au toucher et ambiance kora."
+    }
+  ]
+}

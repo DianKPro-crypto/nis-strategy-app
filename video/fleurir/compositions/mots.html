@@ -1,0 +1,441 @@
+<template>
+  <!--
+    Mots clés animés de « Je laisse demain fleurir ».
+    Tous les temps sont ceux de la chanson (alignement des paroles Suno) : 0 = début du clip.
+    Styles : B Éclosion (bloom), A Révélation (reveal), C Signature (sig), D Invocation (allah).
+  -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      --gold: #e3b34c;
+      --ivory: #fbf5e8;
+      font-family: "Inter", sans-serif;
+    }
+    .grp {
+      position: absolute;
+      left: 0;
+      width: 1080px;
+      text-align: center;
+      overflow: visible;
+    }
+    /* Bandes de placement, choisies plan par plan pour ne jamais couvrir un visage */
+    .band-high {
+      top: 250px;
+      height: 300px;
+    }
+    .band-top {
+      top: 300px;
+      height: 440px;
+    }
+    .band-low {
+      top: 1130px;
+      height: 320px;
+    }
+    /* Dégradé localisé derrière le texte, jamais plein écran */
+    .scrim {
+      position: absolute;
+      left: 40px;
+      right: 40px;
+      top: -40px;
+      bottom: -40px;
+      background: radial-gradient(
+        ellipse 50% 50% at 50% 50%,
+        rgba(11, 11, 12, 0.62) 0%,
+        rgba(11, 11, 12, 0.38) 45%,
+        rgba(11, 11, 12, 0) 100%
+      );
+      opacity: 0;
+    }
+    .scrim.strong {
+      background: radial-gradient(
+        ellipse 52% 52% at 50% 50%,
+        rgba(11, 11, 12, 0.74) 0%,
+        rgba(11, 11, 12, 0.5) 50%,
+        rgba(11, 11, 12, 0) 100%
+      );
+    }
+    .inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    /* B · Éclosion */
+    .bloom {
+      font-weight: 900;
+      font-size: 124px;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      text-shadow: 0 4px 30px rgba(11, 11, 12, 0.55);
+      line-height: 1.02;
+      white-space: nowrap;
+    }
+    .bloom .ch,
+    .sig-big .ch,
+    .allah .ch {
+      display: inline-block;
+    }
+    /* A · Révélation */
+    .reveal {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 118px;
+      color: var(--ivory);
+      text-shadow: 0 4px 28px rgba(11, 11, 12, 0.6);
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .reveal.two {
+      font-size: 100px;
+    }
+    .reveal .w {
+      display: inline-block;
+      margin: 0 0.12em;
+    }
+    .rule {
+      width: 420px;
+      height: 5px;
+      margin: 26px auto 0;
+      background: linear-gradient(90deg, rgba(227, 179, 76, 0), #e3b34c 18%, #e3b34c 82%, rgba(227, 179, 76, 0));
+      border-radius: 3px;
+    }
+    /* C · Signature */
+    .sig-small {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-size: 92px;
+      color: var(--ivory);
+      text-shadow: 0 4px 28px rgba(11, 11, 12, 0.6);
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .sig-small .w {
+      display: inline-block;
+      margin: 0 0.1em;
+    }
+    .sig-big {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 188px;
+      color: var(--gold);
+      line-height: 1.05;
+      white-space: nowrap;
+      text-shadow: 0 4px 30px rgba(11, 11, 12, 0.55);
+    }
+    .sig-big.grand {
+      font-size: 204px;
+    }
+    .seed {
+      position: absolute;
+      top: 68%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f3d389;
+      box-shadow: 0 0 14px 4px rgba(227, 179, 76, 0.7);
+      opacity: 0;
+    }
+    /* D · Invocation */
+    .allah {
+      font-family: "Playfair Display", serif;
+      font-weight: 700;
+      font-size: 140px;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 0 2px 6px rgba(11, 11, 12, 0.45), 0 4px 34px rgba(11, 11, 12, 0.7);
+    }
+    .halo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 520px;
+      height: 520px;
+      margin: -260px 0 0 -260px;
+      border-radius: 50%;
+      border: 3px solid rgba(227, 179, 76, 0.85);
+      opacity: 0;
+    }
+  </style>
+
+  <div id="root" data-composition-id="mots" data-width="1080" data-height="1920">
+    <!-- Intro -->
+    <div id="g-allah1" class="grp band-high clip" data-start="6.75" data-duration="3.85" data-layout-allow-overflow>
+      <div class="scrim strong"></div>
+      <div class="halo"></div>
+      <div class="inner"><div class="allah split">Ya Allah</div></div>
+    </div>
+    <div id="g-mains" class="grp band-low clip" data-start="16.15" data-duration="4.55">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">MAINS</div><div class="bloom split">OUVERTES</div></div>
+    </div>
+    <div id="g-coeur" class="grp band-low clip" data-start="20.7" data-duration="3.9">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal"><span class="w">Mon</span><span class="w">cœur</span><span class="w">apprend</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+
+    <!-- Couplet 1 -->
+    <div id="g-terre" class="grp band-top clip" data-start="55.9" data-duration="3.2">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">LA TERRE</div></div>
+    </div>
+    <div id="g-jardin" class="grp band-top clip" data-start="60.2" data-duration="2.4">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal"><span class="w">un</span><span class="w">jardin</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+
+    <!-- Refrain 1 -->
+    <div id="g-sig1" class="grp band-top clip" data-start="62.7" data-duration="4.05" data-layout-allow-overflow>
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="sig-small"><span class="w">Je</span><span class="w">laisse</span><span class="w">demain</span></div>
+        <div class="sig-big split">fleurir</div>
+      </div>
+      <div class="seed" data-layout-allow-occlusion style="left: 330px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 470px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 560px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 650px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 760px"></div>
+    </div>
+    <div id="g-amour" class="grp band-low clip" data-start="71.55" data-duration="1.15">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">L’AMOUR</div></div>
+    </div>
+    <div id="g-allah2" class="grp band-low clip" data-start="72.65" data-duration="2.85" data-layout-allow-overflow>
+      <div class="scrim strong"></div>
+      <div class="halo"></div>
+      <div class="inner"><div class="allah split">Ya Allah</div></div>
+    </div>
+    <div id="g-respire" class="grp band-low clip" data-start="78.8" data-duration="2.6">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal"><span class="w">je</span><span class="w">respire</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+
+    <!-- Couplet 2 -->
+    <div id="g-douceur" class="grp band-high clip" data-start="118.7" data-duration="3.2">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">DOUCEUR</div></div>
+    </div>
+
+    <!-- Pont -->
+    <div id="g-confier" class="grp band-low clip" data-start="132.7" data-duration="4.9">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal two"><span class="w">Me</span><span class="w">confier</span><br /><span class="w">n’est</span><span class="w">pas</span><span class="w">renoncer</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+    <div id="g-part" class="grp band-low clip" data-start="138.0" data-duration="3.3">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">MA PART</div></div>
+    </div>
+
+    <!-- Refrain final -->
+    <div id="g-fleurir2" class="grp band-top clip" data-start="148.9" data-duration="3.7" data-layout-allow-overflow>
+      <div class="scrim"></div>
+      <div class="inner"><div class="sig-big split">fleurir</div></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 400px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 540px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 680px"></div>
+    </div>
+    <div id="g-avenir" class="grp band-low clip" data-start="163.65" data-duration="2.55">
+      <div class="scrim"></div>
+      <div class="inner"><div class="bloom split">L’AVENIR</div></div>
+    </div>
+    <div id="g-sig2" class="grp band-low clip" data-start="175.1" data-duration="4.05" data-layout-allow-overflow>
+      <div class="scrim strong"></div>
+      <div class="inner">
+        <div class="sig-small"><span class="w">Je</span><span class="w">laisse</span><span class="w">demain</span></div>
+        <div class="sig-big grand split">fleurir</div>
+      </div>
+      <div class="seed" data-layout-allow-occlusion style="left: 300px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 420px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 540px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 660px"></div>
+      <div class="seed" data-layout-allow-occlusion style="left: 780px"></div>
+    </div>
+
+    <!-- Outro -->
+    <div id="g-allah3" class="grp band-low clip" data-start="181.0" data-duration="4.3" data-layout-allow-overflow>
+      <div class="scrim strong"></div>
+      <div class="halo"></div>
+      <div class="inner"><div class="allah split">Ya Allah</div></div>
+    </div>
+    <div id="g-recommence" class="grp band-top clip" data-start="190.4" data-duration="7.1">
+      <div class="scrim"></div>
+      <div class="inner">
+        <div class="reveal two"><span class="w">Aujourd’hui,</span><br /><span class="w">je</span><span class="w">recommence</span></div>
+        <div class="rule"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Découpe en lettres (déterministe, au chargement)
+    document.querySelectorAll("#root .split").forEach((el) => {
+      const txt = el.textContent;
+      el.textContent = "";
+      for (const c of txt) {
+        const s = document.createElement("span");
+        s.className = "ch";
+        s.textContent = c === " " ? " " : c;
+        el.appendChild(s);
+      }
+    });
+
+    const tl = gsap.timeline({ paused: true });
+    const q = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function scrimIn(g, at) {
+      tl.fromTo(`${g} .scrim`, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "sine.out" }, at);
+    }
+    function kill(g, end) {
+      tl.to(`${g} .scrim`, { opacity: 0, duration: 0.45, ease: "sine.in" }, end - 0.5);
+      tl.set([`${g} .inner`, `${g} .scrim`], { opacity: 0 }, end - 0.04);
+    }
+
+    // B · Éclosion : les lettres de chaque ligne s'ouvrent depuis leur centre
+    function bloom(g, wordAt, end, inDur = 0.85) {
+      scrimIn(g, wordAt - 0.15);
+      q(`${g} .bloom`).forEach((line, li) => {
+        const chars = Array.from(line.querySelectorAll(".ch"));
+        const mid = (chars.length - 1) / 2;
+        const start = wordAt - 0.1 + li * 0.18;
+        chars.forEach((c, i) => {
+          tl.fromTo(
+            c,
+            { opacity: 0, x: (mid - i) * 22, y: 26, scale: 0.7, filter: "blur(10px)" },
+            { opacity: 1, x: 0, y: 0, scale: 1, filter: "blur(0px)", duration: inDur, ease: "expo.out" },
+            start + Math.abs(i - mid) * (inDur < 0.6 ? 0.015 : 0.035),
+          );
+          tl.to(c, { opacity: 0, y: -18, filter: "blur(8px)", duration: 0.4, ease: "power2.in" }, end - 0.5 + i * 0.012);
+        });
+      });
+      tl.fromTo(`${g} .bloom`, { scale: 0.96 }, { scale: 1.03, duration: end - wordAt, ease: "none" }, wordAt);
+      kill(g, end);
+    }
+
+    // A · Révélation : mot par mot, sur la voix, puis trait d'or
+    function reveal(g, times, end) {
+      const words = q(`${g} .w`);
+      scrimIn(g, times[0] - 0.2);
+      words.forEach((w, i) => {
+        tl.fromTo(
+          w,
+          { opacity: 0, y: 34, filter: "blur(8px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" },
+          times[i],
+        );
+      });
+      tl.fromTo(
+        `${g} .rule`,
+        { scaleX: 0, opacity: 1 },
+        { scaleX: 1, duration: 0.9, ease: "power2.inOut" },
+        times[times.length - 1] + 0.1,
+      );
+      tl.to(`${g} .inner`, { opacity: 0, y: -14, duration: 0.45, ease: "power2.in" }, end - 0.5);
+      kill(g, end);
+    }
+
+    // C · Signature : les mots montent, « fleurir » pousse du bas, lueur et graines de lumière
+    function sig(g, smallTimes, fleurirAt, end) {
+      scrimIn(g, (smallTimes[0] ?? fleurirAt) - 0.15);
+      q(`${g} .sig-small .w`).forEach((w, i) => {
+        tl.fromTo(
+          w,
+          { opacity: 0, y: 40, filter: "blur(8px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" },
+          smallTimes[i],
+        );
+      });
+      q(`${g} .sig-big .ch`).forEach((c, i) => {
+        tl.fromTo(
+          c,
+          { opacity: 0, y: 90, scaleY: 0.4, transformOrigin: "50% 100%" },
+          { opacity: 1, y: 0, scaleY: 1, duration: 0.9, ease: "back.out(1.6)" },
+          fleurirAt + i * 0.07,
+        );
+      });
+      tl.fromTo(
+        `${g} .sig-big`,
+        { textShadow: "0 0 0px rgba(227,179,76,0), 0 4px 30px rgba(11,11,12,0.55)" },
+        {
+          textShadow: "0 0 46px rgba(243,211,137,0.95), 0 4px 30px rgba(11,11,12,0.55)",
+          duration: 0.7,
+          ease: "sine.out",
+          yoyo: true,
+          repeat: 1,
+        },
+        fleurirAt + 0.6,
+      );
+      q(`${g} .seed`).forEach((s, i) => {
+        const at = fleurirAt + 0.75 + i * 0.12;
+        const dx = (i - 2) * 18;
+        tl.fromTo(s, { opacity: 0, x: 0, y: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.4, ease: "sine.out" }, at);
+        tl.to(s, { x: dx, y: -160 - i * 18, duration: 1.6, ease: "sine.out" }, at);
+        tl.to(s, { opacity: 0, duration: 0.6, ease: "sine.in" }, at + 1.0);
+      });
+      tl.to(`${g} .inner`, { opacity: 0, y: -16, duration: 0.5, ease: "power2.in" }, end - 0.55);
+      kill(g, end);
+    }
+
+    // D · Invocation : lettres qui apparaissent dans un halo
+    function allah(g, yaAt, allahAt, end) {
+      const chars = q(`${g} .ch`);
+      scrimIn(g, yaAt - 0.1);
+      chars.forEach((c, i) => {
+        tl.fromTo(
+          c,
+          { opacity: 0, y: 12, filter: "blur(12px)" },
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.9, ease: "sine.out" },
+          (i < 2 ? yaAt : allahAt) + i * 0.06,
+        );
+      });
+      tl.fromTo(`${g} .halo`, { scale: 0.45, opacity: 0 }, { scale: 0.75, opacity: 0.7, duration: 0.6, ease: "sine.out" }, allahAt - 0.05);
+      tl.to(`${g} .halo`, { scale: 1.35, opacity: 0, duration: 1.8, ease: "sine.out" }, allahAt + 0.55);
+      tl.fromTo(`${g} .allah`, { scale: 0.97 }, { scale: 1.03, duration: end - yaAt, ease: "none" }, yaAt);
+      tl.to(`${g} .inner`, { opacity: 0, filter: "blur(6px)", duration: 0.6, ease: "sine.in" }, end - 0.65);
+      kill(g, end);
+    }
+
+    // ---- Accents (temps de la chanson, en secondes) ----
+    allah("#g-allah1", 6.879, 7.617, 10.6);
+    bloom("#g-mains", 16.32, 20.7);
+    reveal("#g-coeur", [20.854, 21.157, 21.801], 24.6);
+
+    bloom("#g-terre", 56.064, 59.1);
+    reveal("#g-jardin", [60.414, 60.649], 62.6);
+    sig("#g-sig1", [62.812, 63.0, 63.366], 64.137, 66.75);
+    bloom("#g-amour", 71.731, 72.7, 0.45);
+    allah("#g-allah2", 72.7, 72.962, 75.5);
+    reveal("#g-respire", [78.913, 79.474], 81.4);
+
+    bloom("#g-douceur", 118.864, 121.9);
+    reveal("#g-confier", [132.844, 132.98, 133.627, 133.987, 134.221], 137.6);
+    bloom("#g-part", 138.182, 141.3);
+
+    sig("#g-fleurir2", [], 149.179, 152.6);
+    bloom("#g-avenir", 163.803, 166.2);
+    sig("#g-sig2", [175.257, 175.488, 175.86], 176.695, 179.15);
+
+    allah("#g-allah3", 181.152, 181.79, 185.3);
+    reveal("#g-recommence", [190.42, 191.458, 191.699], 197.5);
+
+    window.__timelines["mots"] = tl;
+  </script>
+</template>
