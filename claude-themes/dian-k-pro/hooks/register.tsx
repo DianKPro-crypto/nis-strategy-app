@@ -160,17 +160,25 @@ const SOUND: ThemeSound = {
 
 // ---------- Look ----------
 
-const LOOK: ThemeSetArgs = {
+const BASE: ThemeSetArgs = {
   colors: theme,
   backdrop: { scene: 'graines', glass: { blur: 18, opacity: 0.72 } },
-  style: {
-    Heading: { fontFamily: ['serif'], fontWeight: 'semibold' },
-    UserMessage: { backgroundColor: 'surface-2', borderColor: '#e3b34c80', borderWidth: 1, radius: 14, paddingX: 14, paddingY: 10 },
-    AssistantMessage: { backgroundColor: 'surface-0', radius: 12, padding: 12 },
-    ToolUse: { backgroundColor: 'surface-1', radius: 8, paddingX: 8 },
-  },
-  sound: SOUND,
 }
+
+const STYLE: ThemeSetArgs['style'] = {
+  Heading: { fontFamily: ['serif'], fontWeight: 'semibold' },
+  UserMessage: { backgroundColor: 'surface-2', borderColor: '#e3b34c80', borderWidth: 1, radius: 14, paddingX: 14, paddingY: 10 },
+  AssistantMessage: { backgroundColor: 'surface-0', radius: 12, padding: 12 },
+  ToolUse: { backgroundColor: 'surface-1', radius: 8, paddingX: 8 },
+}
+
+// Du plus complet au plus simple : chaque version de l'app reçoit le plus riche qu'elle accepte.
+// Niveau 2 : son et style ; 1 : son ; 0 : couleurs et fond seuls.
+const LEVELS: ThemeSetArgs[] = [BASE, { ...BASE, sound: SOUND }, { ...BASE, sound: SOUND, style: STYLE }]
+const LEVEL_KEY = 'niveau'
+
+// Une app qui refuse le son ou le style est une ancienne version : on y dessine le fond sans effet GPU.
+let plain = false
 
 async function apply($: EngineInterface): Promise<void> {
   const unpainted = problems.find(line => line.startsWith("Desktop won't paint"))
@@ -179,17 +187,33 @@ async function apply($: EngineInterface): Promise<void> {
     $.ui.toast(unpainted)
   }
 
-  try {
-    const set = await $.theme.set(LOOK)
+  const stored = Number((await $.store.get(LEVEL_KEY)) ?? 2)
+  let level = Number.isInteger(stored) && stored >= 0 && stored <= 2 ? stored : 2
 
-    if (!set.isDrawn) {
-      $.ui.status(set.reason)
+  while (level > 0) {
+    try {
+      const set = await $.theme.set(LEVELS[level] ?? BASE)
+      plain = level < 2
+
+      if (!set.isDrawn) {
+        $.ui.status(set.reason)
+      }
+
+      return
+    } catch (error) {
+      if (!/does not know the attribute/.test(String(error))) {
+        $.ui.log(String(error))
+      }
+      level -= 1
+      await $.store.set(LEVEL_KEY, level)
     }
-  } catch (error) {
-    // Une version de l'app qui refuse le son ou le style : on garde couleurs et fond.
-    $.ui.log(String(error))
-    const { sound: _sound, style: _style, ...rest } = LOOK
-    await $.theme.set(rest)
+  }
+
+  plain = true
+  const set = await $.theme.set(BASE)
+
+  if (!set.isDrawn) {
+    $.ui.status(set.reason)
   }
 }
 
@@ -209,10 +233,15 @@ export const register: Register = on => {
     }
 
     const { Shader, Svg } = $.ui.resolve(e)
+    const alt = "Graines de lumière dorées qui montent et lignes de circuit qui s'allument"
+
+    if (plain) {
+      return <Svg source={SCENE} alt={alt} isInteractive />
+    }
 
     return (
       <Shader module="./seeds.ts">
-        <Svg source={SCENE} alt="Graines de lumière dorées qui montent et lignes de circuit qui s'allument" isInteractive />
+        <Svg source={SCENE} alt={alt} isInteractive />
       </Shader>
     )
   })
